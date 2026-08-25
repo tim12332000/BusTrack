@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>各站接駁車【去/回】即時戰情中心 (模擬測試)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0B0F19;
+      --bg-card: rgba(18, 24, 38, 0.8);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+      
+      --color-chenggong: #3B82F6;
+      --color-xinwuri: #8B5CF6;
+      --color-jingmao: #EC4899;
+      --color-shuinan: #10B981;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif; }
+    body {
+      background: var(--bg-main);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      padding: 24px;
+      min-height: 100vh;
+    }
+
+    .container { max-width: 1700px; margin: 0 auto; }
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
+    .title-group h1 { font-size: 24px; font-weight: 800; }
+    .title-group p { color: var(--text-secondary); font-size: 13px; margin-top: 4px; }
+    
+    .btn {
+      padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+      border: 1px solid var(--border-color); transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: linear-gradient(135deg, #3B82F6, #1D4ED8); color: #fff; border: none; }
+    .btn-secondary { background: var(--bg-card); color: var(--text-primary); }
+
+    /* Top Big KPI Cards */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .kpi-card {
+      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; backdrop-filter: blur(16px);
+      border-top: 3px solid #38BDF8;
+    }
+    .kpi-card.go { border-top-color: #60A5FA; }
+    .kpi-card.back { border-top-color: #34D399; }
+    .kpi-card.total { border-top-color: #F59E0B; }
+    .kpi-title { font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; }
+    .kpi-value { font-size: 30px; font-weight: 800; margin: 6px 0 2px; }
+    .kpi-sub { font-size: 11px; color: var(--text-muted); }
+
+    /* Layout: 4 Stations Grid */
+    .stations-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    @media (max-width: 1400px) { .stations-container { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 800px) { .stations-container { grid-template-columns: 1fr; } }
+
+    .station-box {
+      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; backdrop-filter: blur(12px);
+      display: flex; flex-direction: column;
+    }
+    .station-header {
+      padding: 12px 16px; font-weight: 800; font-size: 14px; display: flex; justify-content: space-between; align-items: center;
+      color: #fff;
+    }
+    .sh-chenggong { background: linear-gradient(135deg, #2563EB, #1D4ED8); }
+    .sh-xinwuri { background: linear-gradient(135deg, #7C3AED, #6D28D9); }
+    .sh-jingmao { background: linear-gradient(135deg, #DB2777, #BE185D); }
+    .sh-shuinan { background: linear-gradient(135deg, #059669, #047857); }
+
+    .station-summary {
+      display: grid; grid-template-columns: 1fr 1fr; padding: 10px 14px; background: rgba(0,0,0,0.3); font-size: 12px; font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .bus-table-wrap { max-height: 520px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; }
+    th { background: rgba(255,255,255,0.04); color: var(--text-secondary); padding: 8px 4px; font-weight: 600; position: sticky; top: 0; backdrop-filter: blur(8px); }
+    td { padding: 7px 4px; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    tr:hover { background: rgba(255,255,255,0.04); cursor: pointer; }
+
+    .tag-go { color: #60A5FA; font-weight: 700; }
+    .tag-back { color: #34D399; font-weight: 700; }
+    .time-text { font-size: 10px; color: var(--text-muted); }
+
+    /* Modal / Form Simulator */
+    .form-panel {
+      margin-top: 24px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px 24px;
+      display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;
+    }
+    .form-item { display: flex; flex-direction: column; gap: 6px; }
+    .form-item label { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+    .form-item select, .form-item input {
+      background: rgba(0,0,0,0.4); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 8px; color: #fff; font-size: 13px; outline: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="title-group">
+        <h1>🚌 各站接駁車【去/回】即時戰情中心</h1>
+        <p>4 大接駁點（成功、新烏日、經貿六、水湳）· 去程與回程獨立即時統計</p>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-secondary" onclick="simulateRandomBatch()">🎲 模擬隨機 10 趟次回報</button>
+        <button class="btn btn-primary" onclick="simulateAllStations()">⚡ 一鍵模擬全場尖峰</button>
+        <button class="btn btn-secondary" onclick="resetAll()">🔄 清空重置</button>
+      </div>
+    </header>
+
+    <!-- KPI Summary -->
+    <div class="kpi-grid">
+      <div class="kpi-card total">
+        <div class="kpi-title">🏆 全場總運輸人次</div>
+        <div class="kpi-value" id="kpiTotalTransport">0 <span style="font-size:14px;color:var(--text-muted);font-weight:normal">人次</span></div>
+        <div class="kpi-sub" id="kpiTotalSub">4 個站點累計</div>
+      </div>
+      <div class="kpi-card go">
+        <div class="kpi-title">👉 去程總人數</div>
+        <div class="kpi-value" id="kpiGoTotal">0 <span style="font-size:14px;color:var(--text-muted);font-weight:normal">人</span></div>
+        <div class="kpi-sub">往會場方向</div>
+      </div>
+      <div class="kpi-card back">
+        <div class="kpi-title">👈 回程總人數</div>
+        <div class="kpi-value" id="kpiBackTotal">0 <span style="font-size:14px;color:var(--text-muted);font-weight:normal">人</span></div>
+        <div class="kpi-sub">離開會場方向</div>
+      </div>
+    </div>
+
+    <!-- 4 Stations Grid -->
+    <div class="stations-container">
+      
+      <!-- 1. 成功車站 (1~20) -->
+      <div class="station-box">
+        <div class="station-header sh-chenggong">
+          <span>📍 成功車站 (共 20 輛)</span>
+          <span style="font-size:11px;opacity:0.9">1 ~ 20 號</span>
+        </div>
+        <div class="station-summary">
+          <div>👉 去: <span class="tag-go" id="sum-chenggong-go">0</span> 人</div>
+          <div>👈 回: <span class="tag-back" id="sum-chenggong-back">0</span> 人</div>
+        </div>
+        <div class="bus-table-wrap">
+          <table>
+            <thead>
+              <tr><th>車號</th><th>👉去程</th><th>時間</th><th>👈回程</th><th>時間</th></tr>
+            </thead>
+            <tbody id="tbody-chenggong"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 2. 新烏日台鐵站 (1~50) -->
+      <div class="station-box">
+        <div class="station-header sh-xinwuri">
+          <span>📍 新烏日台鐵站 (共 50 輛)</span>
+          <span style="font-size:11px;opacity:0.9">1 ~ 50 號</span>
+        </div>
+        <div class="station-summary">
+          <div>👉 去: <span class="tag-go" id="sum-xinwuri-go">0</span> 人</div>
+          <div>👈 回: <span class="tag-back" id="sum-xinwuri-back">0</span> 人</div>
+        </div>
+        <div class="bus-table-wrap">
+          <table>
+            <thead>
+              <tr><th>車號</th><th>👉去程</th><th>時間</th><th>👈回程</th><th>時間</th></tr>
+            </thead>
+            <tbody id="tbody-xinwuri"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 3. 經貿六停車場 (1~40) -->
+      <div class="station-box">
+        <div class="station-header sh-jingmao">
+          <span>📍 經貿六停車場 (共 40 輛)</span>
+          <span style="font-size:11px;opacity:0.9">1 ~ 40 號</span>
+        </div>
+        <div class="station-summary">
+          <div>👉 去: <span class="tag-go" id="sum-jingmao-go">0</span> 人</div>
+          <div>👈 回: <span class="tag-back" id="sum-jingmao-back">0</span> 人</div>
+        </div>
+        <div class="bus-table-wrap">
+          <table>
+            <thead>
+              <tr><th>車號</th><th>👉去程</th><th>時間</th><th>👈回程</th><th>時間</th></tr>
+            </thead>
+            <tbody id="tbody-jingmao"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 4. 水湳轉運站 (1~20) -->
+      <div class="station-box">
+        <div class="station-header sh-shuinan">
+          <span>📍 水湳轉運站 (共 20 輛)</span>
+          <span style="font-size:11px;opacity:0.9">1 ~ 20 號</span>
+        </div>
+        <div class="station-summary">
+          <div>👉 去: <span class="tag-go" id="sum-shuinan-go">0</span> 人</div>
+          <div>👈 回: <span class="tag-back" id="sum-shuinan-back">0</span> 人</div>
+        </div>
+        <div class="bus-table-wrap">
+          <table>
+            <thead>
+              <tr><th>車號</th><th>👉去程</th><th>時間</th><th>👈回程</th><th>時間</th></tr>
+            </thead>
+            <tbody id="tbody-shuinan"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Quick Submit Form Simulation -->
+    <div class="form-panel">
+      <div style="font-weight:700;font-size:14px;width:100%;margin-bottom:-4px;">📱 車長手機填表模擬 (Google Form)</div>
+      
+      <div class="form-item">
+        <label>1. 選擇接駁站點</label>
+        <select id="formStation" onchange="updateBusOptions()">
+          <option value="chenggong">成功車站 (1~20號)</option>
+          <option value="xinwuri">新烏日台鐵站 (1~50號)</option>
+          <option value="jingmao">經貿六停車場 (1~40號)</option>
+          <option value="shuinan">水湳轉運站 (1~20號)</option>
+        </select>
+      </div>
+
+      <div class="form-item">
+        <label>2. 選擇車號</label>
+        <select id="formBusNum"></select>
+      </div>
+
+      <div class="form-item">
+        <label>3. 行程方向</label>
+        <select id="formDirection">
+          <option value="go">👉 去程</option>
+          <option value="back">👈 回程</option>
+        </select>
+      </div>
+
+      <div class="form-item">
+        <label>4. 搭乘人數</label>
+        <input type="number" id="formCount" value="30" min="0" max="50" style="width:100px;">
+      </div>
+
+      <button class="btn btn-primary" onclick="submitSingleReport()" style="padding:10px 20px;">
+        📤 提交回報
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    const STATIONS = {
+      chenggong: { name: '成功車站', count: 20, buses: [] },
+      xinwuri: { name: '新烏日台鐵站', count: 50, buses: [] },
+      jingmao: { name: '經貿六停車場', count: 40, buses: [] },
+      shuinan: { name: '水湳轉運站', count: 20, buses: [] }
+    };
+
+    function init() {
+      for (const key in STATIONS) {
+        const st = STATIONS[key];
+        st.buses = [];
+        for (let i = 1; i <= st.count; i++) {
+          st.buses.push({
+            id: i,
+            name: `${i} 號車`,
+            goActual: 0,
+            goTime: '-',
+            backActual: 0,
+            backTime: '-'
+          });
+        }
+      }
+      updateBusOptions();
+      render();
+    }
+
+    function updateBusOptions() {
+      const stKey = document.getElementById('formStation').value;
+      const st = STATIONS[stKey];
+      const sel = document.getElementById('formBusNum');
+      sel.innerHTML = '';
+      for (let i = 1; i <= st.count; i++) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `${i} 號車`;
+        sel.appendChild(opt);
+      }
+    }
+
+    function submitSingleReport() {
+      const stKey = document.getElementById('formStation').value;
+      const busId = parseInt(document.getElementById('formBusNum').value);
+      const dir = document.getElementById('formDirection').value;
+      const count = parseInt(document.getElementById('formCount').value) || 0;
+      const timeStr = new Date().toLocaleTimeString('zh-TW', { hour12: false });
+
+      const bus = STATIONS[stKey].buses.find(b => b.id === busId);
+      if (bus) {
+        if (dir === 'go') {
+          bus.goActual = count;
+          bus.goTime = timeStr;
+        } else {
+          bus.backActual = count;
+          bus.backTime = timeStr;
+        }
+      }
+      render();
+    }
+
+    function render() {
+      let grandGo = 0;
+      let grandBack = 0;
+
+      for (const key in STATIONS) {
+        const st = STATIONS[key];
+        let stGo = 0;
+        let stBack = 0;
+        const tbody = document.getElementById(`tbody-${key}`);
+        tbody.innerHTML = '';
+
+        st.buses.forEach(b => {
+          stGo += b.goActual;
+          stBack += b.backActual;
+
+          const tr = document.createElement('tr');
+          tr.onclick = () => {
+            document.getElementById('formStation').value = key;
+            updateBusOptions();
+            document.getElementById('formBusNum').value = b.id;
+          };
+          tr.innerHTML = `
+            <td style="font-weight:700;">${b.name}</td>
+            <td class="tag-go">${b.goActual > 0 ? b.goActual + '人' : '-'}</td>
+            <td class="time-text">${b.goTime}</td>
+            <td class="tag-back">${b.backActual > 0 ? b.backActual + '人' : '-'}</td>
+            <td class="time-text">${b.backTime}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById(`sum-${key}-go`).textContent = stGo;
+        document.getElementById(`sum-${key}-back`).textContent = stBack;
+
+        grandGo += stGo;
+        grandBack += stBack;
+      }
+
+      document.getElementById('kpiGoTotal').innerHTML = `${grandGo.toLocaleString()} <span style="font-size:14px;color:var(--text-muted);font-weight:normal">人</span>`;
+      document.getElementById('kpiBackTotal').innerHTML = `${grandBack.toLocaleString()} <span style="font-size:14px;color:var(--text-muted);font-weight:normal">人</span>`;
+      document.getElementById('kpiTotalTransport').innerHTML = `${(grandGo + grandBack).toLocaleString()} <span style="font-size:14px;color:var(--text-muted);font-weight:normal">人次</span>`;
+    }
+
+    function simulateRandomBatch() {
+      const keys = ['chenggong', 'xinwuri', 'jingmao', 'shuinan'];
+      for (let i = 0; i < 10; i++) {
+        const key = keys[Math.floor(Math.random() * keys.length)];
+        const st = STATIONS[key];
+        const bus = st.buses[Math.floor(Math.random() * st.buses.length)];
+        const isGo = Math.random() > 0.4;
+        const count = Math.floor(Math.random() * 25) + 15;
+        const timeStr = new Date().toLocaleTimeString('zh-TW', { hour12: false });
+        if (isGo) {
+          bus.goActual = count;
+          bus.goTime = timeStr;
+        } else {
+          bus.backActual = count;
+          bus.backTime = timeStr;
+        }
+      }
+      render();
+    }
+
+    function simulateAllStations() {
+      for (const key in STATIONS) {
+        const st = STATIONS[key];
+        st.buses.forEach(b => {
+          b.goActual = Math.floor(Math.random() * 20) + 20;
+          b.goTime = '08:25:10';
+          b.backActual = Math.floor(Math.random() * 20) + 18;
+          b.backTime = '17:40:30';
+        });
+      }
+      render();
+    }
+
+    function resetAll() {
+      init();
+    }
+
+    init();
+  </script>
+</body>
+</html>
