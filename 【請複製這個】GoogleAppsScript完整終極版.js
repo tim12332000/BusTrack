@@ -1,26 +1,23 @@
 /**
  * =========================================================================
- * 🚌 接駁車管理系統 - 【重點數據極致醒目版】
+ * 🚌 接駁車管理系統 - 【路線色名稱客製版】
  * =========================================================================
  * 
- * ✨ 本版核心重點：
- * 1. 【去贅字】：站名乾淨大器（成功車站 / 新烏日台鐵站 / 經貿六停車場 / 水湳轉運站），不寫「共幾輛」。
- * 2. 【超醒目總人數】：
- *    - 🏆 全場總運輸人次: XXX 人 (特大 24pt)
- *    - 👉 全場去程總人數: XXX 人 (特大 24pt)
- *    - 👈 全場返程總人數: XXX 人 (特大 24pt)
- * 3. 【各站獨立去/返/總人數】：
- *    - 成功車站：去程 XXX ｜ 返程 XXX ｜ 本站總人數 XXX
- *    - 新烏日站：去程 XXX ｜ 返程 XXX ｜ 本站總人數 XXX
- *    - 經貿六站：去程 XXX ｜ 返程 XXX ｜ 本站總人數 XXX
- *    - 水湳轉運站：去程 XXX ｜ 返程 XXX ｜ 本站總人數 XXX
+ * 📍 4 大路線接駁站點：
+ * 1. 成功車站（綠線）      (1 ~ 20 號車)
+ * 2. 新烏日台鐵站（藍線）   (1 ~ 50 號車)
+ * 3. 經貿六停車場（黃線）   (1 ~ 40 號車)
+ * 4. 水湳轉運站（黃線）     (1 ~ 20 號車)
  * 
- * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，點「執行 (Run)」即可！
+ * 👉 使用方式：
+ * 1. 按 Ctrl + A 全選複製。
+ * 2. 到 Google Apps Script 編輯器全選貼上覆蓋。
+ * 3. 點擊上方的「執行 (Run)」按鈕即可！
  * =========================================================================
  */
 
 function createMultiStationBusSystem() {
-  Logger.log("🚀 開始建立【重點數據極致醒目戰情系統】...");
+  Logger.log("🚀 開始建立【路線色名稱版 接駁戰情系統】...");
 
   // 1. 建立全新 Google 表單
   const form = FormApp.create("🚌 接駁車【去程 / 返程】搭乘人數即時回報");
@@ -32,14 +29,14 @@ function createMultiStationBusSystem() {
     .setChoiceValues(["👉 去程", "👈 返程"])
     .setRequired(true);
 
-  // 題目 2: 接駁站點 (簡潔純站名)
+  // 題目 2: 接駁站點 (含綠線、藍線、黃線)
   form.addMultipleChoiceItem()
     .setTitle("2. 選擇接駁站點")
     .setChoiceValues([
-      "成功車站",
-      "新烏日台鐵站",
-      "經貿六停車場",
-      "水湳轉運站"
+      "成功車站（綠線）",
+      "新烏日台鐵站（藍線）",
+      "經貿六停車場（黃線）",
+      "水湳轉運站（黃線）"
     ])
     .setRequired(true);
 
@@ -92,7 +89,7 @@ function createMultiStationBusSystem() {
     dashboardSheet.getRange(1, 1, 70, 25).breakApart();
   } catch (e) {}
 
-  // --- A. 頂部三大超醒目 KPI 戰情大卡片 (字體特大 24pt，重點突出) ---
+  // --- A. 頂部三大超醒目 KPI 戰情大卡片 ---
   dashboardSheet.getRange("A1:C1").merge().setValue("🏆 全場總運輸人次").setBackground("#0F172A").setFontColor("#94A3B8").setFontWeight("bold").setFontSize(13).setHorizontalAlignment("center");
   dashboardSheet.getRange("A2:C3").merge().setFormula("=D2+G2").setBackground("#020617").setFontColor("#38BDF8").setFontSize(24).setFontWeight("bold").setHorizontalAlignment("center");
 
@@ -102,12 +99,12 @@ function createMultiStationBusSystem() {
   dashboardSheet.getRange("G1:I1").merge().setValue("👈 全場返程總人數").setBackground("#064E3B").setFontColor("#6EE7B7").setFontWeight("bold").setFontSize(13).setHorizontalAlignment("center");
   dashboardSheet.getRange("G2:I3").merge().setFormula("=D6+I6+N6+S6").setBackground("#022C22").setFontColor("#34D399").setFontSize(24).setFontWeight("bold").setHorizontalAlignment("center");
 
-  // --- B. 4 大站點戰情明細 (純站名 + 各站去/返/總獨立小計) ---
+  // --- B. 4 大站點戰情明細 (成功-綠線 / 新烏日-藍線 / 經貿六-黃線 / 水湳-黃線) ---
   const stations = [
-    { name: "成功車站", formKeyword: "成功車站", startCol: 1, busCount: 20, bg: "#2563EB" },
-    { name: "新烏日台鐵站", formKeyword: "新烏日台鐵站", startCol: 6, busCount: 50, bg: "#7C3AED" },
-    { name: "經貿六停車場", formKeyword: "經貿六停車場", startCol: 11, busCount: 40, bg: "#DB2777" },
-    { name: "水湳轉運站", formKeyword: "水湳轉運站", startCol: 16, busCount: 20, bg: "#059669" }
+    { name: "成功車站（綠線）", formKeyword: "成功車站", startCol: 1, busCount: 20, bg: "#059669" },
+    { name: "新烏日台鐵站（藍線）", formKeyword: "新烏日", startCol: 6, busCount: 50, bg: "#2563EB" },
+    { name: "經貿六停車場（黃線）", formKeyword: "經貿六", startCol: 11, busCount: 40, bg: "#D97706" },
+    { name: "水湳轉運站（黃線）", formKeyword: "水湳", startCol: 16, busCount: 20, bg: "#D97706" }
   ];
 
   stations.forEach(st => {
@@ -115,12 +112,12 @@ function createMultiStationBusSystem() {
     const startRow = 8;
     const endRow = startRow + st.busCount - 1;
     
-    // 1. 純站名大標題 (第 5 列，不寫共幾輛)
+    // 1. 路線站名大標題 (第 5 列)
     dashboardSheet.getRange(5, col, 1, 5).merge()
       .setValue(`📍 ${st.name}`)
-      .setBackground(st.bg).setFontColor("#FFFFFF").setFontWeight("bold").setFontSize(14).setHorizontalAlignment("center");
+      .setBackground(st.bg).setFontColor("#FFFFFF").setFontWeight("bold").setFontSize(13).setHorizontalAlignment("center");
 
-    // 2. 🌟 各站獨立小計統計列 (第 6 列：去程小計 / 返程小計 / 本站總計)
+    // 2. 各站獨立小計 (第 6 列)
     const colGo = String.fromCharCode(64 + col + 1);
     const colBack = String.fromCharCode(64 + col + 3);
 
@@ -139,10 +136,15 @@ function createMultiStationBusSystem() {
     const busRows = [];
     for (let b = 1; b <= st.busCount; b++) {
       const busName = `${b} 號車`;
+      
+      // 去程人數
       const fGoActual = `=IFERROR(INDEX('${formSheetName}'!E:E, MAX(FILTER(ROW('${formSheetName}'!E:E), '${formSheetName}'!B:B="👉 去程", ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!C:C)), '${formSheetName}'!D:D="${busName}"))), 0)`;
+      // 去程時間
       const fGoTime = `=IFERROR(TEXT(INDEX('${formSheetName}'!A:A, MAX(FILTER(ROW('${formSheetName}'!A:A), '${formSheetName}'!B:B="👉 去程", ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!C:C)), '${formSheetName}'!D:D="${busName}"))), "hh:mm:ss"), "-")`;
       
+      // 返程人數
       const fBackActual = `=IFERROR(INDEX('${formSheetName}'!E:E, MAX(FILTER(ROW('${formSheetName}'!E:E), '${formSheetName}'!B:B="👈 返程", ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!C:C)), '${formSheetName}'!D:D="${busName}"))), 0)`;
+      // 返程時間
       const fBackTime = `=IFERROR(TEXT(INDEX('${formSheetName}'!A:A, MAX(FILTER(ROW('${formSheetName}'!A:A), '${formSheetName}'!B:B="👈 返程", ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!C:C)), '${formSheetName}'!D:D="${busName}"))), "hh:mm:ss"), "-")`;
 
       busRows.push([busName, fGoActual, fGoTime, fBackActual, fBackTime]);
@@ -168,7 +170,7 @@ function createMultiStationBusSystem() {
   const newFormUrl = form.getPublishedUrl();
 
   Logger.log("\n=======================================================");
-  Logger.log("🎉【全新重點數據醒目看板建立完成！】");
+  Logger.log("🎉【全新路線色版 戰情看板建立完成！】");
   Logger.log("\n📱【最新車長填寫表單網址】:\n" + newFormUrl);
   Logger.log("\n📊【最新主控即時戰情看板網址】:\n" + ssUrl);
   Logger.log("=======================================================\n");
