@@ -1,18 +1,11 @@
 /**
  * =========================================================================
- * 🚌 接駁車管理系統 - 【純淨高階戰情大螢幕版 (免車輛明細 + 疏運返程率)】
+ * 🚌 接駁車管理系統 - 【純淨高階戰情大螢幕版 (進度條避開綠色混淆)】
  * =========================================================================
  * 
- * ✨ 本版革命性升級：
- * 1. 【隱藏瑣碎車輛明細】：首頁戰情看板只保留「4 大站點戰情大卡」，純淨大氣、完全不擠！
- * 2. 【去程 / 返程 / 總量 標籤超清晰】：
- *    - 👉 去程總人數: 600 人
- *    - 👈 返程總人數: 555 人
- *    - 🏆 累計總運量: 1,155 人次
- * 3. 【真正的疏運完成度比例 (返程 555 / 去程 600 = 92.5%)】：
- *    - 即時呈現疏運完成率與尚餘未返人數 (45 人)！
- *    - 動態 Sparkline 綠色疏運進度條！
- * 4. 【各車明細獨立分頁】：另外建立「各車即時明細」分頁供細部查詢。
+ * ✨ 顏色優化：
+ * - 進度條改為【電光亮青色 (#38BDF8)】或【活力橙 (#F97316)】，徹底避開綠色，不與綠線/返程標籤混淆！
+ * - 路線色（成功-綠 / 新烏日-藍 / 經貿六-黃 / 水湳-黃）清晰分明！
  * 
  * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，點「執行 (Run)」即可！
  * =========================================================================
@@ -142,15 +135,11 @@ function createMultiStationBusSystem() {
   dashboardSheet.getRange("J1:L1").merge().setValue("📈 全場返程疏運完成率").setBackground("#312E81").setFontColor("#C7D2FE").setFontWeight("bold").setFontSize(13).setHorizontalAlignment("center");
   dashboardSheet.getRange("J2:L3").merge().setFormula(`=IF(D2>0, TEXT(G2/D2, "0.0%"), "0.0%")`).setBackground("#1E1B4B").setFontColor("#FDE047").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
 
-  // 全場總疏運進度條 (第 4 列)
+  // 全場總疏運進度條 (第 4 列：改為電光亮青色 #38BDF8，徹底避開綠色)
   dashboardSheet.getRange("A4:C4").merge().setValue("⚡ 全場疏運進度").setBackground("#0F172A").setFontColor("#94A3B8").setFontWeight("bold").setHorizontalAlignment("center");
-  dashboardSheet.getRange("D4:L4").merge().setFormula(`=IF(D2>0, SPARKLINE(G2, {"charttype", "bar"; "max", D2; "color1", "#10B981"}), "")`).setBackground("#0F172A");
+  dashboardSheet.getRange("D4:L4").merge().setFormula(`=IF(D2>0, SPARKLINE(G2, {"charttype", "bar"; "max", D2; "color1", "#38BDF8"}), "")`).setBackground("#0F172A");
 
-  // 2. 4 大站點獨立戰情大卡片 (4 列並排卡片，寬敞大氣！)
-  // 卡片 1: 成功車站 (A6:C12)
-  // 卡片 2: 新烏日 (D6:F12)
-  // 卡片 3: 經貿六 (G6:I12)
-  // 卡片 4: 水湳 (J6:L12)
+  // 2. 4 大站點獨立戰情大卡片
   const cardStations = [
     { name: "📍 成功車站（綠線）", startCol: 1, detailGoCol: "B", detailBackCol: "D", detailEndRow: 22, bg: "#059669" },
     { name: "📍 新烏日台鐵站（藍線）", startCol: 4, detailGoCol: "G", detailBackCol: "I", detailEndRow: 52, bg: "#2563EB" },
@@ -166,12 +155,12 @@ function createMultiStationBusSystem() {
       .setValue(cs.name)
       .setBackground(cs.bg).setFontColor("#FFFFFF").setFontWeight("bold").setFontSize(15).setHorizontalAlignment("center");
 
-    // 標題說明列 (第 7 列)：去程 / 返程 / 總運量
+    // 標題說明列 (第 7 列)
     dashboardSheet.getRange(7, col).setValue("👉 去程人數").setBackground("#1E3A8A").setFontColor("#93C5FD").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
     dashboardSheet.getRange(7, col + 1).setValue("👈 返程人數").setBackground("#064E3B").setFontColor("#6EE7B7").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
     dashboardSheet.getRange(7, col + 2).setValue("🏆 本站總量").setBackground("#312E81").setFontColor("#FDE047").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
 
-    // 數據列 (第 8 列)：大數字
+    // 數據列 (第 8 列)
     const colLetterGo = String.fromCharCode(64 + col);
     const colLetterBack = String.fromCharCode(64 + col + 1);
 
@@ -179,7 +168,7 @@ function createMultiStationBusSystem() {
     dashboardSheet.getRange(8, col + 1).setFormula(`=SUM('各車即時明細'!${cs.detailBackCol}3:${cs.detailBackCol}${cs.detailEndRow})`).setBackground("#022C22").setFontColor("#FFFFFF").setFontWeight("bold").setFontSize(18).setHorizontalAlignment("center");
     dashboardSheet.getRange(8, col + 2).setFormula(`=${colLetterGo}8+${colLetterBack}8`).setBackground("#1E1B4B").setFontColor("#FDE047").setFontWeight("bold").setFontSize(18).setHorizontalAlignment("center");
 
-    // 疏運率標題 (第 9 列)
+    // 疏運率標題 (第 9 列：返程 / 去程)
     dashboardSheet.getRange(9, col, 1, 2).merge()
       .setFormula(`=IF(${colLetterGo}8>0, "📈 返程疏運率: " & TEXT(${colLetterBack}8/${colLetterGo}8, "0.0%"), "📈 返程疏運率: 0.0%")`)
       .setBackground("#1E293B").setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
@@ -187,34 +176,32 @@ function createMultiStationBusSystem() {
     dashboardSheet.getRange(9, col + 2).setFormula(`=IF(${colLetterGo}8>0, "尚餘 " & MAX(0, ${colLetterGo}8 - ${colLetterBack}8) & " 人", "已完成")`)
       .setBackground("#1E293B").setFontColor("#F87171").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
 
-    // 疏運進度條 (第 10 列：返程人數 / 去程人數)
+    // 疏運進度條 (第 10 列：改用高對比電光亮青色 #38BDF8，絕不與綠/藍/黃撞色)
     dashboardSheet.getRange(10, col, 1, 3).merge()
-      .setFormula(`=IF(${colLetterGo}8>0, SPARKLINE(${colLetterBack}8, {"charttype", "bar"; "max", ${colLetterGo}8; "color1", "#10B981"}), "")`)
+      .setFormula(`=IF(${colLetterGo}8>0, SPARKLINE(${colLetterBack}8, {"charttype", "bar"; "max", ${colLetterGo}8; "color1", "#38BDF8"}), "")`)
       .setBackground("#0F172A");
 
-    // 外框與樣式
     dashboardSheet.getRange(6, col, 5, 3).setBorder(true, true, true, true, true, true, "#475569", SpreadsheetApp.BorderStyle.SOLID);
     dashboardSheet.setColumnWidth(col, 110);
     dashboardSheet.setColumnWidth(col + 1, 110);
     dashboardSheet.setColumnWidth(col + 2, 110);
   });
 
-  // 列高設定 (極大氣舒適)
   dashboardSheet.setRowHeight(1, 28);
   dashboardSheet.setRowHeight(2, 28);
   dashboardSheet.setRowHeight(3, 28);
   dashboardSheet.setRowHeight(4, 26);
-  dashboardSheet.setRowHeight(5, 16); // 間隔列
-  dashboardSheet.setRowHeight(6, 38); // 站名大標題
-  dashboardSheet.setRowHeight(7, 30); // 去/返/總 標題
-  dashboardSheet.setRowHeight(8, 42); // 大數字
-  dashboardSheet.setRowHeight(9, 32); // 疏運率
-  dashboardSheet.setRowHeight(10, 26); // 進度條
+  dashboardSheet.setRowHeight(5, 16);
+  dashboardSheet.setRowHeight(6, 38);
+  dashboardSheet.setRowHeight(7, 30);
+  dashboardSheet.setRowHeight(8, 42);
+  dashboardSheet.setRowHeight(9, 32);
+  dashboardSheet.setRowHeight(10, 26);
 
   const newFormUrl = form.getPublishedUrl();
 
   Logger.log("\n=======================================================");
-  Logger.log("🎉【全新純淨大氣戰情看板建立完成！】");
+  Logger.log("🎉【全新進度條高對比配色 戰情看板建立完成！】");
   Logger.log("\n📱【最新車長填寫表單網址】:\n" + newFormUrl);
   Logger.log("\n📊【最新主控即時戰情看板網址】:\n" + ssUrl);
   Logger.log("=======================================================\n");
