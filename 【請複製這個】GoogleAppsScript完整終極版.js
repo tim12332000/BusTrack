@@ -1,25 +1,24 @@
 /**
  * =========================================================================
- * 🚌 接駁車與步行通道管理系統 - 【極簡純粹・移除累計總量 終極版】
+ * 🚌 接駁車與步行通道管理系統 - 【黃金 24 格完美對稱・絕不切字終極版】
  * =========================================================================
  * 
- * ✨ 極致精簡核心指標（聚焦：去程/入場 ➔ 返程/離場 ➔ 疏運率）：
- * 1. 【全面移除「累計總量」】：
- *    - 移除大盤與各卡片的累計總量，徹底消弭贅餘數字。
- * 2. 【版面極度乾淨通透】：
- *    - 車總統計：👉 去程總人數 ｜ 👈 返程總人數 ｜ 📈 車輛疏運率
- *    - 4 大車站：👉 去程人數 ｜ 👈 返程人數 ｜ 📈 返程疏運率
- *    - 人總統計：👉 入場總人數 ｜ 👈 離場總人數 ｜ 📈 步行疏運率
- *    - 3 大步行門：👉 入場人數 ｜ 👈 離場人數 ｜ 📈 離場疏運率
- * 3. 【全場統一極簡商務藍跑條】：
- *    - 高對比電光藍 (#2563EB / #38BDF8)，視覺極具現代感。
+ * ✨ 完美對齊與排版架構：
+ * 1. 【24 格黃金對稱網格 (寬度 1152px)】：
+ *    - 頂部大盤 (3 大指標)：每指標佔 8 格 (384px)，大字體大氣舒展！
+ *    - 車站專區 (4 大站點)：每站佔 6 格 (288px) ➔ 去程 3 格 (144px) + 返程 3 格 (144px) 完美 1:1 對稱！
+ *    - 步行專區 (3 大門區)：每門佔 8 格 (384px) ➔ 入場 4 格 (192px) + 離場 4 格 (192px) 完美 1:1 對稱！
+ * 2. 【疏運狀態整行完整顯示】：
+ *    - 狀態列整行合併：`📈 返程疏運率: 70.9%  (尚餘 183 人)`，100% 絕不截斷、無任何重疊！
+ * 3. 【全場統一極簡科技藍跑條】：
+ *    - 跑條一律使用 `#2563EB` / `#38BDF8`，乾淨純粹商務風。
  * 
  * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，點「執行」即可！
  * =========================================================================
  */
 
 function createMultiStationBusSystem() {
-  Logger.log("🎨 開始建立【極簡純粹・無累計總量 現代戰情系統】...");
+  Logger.log("🎨 開始建立【黃金 24 格完美對稱 現代戰情系統】...");
 
   // 1. 建立全新 Google 表單
   const form = FormApp.create("🚌 接駁車與步行進出【去程(入場) / 返程(離場)】人數回報");
@@ -130,171 +129,169 @@ function createMultiStationBusSystem() {
   });
 
   // ==========================================
-  // 【B. 第一頁：總即時戰情看板 (無累計總量 極簡版)】
+  // 【B. 第一頁：總即時戰情看板 (24 格黃金對稱)】
   // ==========================================
   try {
-    dashboardSheet.getRange(1, 1, 40, 20).breakApart();
+    dashboardSheet.getRange(1, 1, 40, 26).breakApart();
   } catch (e) {}
+
+  // 設定 24 欄標準欄寬 (每欄 48px，總寬 1152px 完美滿版)
+  for (let c = 1; c <= 24; c++) {
+    dashboardSheet.setColumnWidth(c, 48);
+  }
 
   const THEME_HEADER_BG = "#0F172A"; // 深石墨黑
   const THEME_CARD_BAR = "#2563EB";  // 統一極簡商務藍跑條
   const THEME_TOP_BAR = "#38BDF8";   // 頂部高亮青藍
 
   // -------------------------------------------------------------
-  // 🚌【段落一：車總統計大盤 (第 1~4 列)】
+  // 🚌【段落一：車總統計大盤 (第 1~4 列，跨 A~X 24欄)】
   // -------------------------------------------------------------
-  dashboardSheet.getRange("A1:L1").merge()
+  dashboardSheet.getRange(1, 1, 1, 24).merge()
     .setValue("🚌 接駁車輛全場總統計（共 4 條路線 / 130 輛車）")
     .setBackground(THEME_HEADER_BG).setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(13).setHorizontalAlignment("center");
 
-  // 👉 去程總人數 (A2:D3)
-  dashboardSheet.getRange("A2:D2").merge().setValue("👉 全場去程總人數").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange("A3:D3").merge().setFormula("=A9+D9+G9+J9").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(24).setFontWeight("bold").setHorizontalAlignment("center");
+  // 👉 去程總人數 (A2:H3, 8欄)
+  dashboardSheet.getRange(2, 1, 1, 8).merge().setValue("👉 全場去程總人數").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
+  dashboardSheet.getRange(3, 1, 1, 8).merge().setFormula("=A9+G9+M9+S9").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(24).setFontWeight("bold").setHorizontalAlignment("center");
 
-  // 👈 返程總人數 (E2:H3)
-  dashboardSheet.getRange("E2:H2").merge().setValue("👈 全場返程總人數").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange("E3:H3").merge().setFormula("=B9+E9+H9+K9").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(24).setFontWeight("bold").setHorizontalAlignment("center");
+  // 👈 返程總人數 (I2:P3, 8欄)
+  dashboardSheet.getRange(2, 9, 1, 8).merge().setValue("👈 全場返程總人數").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
+  dashboardSheet.getRange(3, 9, 1, 8).merge().setFormula("=D9+J9+P9+V9").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(24).setFontWeight("bold").setHorizontalAlignment("center");
 
-  // 📈 車輛疏運完成率 (I2:L3)
-  dashboardSheet.getRange("I2:L2").merge().setValue("📈 車輛疏運完成率").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange("I3:L3").merge().setFormula(`=IF(A3>0, TEXT(E3/A3, "0.0%"), "0.0%")`).setBackground("#1E293B").setFontColor("#34D399").setFontSize(24).setFontWeight("bold").setHorizontalAlignment("center");
+  // 📈 車輛疏運完成率 (Q2:X3, 8欄)
+  dashboardSheet.getRange(2, 17, 1, 8).merge().setValue("📈 車輛疏運完成率").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
+  dashboardSheet.getRange(3, 17, 1, 8).merge().setFormula(`=IF(A3>0, TEXT(I3/A3, "0.0%"), "0.0%")`).setBackground("#1E293B").setFontColor("#34D399").setFontSize(24).setFontWeight("bold").setHorizontalAlignment("center");
 
   // 接駁車進度條 (第 4 列)
-  dashboardSheet.getRange("A4:D4").merge().setValue("⚡ 車輛疏運進度").setBackground(THEME_HEADER_BG).setFontColor("#94A3B8").setFontWeight("bold").setHorizontalAlignment("center");
-  dashboardSheet.getRange("E4:L4").merge().setFormula(`=IF(A3>0, SPARKLINE(E3, {"charttype", "bar"; "max", A3; "color1", "${THEME_TOP_BAR}"}), "")`).setBackground(THEME_HEADER_BG);
+  dashboardSheet.getRange(4, 1, 1, 6).merge().setValue("⚡ 車輛疏運進度").setBackground(THEME_HEADER_BG).setFontColor("#94A3B8").setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange(4, 7, 1, 18).merge().setFormula(`=IF(A3>0, SPARKLINE(I3, {"charttype", "bar"; "max", A3; "color1", "${THEME_TOP_BAR}"}), "")`).setBackground(THEME_HEADER_BG);
 
-  dashboardSheet.getRange("A1:L4").setBorder(true, true, true, true, true, true, "#334155", SpreadsheetApp.BorderStyle.SOLID);
+  dashboardSheet.getRange(1, 1, 4, 24).setBorder(true, true, true, true, true, true, "#334155", SpreadsheetApp.BorderStyle.SOLID);
 
   // -------------------------------------------------------------
-  // 🚌【段落一：4 大接駁車站 (第 6~11 列)】
+  // 🚌【段落一：4 大接駁車站 (第 6~11 列，每站 6 欄)】
   // -------------------------------------------------------------
-  dashboardSheet.getRange("A6:L6").merge()
+  dashboardSheet.getRange(6, 1, 1, 24).merge()
     .setValue("🚌 各接駁車站點即時疏運明細")
     .setBackground("#334155").setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("left");
 
   const busStations = [
     { name: "📍 成功車站（綠線）", startCol: 1, detailGoCol: "B", detailBackCol: "D", detailEndRow: 22, tagColor: "#059669" },
-    { name: "📍 新烏日台鐵站（藍線）", startCol: 4, detailGoCol: "G", detailBackCol: "I", detailEndRow: 52, tagColor: "#2563EB" },
-    { name: "📍 經貿六停車場（黃線）", startCol: 7, detailGoCol: "L", detailBackCol: "N", detailEndRow: 42, tagColor: "#D97706" },
-    { name: "📍 水湳轉運站（黃線）", startCol: 10, detailGoCol: "Q", detailBackCol: "S", detailEndRow: 22, tagColor: "#D97706" }
+    { name: "📍 新烏日台鐵站（藍線）", startCol: 7, detailGoCol: "G", detailBackCol: "I", detailEndRow: 52, tagColor: "#2563EB" },
+    { name: "📍 經貿六停車場（黃線）", startCol: 13, detailGoCol: "L", detailBackCol: "N", detailEndRow: 42, tagColor: "#D97706" },
+    { name: "📍 水湳轉運站（黃線）", startCol: 19, detailGoCol: "Q", detailBackCol: "S", detailEndRow: 22, tagColor: "#D97706" }
   ];
 
   busStations.forEach(cs => {
     const col = cs.startCol;
     
-    // 車站大標題 (第 7 列，合併 3 欄)
-    dashboardSheet.getRange(7, col, 1, 3).merge()
+    // 車站大標題 (第 7 列，合併 6 欄)
+    dashboardSheet.getRange(7, col, 1, 6).merge()
       .setValue(cs.name)
       .setBackground(cs.tagColor).setFontColor("#FFFFFF").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
 
-    // 項目標籤 (第 8 列：去程 1.5 欄 ｜ 返程 1.5 欄)
-    dashboardSheet.getRange(8, col).setValue("👉 去程人數").setBackground("#F8FAFC").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
-    dashboardSheet.getRange(8, col + 1, 1, 2).merge().setValue("👈 返程人數").setBackground("#F8FAFC").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
+    // 項目標籤 (第 8 列：去程 3 欄 ｜ 返程 3 欄)
+    dashboardSheet.getRange(8, col, 1, 3).merge().setValue("👉 去程人數").setBackground("#F8FAFC").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
+    dashboardSheet.getRange(8, col + 3, 1, 3).merge().setValue("👈 返程人數").setBackground("#F8FAFC").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
 
-    // 數據列 (第 9 列)
+    // 數據列 (第 9 列：去程 3 欄 ｜ 返程 3 欄)
     const colLetterGo = String.fromCharCode(64 + col);
-    const colLetterBack = String.fromCharCode(64 + col + 1);
+    const colLetterBack = String.fromCharCode(64 + col + 3);
 
-    dashboardSheet.getRange(9, col).setFormula(`=SUM('各車即時明細'!${cs.detailGoCol}3:${cs.detailGoCol}${cs.detailEndRow})`).setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(20).setHorizontalAlignment("center");
-    dashboardSheet.getRange(9, col + 1, 1, 2).merge().setFormula(`=SUM('各車即時明細'!${cs.detailBackCol}3:${cs.detailBackCol}${cs.detailEndRow})`).setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(20).setHorizontalAlignment("center");
+    dashboardSheet.getRange(9, col, 1, 3).merge()
+      .setFormula(`=SUM('各車即時明細'!${cs.detailGoCol}3:${cs.detailGoCol}${cs.detailEndRow})`)
+      .setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(22).setHorizontalAlignment("center");
+    dashboardSheet.getRange(9, col + 3, 1, 3).merge()
+      .setFormula(`=SUM('各車即時明細'!${cs.detailBackCol}3:${cs.detailBackCol}${cs.detailEndRow})`)
+      .setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(22).setHorizontalAlignment("center");
 
-    // 疏運率標題 (第 10 列)
-    dashboardSheet.getRange(10, col, 1, 2).merge()
-      .setFormula(`=IF(${colLetterGo}9>0, "📈 返程疏運率: " & TEXT(${colLetterBack}9/${colLetterGo}9, "0.0%"), "📈 返程疏運率: 0.0%")`)
+    // 疏運率與尚餘 (第 10 列，🌟 跨滿 6 欄寬達 288px，文字 100% 完整不截斷！)
+    dashboardSheet.getRange(10, col, 1, 6).merge()
+      .setFormula(`=IF(${colLetterGo}9>0, "📈 返程疏運率: " & TEXT(${colLetterBack}9/${colLetterGo}9, "0.0%") & "   (尚餘 " & MAX(0, ${colLetterGo}9 - ${colLetterBack}9) & " 人)", "📈 返程疏運率: 0.0% (已完成)")`)
       .setBackground("#F8FAFC").setFontColor("#0F172A").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
 
-    dashboardSheet.getRange(10, col + 2).setFormula(`=IF(${colLetterGo}9>0, "尚餘 " & MAX(0, ${colLetterGo}9 - ${colLetterBack}9) & " 人", "已完成")`)
-      .setBackground("#F8FAFC").setFontColor("#EF4444").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
-
-    // 疏運進度條 (第 11 列)
-    dashboardSheet.getRange(11, col, 1, 3).merge()
+    // 疏運進度條 (第 11 列，跨滿 6 欄)
+    dashboardSheet.getRange(11, col, 1, 6).merge()
       .setFormula(`=IF(${colLetterGo}9>0, SPARKLINE(${colLetterBack}9, {"charttype", "bar"; "max", ${colLetterGo}9; "color1", "${THEME_CARD_BAR}"}), "")`)
       .setBackground("#F1F5F9");
 
-    dashboardSheet.getRange(7, col, 5, 3).setBorder(true, true, true, true, true, true, "#CBD5E1", SpreadsheetApp.BorderStyle.SOLID);
-    
-    dashboardSheet.setColumnWidth(col, 110);
-    dashboardSheet.setColumnWidth(col + 1, 55);
-    dashboardSheet.setColumnWidth(col + 2, 55);
+    dashboardSheet.getRange(7, col, 5, 6).setBorder(true, true, true, true, true, true, "#CBD5E1", SpreadsheetApp.BorderStyle.SOLID);
   });
 
   // -------------------------------------------------------------
-  // 🚶【段落二：人總統計大盤 (第 13~16 列)】
+  // 🚶【段落二：人總統計大盤 (第 13~16 列，跨 A~X 24欄)】
   // -------------------------------------------------------------
-  dashboardSheet.getRange("A13:L13").merge()
+  dashboardSheet.getRange(13, 1, 1, 24).merge()
     .setValue("🚶 步行通道全場總統計（1號門綠線 / 3號門藍線 / 4號門黃線）")
     .setBackground(THEME_HEADER_BG).setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(13).setHorizontalAlignment("center");
 
-  // 👉 入場總人數 (A14:D15)
-  dashboardSheet.getRange("A14:D14").merge().setValue("👉 全場入場總人數").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange("A15:D15").merge().setFormula("=A21+E21+I21").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(24).setFontWeight("bold").setHorizontalAlignment("center");
+  // 👉 入場總人數 (A14:H15, 8欄)
+  dashboardSheet.getRange(14, 1, 1, 8).merge().setValue("👉 全場入場總人數").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
+  dashboardSheet.getRange(15, 1, 1, 8).merge().setFormula("=A21+I21+Q21").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(24).setFontWeight("bold").setHorizontalAlignment("center");
 
-  // 👈 離場總人數 (E14:H15)
-  dashboardSheet.getRange("E14:H14").merge().setValue("👈 全場離場總人數").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange("E15:H15").merge().setFormula("=C21+G21+K21").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(24).setFontWeight("bold").setHorizontalAlignment("center");
+  // 👈 離場總人數 (I14:P15, 8欄)
+  dashboardSheet.getRange(14, 9, 1, 8).merge().setValue("👈 全場離場總人數").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
+  dashboardSheet.getRange(15, 9, 1, 8).merge().setFormula("=E21+M21+U21").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(24).setFontWeight("bold").setHorizontalAlignment("center");
 
-  // 📈 步行離場完成率 (I14:L15)
-  dashboardSheet.getRange("I14:L14").merge().setValue("📈 步行離場完成率").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange("I15:L15").merge().setFormula(`=IF(A15>0, TEXT(E15/A15, "0.0%"), "0.0%")`).setBackground("#1E293B").setFontColor("#34D399").setFontSize(24).setFontWeight("bold").setHorizontalAlignment("center");
+  // 📈 步行離場完成率 (Q14:X15, 8欄)
+  dashboardSheet.getRange(14, 17, 1, 8).merge().setValue("📈 步行離場完成率").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
+  dashboardSheet.getRange(15, 17, 1, 8).merge().setFormula(`=IF(A15>0, TEXT(I15/A15, "0.0%"), "0.0%")`).setBackground("#1E293B").setFontColor("#34D399").setFontSize(24).setFontWeight("bold").setHorizontalAlignment("center");
 
   // 步行進度條 (第 16 列)
-  dashboardSheet.getRange("A16:D16").merge().setValue("⚡ 步行疏運進度").setBackground(THEME_HEADER_BG).setFontColor("#94A3B8").setFontWeight("bold").setHorizontalAlignment("center");
-  dashboardSheet.getRange("E16:L16").merge().setFormula(`=IF(A15>0, SPARKLINE(E15, {"charttype", "bar"; "max", A15; "color1", "${THEME_TOP_BAR}"}), "")`).setBackground(THEME_HEADER_BG);
+  dashboardSheet.getRange(16, 1, 1, 6).merge().setValue("⚡ 步行疏運進度").setBackground(THEME_HEADER_BG).setFontColor("#94A3B8").setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange(16, 7, 1, 18).merge().setFormula(`=IF(A15>0, SPARKLINE(I15, {"charttype", "bar"; "max", A15; "color1", "${THEME_TOP_BAR}"}), "")`).setBackground(THEME_HEADER_BG);
 
-  dashboardSheet.getRange("A13:L16").setBorder(true, true, true, true, true, true, "#334155", SpreadsheetApp.BorderStyle.SOLID);
+  dashboardSheet.getRange(13, 1, 4, 24).setBorder(true, true, true, true, true, true, "#334155", SpreadsheetApp.BorderStyle.SOLID);
 
   // -------------------------------------------------------------
-  // 🚶【段落二：3 大步行門 (第 18~23 列)】
+  // 🚶【段落二：3 大步行門 (第 18~23 列，每門 8 欄)】
   // -------------------------------------------------------------
-  dashboardSheet.getRange("A18:L18").merge()
+  dashboardSheet.getRange(18, 1, 1, 24).merge()
     .setValue("🚶 各步行通道進出即時明細")
     .setBackground("#334155").setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("left");
 
   const walkGates = [
     { name: "🚶 1號門（綠線）", keyword: "1號門", startCol: 1, tagColor: "#059669" },
-    { name: "🚶 3號門（藍線）", keyword: "3號門", startCol: 5, tagColor: "#2563EB" },
-    { name: "🚶 4號門（黃線）", keyword: "4號門", startCol: 9, tagColor: "#D97706" }
+    { name: "🚶 3號門（藍線）", keyword: "3號門", startCol: 9, tagColor: "#2563EB" },
+    { name: "🚶 4號門（黃線）", keyword: "4號門", startCol: 17, tagColor: "#D97706" }
   ];
 
   walkGates.forEach(wg => {
     const col = wg.startCol;
     
-    // 門名大標題 (第 19 列，合併 4 欄)
-    dashboardSheet.getRange(19, col, 1, 4).merge()
+    // 門名大標題 (第 19 列，合併 8 欄)
+    dashboardSheet.getRange(19, col, 1, 8).merge()
       .setValue(wg.name)
       .setBackground(wg.tagColor).setFontColor("#FFFFFF").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
 
-    // 項目標籤 (第 20 列)
-    dashboardSheet.getRange(20, col, 1, 2).merge().setValue("👉 入場人數").setBackground("#F8FAFC").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
-    dashboardSheet.getRange(20, col + 2, 1, 2).merge().setValue("👈 離場人數").setBackground("#F8FAFC").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
+    // 項目標籤 (第 20 列：入場 4 欄 ｜ 離場 4 欄)
+    dashboardSheet.getRange(20, col, 1, 4).merge().setValue("👉 入場人數").setBackground("#F8FAFC").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
+    dashboardSheet.getRange(20, col + 4, 1, 4).merge().setValue("👈 離場人數").setBackground("#F8FAFC").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
 
-    // 數據列 (第 21 列)
+    // 數據列 (第 21 列：入場 4 欄 ｜ 離場 4 欄)
     const colLetterIn = String.fromCharCode(64 + col);
-    const colLetterOut = String.fromCharCode(64 + col + 2);
+    const colLetterOut = String.fromCharCode(64 + col + 4);
 
-    dashboardSheet.getRange(21, col, 1, 2).merge()
+    dashboardSheet.getRange(21, col, 1, 4).merge()
       .setFormula(`=SUMIFS('${formSheetName}'!E:E, '${formSheetName}'!B:B, "*去程*", '${formSheetName}'!C:C, "*${wg.keyword}*")`)
-      .setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(20).setHorizontalAlignment("center");
+      .setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(22).setHorizontalAlignment("center");
 
-    dashboardSheet.getRange(21, col + 2, 1, 2).merge()
+    dashboardSheet.getRange(21, col + 4, 1, 4).merge()
       .setFormula(`=SUMIFS('${formSheetName}'!E:E, '${formSheetName}'!B:B, "*返程*", '${formSheetName}'!C:C, "*${wg.keyword}*")`)
-      .setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(20).setHorizontalAlignment("center");
+      .setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(22).setHorizontalAlignment("center");
 
-    // 疏運率標題 (第 22 列)
-    dashboardSheet.getRange(22, col, 1, 2).merge()
-      .setFormula(`=IF(${colLetterIn}21>0, "📈 離場疏運率: " & TEXT(${colLetterOut}21/${colLetterIn}21, "0.0%"), "📈 離場疏運率: 0.0%")`)
+    // 疏運率與尚餘 (第 22 列，🌟 跨滿 8 欄寬達 384px，文字絕對完整清晰！)
+    dashboardSheet.getRange(22, col, 1, 8).merge()
+      .setFormula(`=IF(${colLetterIn}21>0, "📈 離場疏運率: " & TEXT(${colLetterOut}21/${colLetterIn}21, "0.0%") & "   (尚餘 " & MAX(0, ${colLetterIn}21 - ${colLetterOut}21) & " 人)", "📈 離場疏運率: 0.0% (已完成)")`)
       .setBackground("#F8FAFC").setFontColor("#0F172A").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
 
-    dashboardSheet.getRange(22, col + 2, 1, 2).merge()
-      .setFormula(`=IF(${colLetterIn}21>0, "尚餘 " & MAX(0, ${colLetterIn}21 - ${colLetterOut}21) & " 人", "已完成")`)
-      .setBackground("#F8FAFC").setFontColor("#EF4444").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
-
-    // 疏運進度條 (第 23 列)
-    dashboardSheet.getRange(23, col, 1, 4).merge()
+    // 疏運進度條 (第 23 列，跨滿 8 欄)
+    dashboardSheet.getRange(23, col, 1, 8).merge()
       .setFormula(`=IF(${colLetterIn}21>0, SPARKLINE(${colLetterOut}21, {"charttype", "bar"; "max", ${colLetterIn}21; "color1", "${THEME_CARD_BAR}"}), "")`)
       .setBackground("#F1F5F9");
 
-    dashboardSheet.getRange(19, col, 5, 4).setBorder(true, true, true, true, true, true, "#CBD5E1", SpreadsheetApp.BorderStyle.SOLID);
+    dashboardSheet.getRange(19, col, 5, 8).setBorder(true, true, true, true, true, true, "#CBD5E1", SpreadsheetApp.BorderStyle.SOLID);
   });
 
   // 列高設定
@@ -307,7 +304,7 @@ function createMultiStationBusSystem() {
   dashboardSheet.setRowHeight(7, 34);
   dashboardSheet.setRowHeight(8, 26);
   dashboardSheet.setRowHeight(9, 38);
-  dashboardSheet.setRowHeight(10, 26);
+  dashboardSheet.setRowHeight(10, 28);
   dashboardSheet.setRowHeight(11, 18);
   dashboardSheet.setRowHeight(12, 18);
   dashboardSheet.setRowHeight(13, 28);
@@ -319,13 +316,13 @@ function createMultiStationBusSystem() {
   dashboardSheet.setRowHeight(19, 34);
   dashboardSheet.setRowHeight(20, 26);
   dashboardSheet.setRowHeight(21, 38);
-  dashboardSheet.setRowHeight(22, 26);
+  dashboardSheet.setRowHeight(22, 28);
   dashboardSheet.setRowHeight(23, 18);
 
   const newFormUrl = form.getPublishedUrl();
 
   Logger.log("\n=======================================================");
-  Logger.log("🎉【極簡純粹・無累計總量 現代戰情看板建立完成！】");
+  Logger.log("🎉【黃金 24 格完美對稱 現代戰情看板建立完成！】");
   Logger.log("\n📱【最新回報表單網址】:\n" + newFormUrl);
   Logger.log("\n📊【最新主控即時戰情看板網址】:\n" + ssUrl);
   Logger.log("=======================================================\n");
