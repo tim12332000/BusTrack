@@ -1,17 +1,20 @@
 /**
  * =========================================================================
- * 🚌 接駁車與步行通道管理系統 - 【人車徹底分開・雙總大盤 (自動開放共用權限)】
+ * 🚌 接駁車與步行通道管理系統 - 【純淨 3 門等寬・人車徹底分開 戰情版】
  * =========================================================================
  * 
- * ✨ 本版升級：
- * - 自動將 Google 試算表設為「知道連結的使用者皆可存取」，徹底解決「打不開 / 無權限」問題！
+ * ✨ 本版優化：
+ * 1. 【移除多餘重複的步行小計】：
+ *    - 頂部右側已經是「步行全場總大盤」，下方不再重複放小計卡片！
+ * 2. 【3 大步行門均勻等寬展開】：
+ *    - 1號門(綠線)、3號門(藍線)、4號門(黃線) 3 張大卡片均分螢幕寬度，排版更寬敞大氣！
  * 
  * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，點「執行 (Run)」即可！
  * =========================================================================
  */
 
 function createMultiStationBusSystem() {
-  Logger.log("🎨 開始建立【人車徹底分開・雙大盤 現代戰情系統】...");
+  Logger.log("🎨 開始建立【純淨 3 門・人車分區 現代戰情系統】...");
 
   // 1. 建立全新 Google 表單
   const form = FormApp.create("🚌 接駁車與步行進出【去程(入場) / 返程(離場)】人數回報");
@@ -67,7 +70,6 @@ function createMultiStationBusSystem() {
   const ssId = ss.getId();
   const ssUrl = ss.getUrl();
 
-  // 🌟 自動開放共用權限（知道連結者皆可檢視/編輯，免登入帳號也能打開！）
   try {
     ss.setSharing(SpreadsheetApp.Access.ANYONE_WITH_LINK, SpreadsheetApp.Permission.EDIT);
   } catch(e) {}
@@ -147,11 +149,13 @@ function createMultiStationBusSystem() {
   // 2. 🌟【頂部右半邊：🚶 步行通道全場總大盤 (G1:L4)】
   dashboardSheet.getRange("G1:L1").merge().setValue("🚶 步行通道全場大盤（1號門綠 / 3號門藍 / 4號門黃）").setBackground("#312E81").setFontColor("#C7D2FE").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
   
+  // 步行入場 (G3) = A14 + E14 + I14 (3 門入場加總)
+  // 步行離場 (I3) = C14 + G14 + K14 (3 門離場加總)
   dashboardSheet.getRange("G2:H2").merge().setValue("👉 入場總人數").setBackground("#1E1B4B").setFontColor("#94A3B8").setFontSize(10).setHorizontalAlignment("center");
-  dashboardSheet.getRange("G3:H3").merge().setFormula("=A14+D14+G14").setBackground("#1E1B4B").setFontColor("#FFFFFF").setFontSize(20).setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange("G3:H3").merge().setFormula("=A14+E14+I14").setBackground("#1E1B4B").setFontColor("#FFFFFF").setFontSize(20).setFontWeight("bold").setHorizontalAlignment("center");
 
   dashboardSheet.getRange("I2:J2").merge().setValue("👈 離場總人數").setBackground("#1E1B4B").setFontColor("#94A3B8").setFontSize(10).setHorizontalAlignment("center");
-  dashboardSheet.getRange("I3:J3").merge().setFormula("=B14+E14+H14").setBackground("#1E1B4B").setFontColor("#FFFFFF").setFontSize(20).setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange("I3:J3").merge().setFormula("=C14+G14+K14").setBackground("#1E1B4B").setFontColor("#FFFFFF").setFontSize(20).setFontWeight("bold").setHorizontalAlignment("center");
 
   dashboardSheet.getRange("K2:L2").merge().setValue("🏆 步行總量").setBackground("#1E1B4B").setFontColor("#94A3B8").setFontSize(10).setHorizontalAlignment("center");
   dashboardSheet.getRange("K3:L3").merge().setFormula("=G3+I3").setBackground("#1E1B4B").setFontColor("#A78BFA").setFontSize(20).setFontWeight("bold").setHorizontalAlignment("center");
@@ -162,9 +166,9 @@ function createMultiStationBusSystem() {
   dashboardSheet.getRange("A1:F4").setBorder(true, true, true, true, true, true, "#334155", SpreadsheetApp.BorderStyle.SOLID);
   dashboardSheet.getRange("G1:L4").setBorder(true, true, true, true, true, true, "#4338CA", SpreadsheetApp.BorderStyle.SOLID);
 
-  // 3. 🚌【中間：接駁車 4 大站點專區】(第 5~10 列)
+  // 3. 🚌【中間：接駁車 4 大站點專區 (第 5~10 列)】
   dashboardSheet.getRange("A5:L5").merge()
-    .setValue("🚌 各接駁車站點即時疏運明細")
+    .setValue("🚌 各接駁車站點即時疏運明細（每站佔 3 欄）")
     .setBackground("#334155").setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("left");
 
   const busStations = [
@@ -210,54 +214,56 @@ function createMultiStationBusSystem() {
     dashboardSheet.setColumnWidth(col + 2, 110);
   });
 
-  // 4. 🚶【下方：步行進出 3 大門區】(第 11~16 列)
+  // 4. 🚶【下方：純淨 3 大步行門區 (每門佔 4 欄，均勻平分 12 欄)】(第 11~16 列)
   dashboardSheet.getRange("A11:L11").merge()
     .setValue("🚶 各步行通道進出即時明細（1號門綠線 / 3號門藍線 / 4號門黃線）")
     .setBackground("#334155").setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("left");
 
   const walkGates = [
     { name: "🚶 1號門（綠線）", keyword: "1號門", startCol: 1, tagColor: "#059669", barColor: "#059669" },
-    { name: "🚶 3號門（藍線）", keyword: "3號門", startCol: 4, tagColor: "#2563EB", barColor: "#2563EB" },
-    { name: "🚶 4號門（黃線）", keyword: "4號門", startCol: 7, tagColor: "#D97706", barColor: "#D97706" },
-    { name: "🚶 步行通道小計", startCol: 10, isSummary: true, tagColor: "#475569", barColor: "#8B5CF6" }
+    { name: "🚶 3號門（藍線）", keyword: "3號門", startCol: 5, tagColor: "#2563EB", barColor: "#2563EB" },
+    { name: "🚶 4號門（黃線）", keyword: "4號門", startCol: 9, tagColor: "#D97706", barColor: "#D97706" }
   ];
 
   walkGates.forEach(wg => {
     const col = wg.startCol;
     
-    dashboardSheet.getRange(12, col, 1, 3).merge()
+    // 門名大標題 (第 12 列，合併 4 欄)
+    dashboardSheet.getRange(12, col, 1, 4).merge()
       .setValue(wg.name)
       .setBackground(wg.tagColor).setFontColor("#FFFFFF").setFontWeight("bold").setFontSize(13).setHorizontalAlignment("center");
 
-    dashboardSheet.getRange(13, col).setValue("👉 入場人數").setBackground("#F1F5F9").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
-    dashboardSheet.getRange(13, col + 1).setValue("👈 離場人數").setBackground("#F1F5F9").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
-    dashboardSheet.getRange(13, col + 2).setValue("🏆 門區總量").setBackground("#F1F5F9").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
+    // 項目標籤 (第 13 列)
+    dashboardSheet.getRange(13, col, 1, 2).merge().setValue("👉 入場人數").setBackground("#F1F5F9").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
+    dashboardSheet.getRange(13, col + 2, 1, 2).merge().setValue("👈 離場人數").setBackground("#F1F5F9").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
 
-    const colLetterGo = String.fromCharCode(64 + col);
-    const colLetterBack = String.fromCharCode(64 + col + 1);
+    // 數據列 (第 14 列)
+    const colLetterIn = String.fromCharCode(64 + col);
+    const colLetterOut = String.fromCharCode(64 + col + 2);
 
-    if (!wg.isSummary) {
-      dashboardSheet.getRange(14, col).setFormula(`=SUMIFS('${formSheetName}'!E:E, '${formSheetName}'!B:B, "*去程*", '${formSheetName}'!C:C, "*${wg.keyword}*")`).setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(18).setHorizontalAlignment("center");
-      dashboardSheet.getRange(14, col + 1).setFormula(`=SUMIFS('${formSheetName}'!E:E, '${formSheetName}'!B:B, "*返程*", '${formSheetName}'!C:C, "*${wg.keyword}*")`).setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(18).setHorizontalAlignment("center");
-      dashboardSheet.getRange(14, col + 2).setFormula(`=${colLetterGo}14+${colLetterBack}14`).setBackground("#FFFFFF").setFontColor("#2563EB").setFontWeight("bold").setFontSize(18).setHorizontalAlignment("center");
-    } else {
-      dashboardSheet.getRange(14, col).setFormula(`=A14+D14+G14`).setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(18).setHorizontalAlignment("center");
-      dashboardSheet.getRange(14, col + 1).setFormula(`=B14+E14+H14`).setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(18).setHorizontalAlignment("center");
-      dashboardSheet.getRange(14, col + 2).setFormula(`=C14+F14+I14`).setBackground("#FFFFFF").setFontColor("#7C3AED").setFontWeight("bold").setFontSize(18).setHorizontalAlignment("center");
-    }
+    dashboardSheet.getRange(14, col, 1, 2).merge()
+      .setFormula(`=SUMIFS('${formSheetName}'!E:E, '${formSheetName}'!B:B, "*去程*", '${formSheetName}'!C:C, "*${wg.keyword}*")`)
+      .setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(20).setHorizontalAlignment("center");
 
+    dashboardSheet.getRange(14, col + 2, 1, 2).merge()
+      .setFormula(`=SUMIFS('${formSheetName}'!E:E, '${formSheetName}'!B:B, "*返程*", '${formSheetName}'!C:C, "*${wg.keyword}*")`)
+      .setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(20).setHorizontalAlignment("center");
+
+    // 疏運率標題 (第 15 列)
     dashboardSheet.getRange(15, col, 1, 2).merge()
-      .setFormula(`=IF(${colLetterGo}14>0, "📈 離場疏運率: " & TEXT(${colLetterBack}14/${colLetterGo}14, "0.0%"), "📈 離場疏運率: 0.0%")`)
+      .setFormula(`=IF(${colLetterIn}14>0, "📈 離場疏運率: " & TEXT(${colLetterOut}14/${colLetterIn}14, "0.0%"), "📈 離場疏運率: 0.0%")`)
       .setBackground("#F8FAFC").setFontColor("#0F172A").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
 
-    dashboardSheet.getRange(15, col + 2).setFormula(`=IF(${colLetterGo}14>0, "尚餘 " & MAX(0, ${colLetterGo}14 - ${colLetterBack}14) & " 人", "已完成")`)
+    dashboardSheet.getRange(15, col + 2, 1, 2).merge()
+      .setFormula(`=IF(${colLetterIn}14>0, "尚餘 " & MAX(0, ${colLetterIn}14 - ${colLetterOut}14) & " 人", "已完成")`)
       .setBackground("#F8FAFC").setFontColor("#EF4444").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
 
-    dashboardSheet.getRange(16, col, 1, 3).merge()
-      .setFormula(`=IF(${colLetterGo}14>0, SPARKLINE(${colLetterBack}14, {"charttype", "bar"; "max", ${colLetterGo}14; "color1", "${wg.barColor}"}), "")`)
+    // 疏運進度條 (第 16 列)
+    dashboardSheet.getRange(16, col, 1, 4).merge()
+      .setFormula(`=IF(${colLetterIn}14>0, SPARKLINE(${colLetterOut}14, {"charttype", "bar"; "max", ${colLetterIn}14; "color1", "${wg.barColor}"}), "")`)
       .setBackground("#F1F5F9");
 
-    dashboardSheet.getRange(12, col, 5, 3).setBorder(true, true, true, true, true, true, "#CBD5E1", SpreadsheetApp.BorderStyle.SOLID);
+    dashboardSheet.getRange(12, col, 5, 4).setBorder(true, true, true, true, true, true, "#CBD5E1", SpreadsheetApp.BorderStyle.SOLID);
   });
 
   // 列高設定
@@ -281,7 +287,7 @@ function createMultiStationBusSystem() {
   const newFormUrl = form.getPublishedUrl();
 
   Logger.log("\n=======================================================");
-  Logger.log("🎉【全新人車徹底分開・雙總大盤 戰情看板建立完成！】");
+  Logger.log("🎉【全新純淨 3 門・人車徹底分開 戰情看板建立完成！】");
   Logger.log("\n📱【最新回報表單網址】:\n" + newFormUrl);
   Logger.log("\n📊【最新主控即時戰情看板網址】:\n" + ssUrl);
   Logger.log("=======================================================\n");
