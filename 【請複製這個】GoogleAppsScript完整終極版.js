@@ -1,25 +1,22 @@
 /**
  * =========================================================================
- * 🚌 接駁車管理系統 - 【去/返 雙色合併比例條 (2:1 Stacked Bar) 戰情版】
+ * 🚌 接駁車管理系統 - 【寬敞舒展大螢幕版 (解決文字重疊與擁擠)】
  * =========================================================================
  * 
- * ✨ 本版核心升級：
- * 1. 【去/返 雙色合併比例條 (Stacked Bar)】：
- *    - 一條長條圖同時包含【👉去程 (藍色)】與【👈返程 (綠色)】！
- *    - 例如：去程 100 人、返程 50 人 ➔ 長條圖自動呈現 2:1 比例 (藍佔 67%、綠佔 33%)！
- * 2. 【全場總大盤 + 各站獨立比例】：
- *    - 頂部全場總大盤：全場去/返雙色總比例條
- *    - 每個車站：獨立計算該站的去/返人數比例文字與雙色長條圖！
+ * ✨ 視覺與排版優化：
+ * 1. 【解決文字重疊】：
+ *    - A7:B7 合併為「去/返 比例文字區」(寬達 190px)，文字再也不會擠在一起！
+ *    - C7:E7 合併為「雙色長條圖區」(寬達 280px)，長條圖寬敞大氣！
+ * 2. 【加大欄寬與列高】：
+ *    - 欄寬全面加寬（每站擴大至 470px），字體居中，呼吸感拉滿！
+ *    - 各站去程 (藍)、返程 (綠)、總計 (金黃) 色彩高對比一目了然！
  * 
- * 👉 使用方式：
- * 1. 按 Ctrl + A 全選複製。
- * 2. 到 Google Apps Script 編輯器全選貼上覆蓋。
- * 3. 點擊上方的「執行 (Run)」按鈕即可！
+ * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，點「執行 (Run)」即可！
  * =========================================================================
  */
 
 function createMultiStationBusSystem() {
-  Logger.log("🚀 開始建立【去/返 雙色合併比例條 戰情看板】...");
+  Logger.log("🚀 開始建立【寬敞大氣版 戰情看板】...");
 
   // 1. 建立全新 Google 表單
   const form = FormApp.create("🚌 接駁車【去程 / 返程】搭乘人數即時回報");
@@ -101,11 +98,11 @@ function createMultiStationBusSystem() {
   dashboardSheet.getRange("G1:I1").merge().setValue("👈 全場返程總人數").setBackground("#064E3B").setFontColor("#6EE7B7").setFontWeight("bold").setFontSize(13).setHorizontalAlignment("center");
   dashboardSheet.getRange("G2:I3").merge().setFormula("=D6+I6+N6+S6").setBackground("#022C22").setFontColor("#34D399").setFontSize(24).setFontWeight("bold").setHorizontalAlignment("center");
 
-  // 🌟 全場總【去/返 雙色合併比例條】(第 4 列)
+  // 頂部全場比例條 (第 4 列)
   dashboardSheet.getRange("A4:C4").merge().setValue("⚖️ 全場去/返人數比例").setBackground("#0F172A").setFontColor("#94A3B8").setFontWeight("bold").setHorizontalAlignment("center");
   dashboardSheet.getRange("D4:I4").merge().setFormula(`=IF((D2+G2)>0, SPARKLINE({D2, G2}, {"charttype", "bar"; "color1", "#3B82F6"; "color2", "#10B981"}), "")`).setBackground("#0F172A");
 
-  // --- B. 4 大站點戰情明細 (含每站獨立小計 + 去/返雙色比例條) ---
+  // --- B. 4 大站點戰情明細 (加寬、舒展排版) ---
   const stations = [
     { name: "成功車站（綠線）", formKeyword: "成功車站", startCol: 1, busCount: 20, bg: "#059669" },
     { name: "新烏日台鐵站（藍線）", formKeyword: "新烏日", startCol: 6, busCount: 50, bg: "#2563EB" },
@@ -121,25 +118,23 @@ function createMultiStationBusSystem() {
     // 1. 路線站名大標題 (第 5 列)
     dashboardSheet.getRange(5, col, 1, 5).merge()
       .setValue(`📍 ${st.name}`)
-      .setBackground(st.bg).setFontColor("#FFFFFF").setFontWeight("bold").setFontSize(13).setHorizontalAlignment("center");
+      .setBackground(st.bg).setFontColor("#FFFFFF").setFontWeight("bold").setFontSize(14).setHorizontalAlignment("center");
 
     // 2. 各站獨立小計人數 (第 6 列)
     const colGo = String.fromCharCode(64 + col + 1);
     const colBack = String.fromCharCode(64 + col + 3);
 
-    dashboardSheet.getRange(6, col).setValue("📊 本站小計").setBackground("#1E293B").setFontColor("#F8FAFC").setFontWeight("bold").setHorizontalAlignment("center");
-    dashboardSheet.getRange(6, col + 1).setFormula(`=SUM(${colGo}${startRow}:${colGo}${endRow})`).setBackground("#172554").setFontColor("#93C5FD").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
+    dashboardSheet.getRange(6, col).setValue("本站小計").setBackground("#1E293B").setFontColor("#F8FAFC").setFontWeight("bold").setHorizontalAlignment("center");
+    dashboardSheet.getRange(6, col + 1).setFormula(`=SUM(${colGo}${startRow}:${colGo}${endRow})`).setBackground("#172554").setFontColor("#93C5FD").setFontWeight("bold").setFontSize(13).setHorizontalAlignment("center");
     dashboardSheet.getRange(6, col + 2).setValue("-").setBackground("#1E293B").setFontColor("#64748B").setHorizontalAlignment("center");
-    dashboardSheet.getRange(6, col + 3).setFormula(`=SUM(${colBack}${startRow}:${colBack}${endRow})`).setBackground("#022C22").setFontColor("#6EE7B7").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
-    dashboardSheet.getRange(6, col + 4).setFormula(`=${colGo}6+${colBack}6`).setBackground("#312E81").setFontColor("#FDE047").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
+    dashboardSheet.getRange(6, col + 3).setFormula(`=SUM(${colBack}${startRow}:${colBack}${endRow})`).setBackground("#022C22").setFontColor("#6EE7B7").setFontWeight("bold").setFontSize(13).setHorizontalAlignment("center");
+    dashboardSheet.getRange(6, col + 4).setFormula(`=${colGo}6+${colBack}6`).setBackground("#312E81").setFontColor("#FDE047").setFontWeight("bold").setFontSize(13).setHorizontalAlignment("center");
 
-    // 3. 🌟 各站專屬【去 vs 返 雙色合併比例條 (2:1 Stacked Bar)】(第 7 列)
-    dashboardSheet.getRange(7, col).setValue("⚖️ 去/返比例").setBackground("#1E293B").setFontColor("#94A3B8").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
-    
-    // B7: 比例文字 (例如 66.7% : 33.3%)
-    dashboardSheet.getRange(7, col + 1).setFormula(`=IF((${colGo}6+${colBack}6)>0, TEXT(${colGo}6/(${colGo}6+${colBack}6), "0.0%")&" : "&TEXT(${colBack}6/(${colGo}6+${colBack}6), "0.0%"), "-")`).setBackground("#1E293B").setFontColor("#E2E8F0").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
+    // 3. 🌟 各站專屬【去 vs 返 雙色合併比例條】(第 7 列：A:B合併文字，C:E合併長條圖，徹底告別重疊擠壓)
+    dashboardSheet.getRange(7, col, 1, 2).merge()
+      .setFormula(`=IF((${colGo}6+${colBack}6)>0, "👉 "&TEXT(${colGo}6/(${colGo}6+${colBack}6), "0.0%")&" : "&TEXT(${colBack}6/(${colGo}6+${colBack}6), "0.0%")&" 👈", "👉 0% : 0% 👈")`)
+      .setBackground("#1E293B").setFontColor("#E2E8F0").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
 
-    // C7~E7 合併: 雙色合併長條圖 (藍色去程 + 綠色返程，自動呈現 2:1 等比例)
     dashboardSheet.getRange(7, col + 2, 1, 3).merge()
       .setFormula(`=IF((${colGo}6+${colBack}6)>0, SPARKLINE({${colGo}6, ${colBack}6}, {"charttype", "bar"; "color1", "#3B82F6"; "color2", "#10B981"}), "")`)
       .setBackground("#0F172A");
@@ -169,27 +164,29 @@ function createMultiStationBusSystem() {
     dashboardSheet.getRange(startRow, col, st.busCount, 5).setValues(busRows);
     dashboardSheet.getRange(6, col, st.busCount + 3, 5).setHorizontalAlignment("center").setBorder(true, true, true, true, true, true, "#334155", SpreadsheetApp.BorderStyle.SOLID);
     
-    dashboardSheet.setColumnWidth(col, 75);
-    dashboardSheet.setColumnWidth(col + 1, 85);
-    dashboardSheet.setColumnWidth(col + 2, 85);
-    dashboardSheet.setColumnWidth(col + 3, 85);
-    dashboardSheet.setColumnWidth(col + 4, 90);
+    // 🌟 全面加寬欄寬，徹底告別擁擠
+    dashboardSheet.setColumnWidth(col, 85);      // 車號欄
+    dashboardSheet.setColumnWidth(col + 1, 105); // 去程人數欄 (寬敞)
+    dashboardSheet.setColumnWidth(col + 2, 90);  // 去程時間欄
+    dashboardSheet.setColumnWidth(col + 3, 105); // 返程人數欄 (寬敞)
+    dashboardSheet.setColumnWidth(col + 4, 95);  // 返程時間/總人數欄
   });
 
+  // 列高優化
   dashboardSheet.setRowHeight(1, 28);
   dashboardSheet.setRowHeight(2, 28);
   dashboardSheet.setRowHeight(3, 28);
-  dashboardSheet.setRowHeight(4, 24);
-  dashboardSheet.setRowHeight(5, 32);
+  dashboardSheet.setRowHeight(4, 26);
+  dashboardSheet.setRowHeight(5, 34);
   dashboardSheet.setRowHeight(6, 30);
-  dashboardSheet.setRowHeight(7, 24);
-  dashboardSheet.setRowHeight(8, 26);
-  for (let r = 9; r <= 58; r++) { dashboardSheet.setRowHeight(r, 24); }
+  dashboardSheet.setRowHeight(7, 28);
+  dashboardSheet.setRowHeight(8, 28);
+  for (let r = 9; r <= 58; r++) { dashboardSheet.setRowHeight(r, 26); }
 
   const newFormUrl = form.getPublishedUrl();
 
   Logger.log("\n=======================================================");
-  Logger.log("🎉【全新去/返 雙色合併比例條 戰情看板建立完成！】");
+  Logger.log("🎉【全新寬敞舒展版 戰情看板建立完成！】");
   Logger.log("\n📱【最新車長填寫表單網址】:\n" + newFormUrl);
   Logger.log("\n📊【最新主控即時戰情看板網址】:\n" + ssUrl);
   Logger.log("=======================================================\n");
