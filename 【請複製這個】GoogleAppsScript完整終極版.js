@@ -1,25 +1,23 @@
 /**
  * =========================================================================
- * 🚌 接駁車與步行通道管理系統 - 【現代極簡・統一純淨商務 終極整合版】
+ * 🚌 接駁車與步行通道管理系統 - 【現代極簡・純粹專業 終極整合版】
  * =========================================================================
  * 
- * ✨ 極簡美學與排版升級：
- * 1. 【全場統一色彩系統】：
- *    - 所有跑條（車輛與步行）統一採用高對比科技電光藍 (#2563EB / #38BDF8)，徹底告別五顏六色！
- *    - 大盤統一高級深石墨藍 (#0F172A + #1E293B)，數據乾淨醒目。
- *    - 卡片一律採用極簡白底 + 20pt 黑色大字 + 淺灰微邊框，視覺無任何雜訊。
- * 2. 【人車結構絕對對稱】：
- *    - 🚌 車總統計 ➔ 車 ABCD (4 大站點)
- *    - 🚶 人總統計 ➔ 人 ABC (3 大門區)
- * 3. 【三合一內建指令】：
- *    - 包含主系統建立、🎲 產生測試資料、🗑️ 一鍵清空歸零。
+ * ✨ 純粹專業無贅字：
+ * 1. 【移除所有 ABC 代號贅字】：
+ *    - 接駁車站：`成功車站（綠線）`、`新烏日台鐵站（藍線）`、`經貿六停車場（黃線）`、`水湳轉運站（黃線）`
+ *    - 步行大門：`1號門（綠線）`、`3號門（藍線）`、`4號門（黃線）`
+ * 2. 【跑條 100% 統一極簡商務藍】：
+ *    - 全場跑條一致使用高對比科技藍 (#2563EB / #38BDF8)，徹底無雜訊。
+ * 3. 【車總統計 ➔ 4 車站 ｜ 人總統計 ➔ 3 步行門】：
+ *    - 上下分區、結構完全對稱。
  * 
  * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，點「執行」即可！
  * =========================================================================
  */
 
 function createMultiStationBusSystem() {
-  Logger.log("🎨 開始建立【現代極簡・統一純淨商務 戰情系統】...");
+  Logger.log("🎨 開始建立【純粹專業無贅字 現代戰情系統】...");
 
   // 1. 建立全新 Google 表單
   const form = FormApp.create("🚌 接駁車與步行進出【去程(入場) / 返程(離場)】人數回報");
@@ -31,7 +29,7 @@ function createMultiStationBusSystem() {
     .setChoiceValues(["👉 去程 (入場)", "👈 返程 (離場)"])
     .setRequired(true);
 
-  // 題目 2: 選擇接駁站點或步行大門 (乾淨簡潔名稱)
+  // 題目 2: 選擇接駁站點或步行大門 (純粹正式名稱)
   form.addMultipleChoiceItem()
     .setTitle("2. 選擇接駁站點 / 步行大門")
     .setChoiceValues([
@@ -159,24 +157,24 @@ function createMultiStationBusSystem() {
   dashboardSheet.getRange("J2:L2").merge().setValue("📈 車輛疏運完成率").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
   dashboardSheet.getRange("J3:L3").merge().setFormula(`=IF(A3>0, TEXT(D3/A3, "0.0%"), "0.0%")`).setBackground("#1E293B").setFontColor("#34D399").setFontSize(22).setFontWeight("bold").setHorizontalAlignment("center");
 
-  // 接駁車進度條 (第 4 列，統一科技青藍)
+  // 接駁車進度條 (第 4 列)
   dashboardSheet.getRange("A4:C4").merge().setValue("⚡ 車輛疏運進度").setBackground(THEME_HEADER_BG).setFontColor("#94A3B8").setFontWeight("bold").setHorizontalAlignment("center");
   dashboardSheet.getRange("D4:L4").merge().setFormula(`=IF(A3>0, SPARKLINE(D3, {"charttype", "bar"; "max", A3; "color1", "${THEME_TOP_BAR}"}), "")`).setBackground(THEME_HEADER_BG);
 
   dashboardSheet.getRange("A1:L4").setBorder(true, true, true, true, true, true, "#334155", SpreadsheetApp.BorderStyle.SOLID);
 
   // -------------------------------------------------------------
-  // 🚌【段落一：車 ABCD - 4 大接駁車站 (第 6~11 列)】
+  // 🚌【段落一：4 大接駁車站 (第 6~11 列)】
   // -------------------------------------------------------------
   dashboardSheet.getRange("A6:L6").merge()
-    .setValue("🚌 各接駁車站點即時疏運明細（車 A: 成功 ｜ 車 B: 新烏日 ｜ 車 C: 經貿六 ｜ 車 D: 水湳）")
+    .setValue("🚌 各接駁車站點即時疏運明細")
     .setBackground("#334155").setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("left");
 
   const busStations = [
-    { name: "📍 車 A：成功車站（綠線）", startCol: 1, detailGoCol: "B", detailBackCol: "D", detailEndRow: 22, tagColor: "#059669" },
-    { name: "📍 車 B：新烏日台鐵站（藍線）", startCol: 4, detailGoCol: "G", detailBackCol: "I", detailEndRow: 52, tagColor: "#2563EB" },
-    { name: "📍 車 C：經貿六停車場（黃線）", startCol: 7, detailGoCol: "L", detailBackCol: "N", detailEndRow: 42, tagColor: "#D97706" },
-    { name: "📍 車 D：水湳轉運站（黃線）", startCol: 10, detailGoCol: "Q", detailBackCol: "S", detailEndRow: 22, tagColor: "#D97706" }
+    { name: "📍 成功車站（綠線）", startCol: 1, detailGoCol: "B", detailBackCol: "D", detailEndRow: 22, tagColor: "#059669" },
+    { name: "📍 新烏日台鐵站（藍線）", startCol: 4, detailGoCol: "G", detailBackCol: "I", detailEndRow: 52, tagColor: "#2563EB" },
+    { name: "📍 經貿六停車場（黃線）", startCol: 7, detailGoCol: "L", detailBackCol: "N", detailEndRow: 42, tagColor: "#D97706" },
+    { name: "📍 水湳轉運站（黃線）", startCol: 10, detailGoCol: "Q", detailBackCol: "S", detailEndRow: 22, tagColor: "#D97706" }
   ];
 
   busStations.forEach(cs => {
@@ -221,7 +219,7 @@ function createMultiStationBusSystem() {
   });
 
   // -------------------------------------------------------------
-  // 🚶【段落二：人總統計大盤 (第 13~16 列)】(完全對稱一致)
+  // 🚶【段落二：人總統計大盤 (第 13~16 列)】
   // -------------------------------------------------------------
   dashboardSheet.getRange("A13:L13").merge()
     .setValue("🚶 步行通道全場總統計大盤（1號門綠線 / 3號門藍線 / 4號門黃線）")
@@ -239,23 +237,23 @@ function createMultiStationBusSystem() {
   dashboardSheet.getRange("J14:L14").merge().setValue("📈 步行離場完成率").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
   dashboardSheet.getRange("J15:L15").merge().setFormula(`=IF(A15>0, TEXT(D15/A15, "0.0%"), "0.0%")`).setBackground("#1E293B").setFontColor("#34D399").setFontSize(22).setFontWeight("bold").setHorizontalAlignment("center");
 
-  // 步行進度條 (第 16 列，統一科技青藍)
+  // 步行進度條 (第 16 列)
   dashboardSheet.getRange("A16:C16").merge().setValue("⚡ 步行疏運進度").setBackground(THEME_HEADER_BG).setFontColor("#94A3B8").setFontWeight("bold").setHorizontalAlignment("center");
   dashboardSheet.getRange("D16:L16").merge().setFormula(`=IF(A15>0, SPARKLINE(D15, {"charttype", "bar"; "max", A15; "color1", "${THEME_TOP_BAR}"}), "")`).setBackground(THEME_HEADER_BG);
 
   dashboardSheet.getRange("A13:L16").setBorder(true, true, true, true, true, true, "#334155", SpreadsheetApp.BorderStyle.SOLID);
 
   // -------------------------------------------------------------
-  // 🚶【段落二：人 ABC - 3 大步行門 (第 18~23 列)】
+  // 🚶【段落二：3 大步行門 (第 18~23 列)】
   // -------------------------------------------------------------
   dashboardSheet.getRange("A18:L18").merge()
-    .setValue("🚶 各步行通道進出即時明細（人 A: 1號門綠線 ｜ 人 B: 3號門藍線 ｜ 人 C: 4號門黃線）")
+    .setValue("🚶 各步行通道進出即時明細")
     .setBackground("#334155").setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("left");
 
   const walkGates = [
-    { name: "🚶 人 A：1號門（綠線）", keyword: "1號門", startCol: 1, tagColor: "#059669" },
-    { name: "🚶 人 B：3號門（藍線）", keyword: "3號門", startCol: 5, tagColor: "#2563EB" },
-    { name: "🚶 人 C：4號門（黃線）", keyword: "4號門", startCol: 9, tagColor: "#D97706" }
+    { name: "🚶 1號門（綠線）", keyword: "1號門", startCol: 1, tagColor: "#059669" },
+    { name: "🚶 3號門（藍線）", keyword: "3號門", startCol: 5, tagColor: "#2563EB" },
+    { name: "🚶 4號門（黃線）", keyword: "4號門", startCol: 9, tagColor: "#D97706" }
   ];
 
   walkGates.forEach(wg => {
@@ -291,7 +289,7 @@ function createMultiStationBusSystem() {
       .setFormula(`=IF(${colLetterIn}21>0, "尚餘 " & MAX(0, ${colLetterIn}21 - ${colLetterOut}21) & " 人", "已完成")`)
       .setBackground("#F8FAFC").setFontColor("#EF4444").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
 
-    // 疏運進度條 (第 23 列，🌟 統一使用極簡商務藍跑條，不隨門區換色！)
+    // 疏運進度條 (第 23 列，統一極簡商務藍跑條)
     dashboardSheet.getRange(23, col, 1, 4).merge()
       .setFormula(`=IF(${colLetterIn}21>0, SPARKLINE(${colLetterOut}21, {"charttype", "bar"; "max", ${colLetterIn}21; "color1", "${THEME_CARD_BAR}"}), "")`)
       .setBackground("#F1F5F9");
@@ -327,7 +325,7 @@ function createMultiStationBusSystem() {
   const newFormUrl = form.getPublishedUrl();
 
   Logger.log("\n=======================================================");
-  Logger.log("🎉【現代極簡・統一純淨商務 戰情看板建立完成！】");
+  Logger.log("🎉【純粹專業無贅字 現代戰情看板建立完成！】");
   Logger.log("\n📱【最新回報表單網址】:\n" + newFormUrl);
   Logger.log("\n📊【最新主控即時戰情看板網址】:\n" + ssUrl);
   Logger.log("=======================================================\n");
@@ -354,7 +352,7 @@ function getTargetSpreadsheet() {
 }
 
 // =========================================================================
-// 🎲【指令：一鍵產生 車 ABCD + 人 ABC 測試資料】
+// 🎲【指令：一鍵產生 測試資料】
 // =========================================================================
 function runGenerateTestData() {
   const ss = getTargetSpreadsheet();
@@ -380,7 +378,7 @@ function runGenerateTestData() {
   const now = new Date();
   const datePrefix = Utilities.formatDate(now, "Asia/Taipei", "yyyy/MM/dd");
 
-  // 1. 🚌 接駁車測試數據 (車 ABCD：成功 20、新烏日 50、經貿六 40、水湳 20)
+  // 1. 🚌 接駁車測試數據 (成功 20、新烏日 50、經貿六 40、水湳 20)
   const stList = [
     { name: "🚌 成功車站（綠線）", count: 20 },
     { name: "🚌 新烏日台鐵站（藍線）", count: 50 },
@@ -402,7 +400,7 @@ function runGenerateTestData() {
     }
   });
 
-  // 2. 🚶 步行通道測試數據 (人 ABC：1號門綠、3號門藍、4號門黃)
+  // 2. 🚶 步行通道測試數據 (1號門綠、3號門藍、4號門黃)
   const gates = ["🚶 1號門（綠線）", "🚶 3號門（藍線）", "🚶 4號門（黃線）"];
   gates.forEach(gate => {
     for (let p = 1; p <= 4; p++) {
