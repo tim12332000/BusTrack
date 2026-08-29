@@ -1,26 +1,25 @@
 /**
  * =========================================================================
- * 🎖️「國防知性之旅-成功嶺營區開放」進場人數統計表 - 【極致純粹・零廢話正式版】
+ * 🎖️「國防知性之旅-成功嶺營區開放」進場人數統計表 - 【圖標直覺・零廢話正式版】
  * =========================================================================
  * 
- * ✨ 零廢話極簡原則：
- * 1. 【移除所有顏色與代號贅字】：
- *    - 站點純粹為：`成功車站`、`新烏日台鐵站`、`經貿六停車場`、`水湳轉運站`
- *    - 門號純粹為：`1號門`、`3號門`、`4號門`
- * 2. 【標題指標極度洗鍊】：
- *    - `接駁車總統計` ｜ `去程總人數` ｜ `返程總人數` ｜ `疏運完成率`
- *    - `步行通道總統計` ｜ `入場總人數` ｜ `離場總人數` ｜ `離場完成率`
+ * ✨ UI/UX 直覺識別升級：
+ * 1. 【保留 🚌 與 🚶 圖標視覺錨點】：
+ *    - 一秒直覺辨識車與人，無需大腦費力讀字。
+ * 2. 【徹底去除 (綠線)/(黃線) 括號贅字】：
+ *    - 站點洗鍊為：`🚌 成功車站`、`🚌 新烏日台鐵站`、`🚌 經貿六停車場`、`🚌 水湳轉運站`
+ *    - 門號洗鍊為：`🚶 1號門`、`🚶 3號門`、`🚶 4號門`
  * 3. 【24 格黃金對稱網格 (100% 絕不切字)】：
- *    - 乾淨大氣、字字精華、直擊指揮現場！
+ *    - 疏運率整行完整展開，大氣舒展！
  * 
  * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，點「執行」即可！
  * =========================================================================
  */
 
 function createMultiStationBusSystem() {
-  Logger.log("🎨 開始建立【極致純粹・零廢話 正式戰情系統】...");
+  Logger.log("🎨 開始建立【圖標直覺・零廢話 正式戰情系統】...");
 
-  // 1. 建立全新 Google 表單 (乾淨洗鍊題目)
+  // 1. 建立全新 Google 表單
   const form = FormApp.create("「國防知性之旅-成功嶺營區開放」人數回報");
 
   // 題目 1: 方向
@@ -29,22 +28,22 @@ function createMultiStationBusSystem() {
     .setChoiceValues(["去程 (入場)", "返程 (離場)"])
     .setRequired(true);
 
-  // 題目 2: 站點 / 門號 (純粹名稱)
+  // 題目 2: 站點 / 門號 (🚌 / 🚶 一秒直覺選取)
   form.addMultipleChoiceItem()
     .setTitle("2. 站點 / 門號")
     .setChoiceValues([
-      "成功車站",
-      "新烏日台鐵站",
-      "經貿六停車場",
-      "水湳轉運站",
-      "1號門",
-      "3號門",
-      "4號門"
+      "🚌 成功車站",
+      "🚌 新烏日台鐵站",
+      "🚌 經貿六停車場",
+      "🚌 水湳轉運站",
+      "🚶 1號門",
+      "🚶 3號門",
+      "🚶 4號門"
     ])
     .setRequired(true);
 
   // 題目 3: 車號 (或步行)
-  const busChoices = ["步行通道"];
+  const busChoices = ["🚶 步行通道"];
   for (let i = 1; i <= 50; i++) {
     busChoices.push(`${i} 號車`);
   }
@@ -98,10 +97,10 @@ function createMultiStationBusSystem() {
   // 【A. 第二頁：各車即時明細 (4 大車站車輛明細)】
   // ==========================================
   const stations = [
-    { name: "成功車站", formKeyword: "成功車站", startCol: 1, busCount: 20 },
-    { name: "新烏日台鐵站", formKeyword: "新烏日", startCol: 6, busCount: 50 },
-    { name: "經貿六停車場", formKeyword: "經貿六", startCol: 11, busCount: 40 },
-    { name: "水湳轉運站", formKeyword: "水湳", startCol: 16, busCount: 20 }
+    { name: "🚌 成功車站", formKeyword: "成功車站", startCol: 1, busCount: 20 },
+    { name: "🚌 新烏日台鐵站", formKeyword: "新烏日", startCol: 6, busCount: 50 },
+    { name: "🚌 經貿六停車場", formKeyword: "經貿六", startCol: 11, busCount: 40 },
+    { name: "🚌 水湳轉運站", formKeyword: "水湳", startCol: 16, busCount: 20 }
   ];
 
   stations.forEach(st => {
@@ -155,7 +154,7 @@ function createMultiStationBusSystem() {
   // 🚌【段落一：接駁車總統計 (第 2~5 列)】
   // -------------------------------------------------------------
   dashboardSheet.getRange(2, 1, 1, 24).merge()
-    .setValue("接駁車總統計")
+    .setValue("🚌 接駁車總統計")
     .setBackground(THEME_HEADER_BG).setFontColor("#93C5FD").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
 
   // 去程總人數 (A3:H4, 8欄)
@@ -184,10 +183,10 @@ function createMultiStationBusSystem() {
     .setBackground("#334155").setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("left");
 
   const busStations = [
-    { name: "成功車站", startCol: 1, detailGoCol: "B", detailBackCol: "D", detailEndRow: 22, tagColor: "#059669" },
-    { name: "新烏日台鐵站", startCol: 7, detailGoCol: "G", detailBackCol: "I", detailEndRow: 52, tagColor: "#2563EB" },
-    { name: "經貿六停車場", startCol: 13, detailGoCol: "L", detailBackCol: "N", detailEndRow: 42, tagColor: "#D97706" },
-    { name: "水湳轉運站", startCol: 19, detailGoCol: "Q", detailBackCol: "S", detailEndRow: 22, tagColor: "#D97706" }
+    { name: "🚌 成功車站", startCol: 1, detailGoCol: "B", detailBackCol: "D", detailEndRow: 22, tagColor: "#059669" },
+    { name: "🚌 新烏日台鐵站", startCol: 7, detailGoCol: "G", detailBackCol: "I", detailEndRow: 52, tagColor: "#2563EB" },
+    { name: "🚌 經貿六停車場", startCol: 13, detailGoCol: "L", detailBackCol: "N", detailEndRow: 42, tagColor: "#D97706" },
+    { name: "🚌 水湳轉運站", startCol: 19, detailGoCol: "Q", detailBackCol: "S", detailEndRow: 22, tagColor: "#D97706" }
   ];
 
   busStations.forEach(cs => {
@@ -230,7 +229,7 @@ function createMultiStationBusSystem() {
   // 🚶【段落二：步行通道總統計 (第 14~17 列，跨 A~X 24欄)】
   // -------------------------------------------------------------
   dashboardSheet.getRange(14, 1, 1, 24).merge()
-    .setValue("步行通道總統計")
+    .setValue("🚶 步行通道總統計")
     .setBackground(THEME_HEADER_BG).setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
 
   // 入場總人數 (A15:H16, 8欄)
@@ -259,9 +258,9 @@ function createMultiStationBusSystem() {
     .setBackground("#334155").setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("left");
 
   const walkGates = [
-    { name: "1號門", keyword: "1號門", startCol: 1, tagColor: "#059669" },
-    { name: "3號門", keyword: "3號門", startCol: 9, tagColor: "#2563EB" },
-    { name: "4號門", keyword: "4號門", startCol: 17, tagColor: "#D97706" }
+    { name: "🚶 1號門", keyword: "1號門", startCol: 1, tagColor: "#059669" },
+    { name: "🚶 3號門", keyword: "3號門", startCol: 9, tagColor: "#2563EB" },
+    { name: "🚶 4號門", keyword: "4號門", startCol: 17, tagColor: "#D97706" }
   ];
 
   walkGates.forEach(wg => {
@@ -330,7 +329,7 @@ function createMultiStationBusSystem() {
   const newFormUrl = form.getPublishedUrl();
 
   Logger.log("\n=======================================================");
-  Logger.log("🎉【極致純粹・零廢話 正式戰情系統 建立完成！】");
+  Logger.log("🎉【圖標直覺・零廢話 正式戰情系統 建立完成！】");
   Logger.log("\n📱【回報表單網址】:\n" + newFormUrl);
   Logger.log("\n📊【戰情看板網址】:\n" + ssUrl);
   Logger.log("=======================================================\n");
@@ -385,10 +384,10 @@ function runGenerateTestData() {
 
   // 1. 🚌 接駁車測試數據
   const stList = [
-    { name: "成功車站", count: 20 },
-    { name: "新烏日台鐵站", count: 50 },
-    { name: "經貿六停車場", count: 40 },
-    { name: "水湳轉運站", count: 20 }
+    { name: "🚌 成功車站", count: 20 },
+    { name: "🚌 新烏日台鐵站", count: 50 },
+    { name: "🚌 經貿六停車場", count: 40 },
+    { name: "🚌 水湳轉運站", count: 20 }
   ];
 
   stList.forEach(st => {
@@ -405,15 +404,15 @@ function runGenerateTestData() {
   });
 
   // 2. 🚶 步行通道測試數據
-  const gates = ["1號門", "3號門", "4號門"];
+  const gates = ["🚶 1號門", "🚶 3號門", "🚶 4號門"];
   gates.forEach(gate => {
     for (let p = 1; p <= 4; p++) {
       const walkIn = Math.floor(Math.random() * 80) + 120;
-      testRows.push([`${datePrefix} 09:${String(10 + p*15).padStart(2,'0')}:00`, "去程 (入場)", gate, "步行通道", walkIn, ""]);
+      testRows.push([`${datePrefix} 09:${String(10 + p*15).padStart(2,'0')}:00`, "去程 (入場)", gate, "🚶 步行通道", walkIn, ""]);
     }
     for (let p = 1; p <= 4; p++) {
       const walkOut = Math.floor(Math.random() * 70) + 100;
-      testRows.push([`${datePrefix} 18:${String(5 + p*15).padStart(2,'0')}:00`, "返程 (離場)", gate, "步行通道", walkOut, ""]);
+      testRows.push([`${datePrefix} 18:${String(5 + p*15).padStart(2,'0')}:00`, "返程 (離場)", gate, "🚶 步行通道", walkOut, ""]);
     }
   });
 
