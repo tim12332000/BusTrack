@@ -1,27 +1,44 @@
 /**
  * =========================================================================
- * 🎖️「國防知性之旅-成功嶺營區開放」進場人數統計表 - 【進場/離場 統一名詞版】
+ * 🎖️「國防知性之旅-成功嶺營區開放」進場人數統計表 - 【網址永久固定・熱更新版】
  * =========================================================================
  * 
- * ✨ 名詞全面統一大升級：
- * 1. 【全場統一為「進場」與「離場」】：
- *    - 接駁車與步行門全面統一使用：`進場` ｜ `離場` ｜ `離場完成率`。
- * 2. 【設計師極簡・零認知負擔】：
- *    - 數字放大至 24~26pt 特大粗體黑字。
- *    - 狀態列洗鍊為：`70.9% · 尚餘 183 人`。
- * 3. 【24 格黃金對稱網格 (100% 絕不切字)】：
- *    - 站點卡片 6 格等寬 (288px) ➔ 進場 3 格 + 離場 3 格
- *    - 步行卡片 8 格等寬 (384px) ➔ 進場 4 格 + 離場 4 格
+ * 💡 網址永久固定機制：
+ * - 執行本程式時，會自動尋找現有的戰情試算表與表單進行「原地覆蓋更新」。
+ * - 戰情看板網址、回報表單網址【永遠固定不變】，不用每次重新發送給長官或車長！
  * 
  * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，點「執行」即可！
  * =========================================================================
  */
 
 function createMultiStationBusSystem() {
-  Logger.log("🎨 開始建立【進場/離場 統一名詞 正式戰情系統】...");
+  Logger.log("🎨 開始執行【網址永久固定・原地熱更新】...");
 
-  // 1. 建立全新 Google 表單
-  const form = FormApp.create("「國防知性之旅-成功嶺營區開放」人數回報");
+  let ss = getTargetSpreadsheet();
+  let form = null;
+
+  // 1. 如果已存在試算表，嘗試取得已綁定的表單
+  if (ss) {
+    const formUrl = ss.getFormUrl();
+    if (formUrl) {
+      try {
+        form = FormApp.openByUrl(formUrl);
+      } catch (e) {}
+    }
+  }
+
+  // 2. 如果從未建立過表單，才新建一個
+  if (!form) {
+    form = FormApp.create("「國防知性之旅-成功嶺營區開放」人數回報");
+  } else {
+    // 若表單已存在，清空題目重新建立，確保選項最新且網址不變
+    const items = form.getItems();
+    for (let i = items.length - 1; i >= 0; i--) {
+      form.deleteItem(items[i]);
+    }
+  }
+
+  form.setTitle("「國防知性之旅-成功嶺營區開放」人數回報");
 
   // 題目 1: 方向 (進場 / 離場)
   form.addMultipleChoiceItem()
@@ -68,23 +85,29 @@ function createMultiStationBusSystem() {
     .setTitle("5. 備註")
     .setRequired(false);
 
-  // 2. 建立 Google 試算表並綁定
-  const ss = SpreadsheetApp.create("「國防知性之旅-成功嶺營區開放」即時戰情中心");
-  const ssId = ss.getId();
+  // 3. 如果從未建立過試算表，才新建一個；否則沿用原試算表
+  if (!ss) {
+    ss = SpreadsheetApp.create("「國防知性之旅-成功嶺營區開放」即時戰情中心");
+    try {
+      ss.setSharing(SpreadsheetApp.Access.ANYONE_WITH_LINK, SpreadsheetApp.Permission.EDIT);
+    } catch(e) {}
+    form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+    Utilities.sleep(2000);
+  }
+
   const ssUrl = ss.getUrl();
 
-  try {
-    ss.setSharing(SpreadsheetApp.Access.ANYONE_WITH_LINK, SpreadsheetApp.Permission.EDIT);
-  } catch(e) {}
+  // 4. 取得/建立工作表
+  let dashboardSheet = ss.getSheetByName("總即時戰情看板");
+  if (!dashboardSheet) {
+    dashboardSheet = ss.getSheets()[0];
+    dashboardSheet.setName("總即時戰情看板");
+  }
 
-  form.setDestination(FormApp.DestinationType.SPREADSHEET, ssId);
-  Utilities.sleep(2000);
-
-  // 3. 建立 2 個工作表：首頁【總即時戰情看板】 + 第二頁【各車即時明細】
-  let dashboardSheet = ss.getSheets()[0];
-  dashboardSheet.setName("總即時戰情看板");
-
-  let detailSheet = ss.insertSheet("各車即時明細");
+  let detailSheet = ss.getSheetByName("各車即時明細");
+  if (!detailSheet) {
+    detailSheet = ss.insertSheet("各車即時明細");
+  }
 
   let formSheetName = "表單回應 1";
   for (let s of ss.getSheets()) {
@@ -128,7 +151,7 @@ function createMultiStationBusSystem() {
   });
 
   // ==========================================
-  // 【B. 第一頁：總即時戰情看板 (24 格黃金對稱)】
+  // 【B. 第一頁：總即時戰情看板 (原地重繪更新)】
   // ==========================================
   try {
     dashboardSheet.getRange(1, 1, 45, 26).breakApart();
@@ -330,14 +353,14 @@ function createMultiStationBusSystem() {
   const newFormUrl = form.getPublishedUrl();
 
   Logger.log("\n=======================================================");
-  Logger.log("🎉【進場/離場 統一名詞 正式戰情系統 建立完成！】");
+  Logger.log("🎉【網址永久固定・原地熱更新完成！】");
   Logger.log("\n📱【回報表單網址】:\n" + newFormUrl);
   Logger.log("\n📊【戰情看板網址】:\n" + ssUrl);
   Logger.log("=======================================================\n");
 }
 
 // =========================================================================
-// 🔍【輔助函式：智慧獲取試算表 (防 null)】
+// 🔍【輔助函式：智慧獲取現有試算表 (防重複建立、防換網址)】
 // =========================================================================
 function getTargetSpreadsheet() {
   let ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -383,7 +406,7 @@ function runGenerateTestData() {
   const now = new Date();
   const datePrefix = Utilities.formatDate(now, "Asia/Taipei", "yyyy/MM/dd");
 
-  // 1. 🚌 接駁車測試數據
+  // 1. 🚌 接駁車測試數據 (進場 / 離場)
   const stList = [
     { name: "🚌 成功車站", count: 20 },
     { name: "🚌 新烏日台鐵站", count: 50 },
@@ -404,7 +427,7 @@ function runGenerateTestData() {
     }
   });
 
-  // 2. 🚶 步行通道測試數據
+  // 2. 🚶 步行通道測試數據 (進場 / 離場)
   const gates = ["🚶 1號門", "🚶 3號門", "🚶 4號門"];
   gates.forEach(gate => {
     for (let p = 1; p <= 4; p++) {
