@@ -1,103 +1,86 @@
 /**
  * =========================================================================
- * 🎖️「國防知性之旅-成功嶺營區開放」進場人數統計表 - 【網址永久固定・熱更新版】
+ * 🎖️「國防知性之旅-成功嶺營區開放」進場人數統計表 - 【鎖定既有網址專用版】
  * =========================================================================
  * 
- * 💡 網址永久固定機制：
- * - 執行本程式時，會自動尋找現有的戰情試算表與表單進行「原地覆蓋更新」。
- * - 戰情看板網址、回報表單網址【永遠固定不變】，不用每次重新發送給長官或車長！
+ * 📌 鎖定官方指定永久網址：
+ * - 戰情看板：https://docs.google.com/spreadsheets/d/1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w/edit
+ * - 回報表單：https://docs.google.com/forms/d/e/1FAIpQLSeCDaMu9LlQhgwJKdzr6uCw2VX44ni5eO1Dn6gRePX4ur3dKw/viewform
  * 
- * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，點「執行」即可！
+ * 👉 每次點「執行」，100% 在您原本這份試算表與表單上原地更新，網址永遠不變！
  * =========================================================================
  */
 
+const TARGET_SPREADSHEET_ID = "1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w";
+
 function createMultiStationBusSystem() {
-  Logger.log("🎨 開始執行【網址永久固定・原地熱更新】...");
+  Logger.log("🎨 開始對指定試算表 [" + TARGET_SPREADSHEET_ID + "] 進行原地極簡重繪...");
 
-  let ss = getTargetSpreadsheet();
+  const ss = SpreadsheetApp.openById(TARGET_SPREADSHEET_ID);
+  
+  // 1. 取得並更新既有表單題目 (網址保持不變)
   let form = null;
-
-  // 1. 如果已存在試算表，嘗試取得已綁定的表單
-  if (ss) {
-    const formUrl = ss.getFormUrl();
-    if (formUrl) {
-      try {
-        form = FormApp.openByUrl(formUrl);
-      } catch (e) {}
-    }
+  const formUrl = ss.getFormUrl();
+  if (formUrl) {
+    try {
+      form = FormApp.openByUrl(formUrl);
+    } catch (e) {}
   }
 
-  // 2. 如果從未建立過表單，才新建一個
-  if (!form) {
-    form = FormApp.create("「國防知性之旅-成功嶺營區開放」人數回報");
-  } else {
-    // 若表單已存在，清空題目重新建立，確保選項最新且網址不變
+  if (form) {
+    form.setTitle("「國防知性之旅-成功嶺營區開放」人數回報");
     const items = form.getItems();
     for (let i = items.length - 1; i >= 0; i--) {
       form.deleteItem(items[i]);
     }
+
+    // 題目 1: 方向 (進場 / 離場)
+    form.addMultipleChoiceItem()
+      .setTitle("1. 方向")
+      .setChoiceValues(["進場", "離場"])
+      .setRequired(true);
+
+    // 題目 2: 站點 / 門號
+    form.addMultipleChoiceItem()
+      .setTitle("2. 站點 / 門號")
+      .setChoiceValues([
+        "🚌 成功車站",
+        "🚌 新烏日台鐵站",
+        "🚌 經貿六停車場",
+        "🚌 水湳轉運站",
+        "🚶 1號門",
+        "🚶 3號門",
+        "🚶 4號門"
+      ])
+      .setRequired(true);
+
+    // 題目 3: 車號
+    const busChoices = ["🚶 步行通道"];
+    for (let i = 1; i <= 50; i++) {
+      busChoices.push(`${i} 號車`);
+    }
+    form.addListItem()
+      .setTitle("3. 車號")
+      .setChoiceValues(busChoices)
+      .setRequired(true);
+
+    // 題目 4: 人數
+    const textValidation = FormApp.createTextValidation()
+      .setHelpText("請輸入數字")
+      .requireNumberGreaterThanOrEqualTo(0)
+      .build();
+    form.addTextItem()
+      .setTitle("4. 人數")
+      .setValidation(textValidation)
+      .setRequired(true);
+
+    // 題目 5: 備註
+    form.addTextItem()
+      .setTitle("5. 備註")
+      .setRequired(false);
   }
 
-  form.setTitle("「國防知性之旅-成功嶺營區開放」人數回報");
-
-  // 題目 1: 方向 (進場 / 離場)
-  form.addMultipleChoiceItem()
-    .setTitle("1. 方向")
-    .setChoiceValues(["進場", "離場"])
-    .setRequired(true);
-
-  // 題目 2: 站點 / 門號
-  form.addMultipleChoiceItem()
-    .setTitle("2. 站點 / 門號")
-    .setChoiceValues([
-      "🚌 成功車站",
-      "🚌 新烏日台鐵站",
-      "🚌 經貿六停車場",
-      "🚌 水湳轉運站",
-      "🚶 1號門",
-      "🚶 3號門",
-      "🚶 4號門"
-    ])
-    .setRequired(true);
-
-  // 題目 3: 車號
-  const busChoices = ["🚶 步行通道"];
-  for (let i = 1; i <= 50; i++) {
-    busChoices.push(`${i} 號車`);
-  }
-  form.addListItem()
-    .setTitle("3. 車號")
-    .setChoiceValues(busChoices)
-    .setRequired(true);
-
-  // 題目 4: 人數
-  const textValidation = FormApp.createTextValidation()
-    .setHelpText("請輸入數字")
-    .requireNumberGreaterThanOrEqualTo(0)
-    .build();
-  form.addTextItem()
-    .setTitle("4. 人數")
-    .setValidation(textValidation)
-    .setRequired(true);
-
-  // 題目 5: 備註
-  form.addTextItem()
-    .setTitle("5. 備註")
-    .setRequired(false);
-
-  // 3. 如果從未建立過試算表，才新建一個；否則沿用原試算表
-  if (!ss) {
-    ss = SpreadsheetApp.create("「國防知性之旅-成功嶺營區開放」即時戰情中心");
-    try {
-      ss.setSharing(SpreadsheetApp.Access.ANYONE_WITH_LINK, SpreadsheetApp.Permission.EDIT);
-    } catch(e) {}
-    form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
-    Utilities.sleep(2000);
-  }
-
-  const ssUrl = ss.getUrl();
-
-  // 4. 取得/建立工作表
+  // 2. 取得/建立工作表
   let dashboardSheet = ss.getSheetByName("總即時戰情看板");
   if (!dashboardSheet) {
     dashboardSheet = ss.getSheets()[0];
@@ -151,7 +134,7 @@ function createMultiStationBusSystem() {
   });
 
   // ==========================================
-  // 【B. 第一頁：總即時戰情看板 (原地重繪更新)】
+  // 【B. 第一頁：總即時戰情看板 (24 格黃金對稱)】
   // ==========================================
   try {
     dashboardSheet.getRange(1, 1, 45, 26).breakApart();
@@ -350,33 +333,26 @@ function createMultiStationBusSystem() {
   dashboardSheet.setRowHeight(23, 28);
   dashboardSheet.setRowHeight(24, 18);
 
-  const newFormUrl = form.getPublishedUrl();
-
   Logger.log("\n=======================================================");
-  Logger.log("🎉【網址永久固定・原地熱更新完成！】");
-  Logger.log("\n📱【回報表單網址】:\n" + newFormUrl);
-  Logger.log("\n📊【戰情看板網址】:\n" + ssUrl);
+  Logger.log("🎉【鎖定既有網址・原地更新完成！】");
+  Logger.log("📊【戰情看板網址 (完全不變)】: " + ss.getUrl());
+  if (form) {
+    Logger.log("📱【回報表單網址 (完全不變)】: " + form.getPublishedUrl());
+  }
   Logger.log("=======================================================\n");
 }
 
 // =========================================================================
-// 🔍【輔助函式：智慧獲取現有試算表 (防重複建立、防換網址)】
+// 🔍【獲取鎖定試算表】
 // =========================================================================
 function getTargetSpreadsheet() {
-  let ss = SpreadsheetApp.getActiveSpreadsheet();
-  if (ss) return ss;
-
-  const files = DriveApp.getFilesByName("「國防知性之旅-成功嶺營區開放」即時戰情中心");
-  if (files.hasNext()) {
-    return SpreadsheetApp.open(files.next());
+  try {
+    return SpreadsheetApp.openById(TARGET_SPREADSHEET_ID);
+  } catch (e) {
+    let ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (ss) return ss;
+    return null;
   }
-
-  const fallbackFiles = DriveApp.searchFiles('title contains "即時戰情中心" and mimeType = "application/vnd.google-apps.spreadsheet"');
-  if (fallbackFiles.hasNext()) {
-    return SpreadsheetApp.open(fallbackFiles.next());
-  }
-
-  return null;
 }
 
 // =========================================================================
@@ -385,7 +361,7 @@ function getTargetSpreadsheet() {
 function runGenerateTestData() {
   const ss = getTargetSpreadsheet();
   if (!ss) {
-    Logger.log("❌ 找不到戰情中心試算表！請先執行一次 `createMultiStationBusSystem` 建立系統。");
+    Logger.log("❌ 找不到戰情中心試算表！");
     return;
   }
 
