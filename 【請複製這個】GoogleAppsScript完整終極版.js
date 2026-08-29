@@ -1,20 +1,19 @@
 /**
  * =========================================================================
- * 🚌 接駁車管理系統 - 【現代極簡戰情看板 + 一鍵測試/清空按鈕版】
+ * 🚌 接駁車管理系統 - 【超直覺「打勾即觸發」按鈕 戰情版】
  * =========================================================================
  * 
- * ✨ 本版新功能：
- * 1. 【上方選單 🛠️ 戰情控制台】：
- *    - 點選上方「🛠️ 戰情控制台」➔「🎲 產生模擬測試資料」或「🗑️ 清空所有回報資料 (歸零)」
- * 2. 【右下角實體按鈕引導區】：
- *    - 右下角設有按鈕引導區，方便主控人員隨時一鍵測試與上線前清空歸零！
+ * ✨ 最簡單的按鈕方式（免看選單、免開後台）：
+ * - 看板右下角直接設有「方塊按鈕」：
+ *   👉 點一下【☑️ 產生測試資料】➔ 數據瞬間全自動生出來！
+ *   👉 點一下【☑️ 清空所有資料】➔ 數據瞬間一秒全數歸零！
  * 
  * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，點「執行 (Run)」即可！
  * =========================================================================
  */
 
 function createMultiStationBusSystem() {
-  Logger.log("🎨 開始建立【現代極簡高階戰情系統】...");
+  Logger.log("🎨 開始建立【極簡戰情系統】...");
 
   // 1. 建立全新 Google 表單
   const form = FormApp.create("🚌 接駁車【去程 / 返程】搭乘人數即時回報");
@@ -113,7 +112,7 @@ function createMultiStationBusSystem() {
   });
 
   // ==========================================
-  // 【B. 第一頁：總即時戰情看板 (簡約高階設計)】
+  // 【B. 第一頁：總即時戰情看板】
   // ==========================================
   try {
     dashboardSheet.getRange(1, 1, 40, 20).breakApart();
@@ -185,18 +184,18 @@ function createMultiStationBusSystem() {
     dashboardSheet.setColumnWidth(col + 2, 115);
   });
 
-  // 3. 🌟 右下角操作按鈕卡片 (第 12~14 列)
-  dashboardSheet.getRange("J12:L12").merge()
-    .setValue("🎲 產生模擬測試資料 (上方選單執行)")
-    .setBackground("#2563EB").setFontColor("#FFFFFF").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
+  // 3. 🌟 終極直覺按鈕（右下角打勾核取方塊按鈕，滑鼠點勾勾就能觸發！）
+  dashboardSheet.getRange("J12").insertCheckboxes().setValue(false).setBackground("#EFF6FF");
+  dashboardSheet.getRange("K12:L12").merge()
+    .setValue("👈 點勾勾 ➔ 🎲 產生測試資料")
+    .setBackground("#EFF6FF").setFontColor("#1D4ED8").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("left");
 
-  dashboardSheet.getRange("J13:L13").merge()
-    .setValue("🗑️ 一鍵清空所有資料 (上方選單執行)")
-    .setBackground("#DC2626").setFontColor("#FFFFFF").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
+  dashboardSheet.getRange("J13").insertCheckboxes().setValue(false).setBackground("#FEF2F2");
+  dashboardSheet.getRange("K13:L13").merge()
+    .setValue("👈 點勾勾 ➔ 🗑️ 清空所有資料")
+    .setBackground("#FEF2F2").setFontColor("#DC2626").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("left");
 
-  dashboardSheet.getRange("J14:L14").merge()
-    .setValue("💡 提示：點上方選單「🛠️ 戰情控制台」即可一鍵操作！")
-    .setFontColor("#64748B").setFontSize(10).setHorizontalAlignment("center");
+  dashboardSheet.getRange("J12:L13").setBorder(true, true, true, true, true, true, "#CBD5E1", SpreadsheetApp.BorderStyle.SOLID);
 
   // 列高設定
   dashboardSheet.setRowHeight(1, 26);
@@ -209,31 +208,41 @@ function createMultiStationBusSystem() {
   dashboardSheet.setRowHeight(8, 42);
   dashboardSheet.setRowHeight(9, 28);
   dashboardSheet.setRowHeight(10, 20);
-  dashboardSheet.setRowHeight(11, 14);
-  dashboardSheet.setRowHeight(12, 32);
-  dashboardSheet.setRowHeight(13, 32);
-  dashboardSheet.setRowHeight(14, 24);
+  dashboardSheet.setRowHeight(11, 16);
+  dashboardSheet.setRowHeight(12, 34);
+  dashboardSheet.setRowHeight(13, 34);
 
   const newFormUrl = form.getPublishedUrl();
 
   Logger.log("\n=======================================================");
-  Logger.log("🎉【全新現代極簡戰情看板建立完成！】");
+  Logger.log("🎉【全新超直覺打勾按鈕 戰情看板建立完成！】");
   Logger.log("\n📱【最新車長填寫表單網址】:\n" + newFormUrl);
   Logger.log("\n📊【最新主控即時戰情看板網址】:\n" + ssUrl);
   Logger.log("=======================================================\n");
 }
 
-// ==========================================
-// 🛠️ 選單與按鈕動作函式
-// ==========================================
+// 🌟【自動監聽滑鼠點擊打勾事件】
+function onEdit(e) {
+  if (!e || !e.range) return;
+  const sheet = e.range.getSheet();
+  if (sheet.getName() !== "總即時戰情看板") return;
 
-// 自動在試算表上方增加自訂選單
-function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu("🛠️ 戰情控制台")
-    .addItem("🎲 產生模擬測試資料", "generateTestData")
-    .addItem("🗑️ 清空所有回報資料 (歸零)", "clearAllData")
-    .addToUi();
+  const row = e.range.getRow();
+  const col = e.range.getColumn();
+  const val = e.range.getValue();
+
+  // J 欄是第 10 欄
+  if (col === 10 && val === true) {
+    e.range.setValue(false); // 點完自動取消打勾
+    
+    if (row === 12) {
+      // 點了 J12 ➔ 產生測試資料
+      generateTestData();
+    } else if (row === 13) {
+      // 點了 J13 ➔ 清除所有資料
+      clearAllData();
+    }
+  }
 }
 
 // 🎲 產生 4 站隨機測試資料
@@ -247,10 +256,7 @@ function generateTestData() {
     }
   }
 
-  if (!formSheet) {
-    SpreadsheetApp.getUi().alert("❌ 找不到表單回應工作表！");
-    return;
-  }
+  if (!formSheet) return;
 
   const testRows = [];
   const now = new Date();
@@ -267,10 +273,10 @@ function generateTestData() {
     for (let i = 1; i <= st.count; i++) {
       const busName = `${i} 號車`;
       // 去程
-      const goPax = Math.floor(Math.random() * 15) + 25; // 25~40人
+      const goPax = Math.floor(Math.random() * 15) + 25;
       testRows.push([`${datePrefix} 08:${String(10 + (i%40)).padStart(2,'0')}:15`, "👉 去程", st.name, busName, goPax, ""]);
       
-      // 返程 (約 85%~95% 車輛已返程)
+      // 返程
       if (Math.random() > 0.1) {
         const backPax = Math.floor(goPax * (0.85 + Math.random() * 0.15));
         testRows.push([`${datePrefix} 17:${String(20 + (i%35)).padStart(2,'0')}:30`, "👈 返程", st.name, busName, backPax, ""]);
@@ -279,12 +285,6 @@ function generateTestData() {
   });
 
   formSheet.getRange(formSheet.getLastRow() + 1, 1, testRows.length, 6).setValues(testRows);
-  
-  try {
-    SpreadsheetApp.getUi().alert("🎉 已成功隨機產生 4 站共 " + testRows.length + " 筆去/返程測試數據！");
-  } catch(e) {
-    Logger.log("✅ 已成功產生測試數據 " + testRows.length + " 筆！");
-  }
 }
 
 // 🗑️ 清空所有流水帳回報資料
@@ -303,12 +303,6 @@ function clearAllData() {
   const lastRow = formSheet.getLastRow();
   if (lastRow > 1) {
     formSheet.getRange(2, 1, lastRow - 1, formSheet.getLastColumn()).clearContent();
-  }
-
-  try {
-    SpreadsheetApp.getUi().alert("🗑️ 所有回報資料已全數清空歸零，戰情看板已重置完成！");
-  } catch(e) {
-    Logger.log("✅ 所有回報資料已清空！");
   }
 }
 
