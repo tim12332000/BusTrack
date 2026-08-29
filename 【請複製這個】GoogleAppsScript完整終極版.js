@@ -1,25 +1,14 @@
 /**
  * =========================================================================
- * 🚌 接駁車與步行通道管理系統 - 【車總統計 ➔ 車ABCD ｜ 人總統計 ➔ 人ABC】
+ * 🚌 接駁車與步行通道管理系統 - 【車總統計➔車ABCD ｜ 人總統計➔人ABC 終極整合版】
  * =========================================================================
  * 
- * ✨ 完美的上下雙段落排版：
+ * ✨ 包含全部功能：
+ * 1. `createMultiStationBusSystem`: 建立全新系統與戰情看板
+ * 2. `runGenerateTestData`: 🎲 產生 車 ABCD + 人 ABC 測試數據
+ * 3. `clearAllData`: 🗑️ 一鍵清空歸零全場數據
  * 
- * ┌────────────────────────────────────────────────────────┐
- * │ 🚌【車總統計大盤】(去程總人數 ｜ 返程總人數 ｜ 車運總量 ｜ 總疏運率)  │
- * └────────────────────────────────────────────────────────┘
- * ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
- * │ 成功(綠) │  │新烏日(藍)│  │經貿六(黃)│  │ 水湳(黃) │  (車 ABCD)
- * └──────────┘  └──────────┘  └──────────┘  └──────────┘
- * 
- * ┌────────────────────────────────────────────────────────┐
- * │ 🚶【人總統計大盤】(入場總人數 ｜ 離場總人數 ｜ 步行總量 ｜ 總疏運率)  │
- * └────────────────────────────────────────────────────────┘
- * ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
- * │ 1號門 (綠線) │  │ 3號門 (藍線) │  │ 4號門 (黃線) │  (人 ABC)
- * └──────────────┘  └──────────────┘  └──────────────┘
- * 
- * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，點「執行 (Run)」即可！
+ * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，在上方下拉選單挑選想執行的 function 點「執行」即可！
  * =========================================================================
  */
 
@@ -167,7 +156,7 @@ function createMultiStationBusSystem() {
   dashboardSheet.getRange("A1:L4").setBorder(true, true, true, true, true, true, "#334155", SpreadsheetApp.BorderStyle.SOLID);
 
   // -------------------------------------------------------------
-  // 🚌【段落一：車 ABCD - 4 大接駁車站 (第 6~10 列)】
+  // 🚌【段落一：車 ABCD - 4 大接駁車站 (第 6~11 列)】
   // -------------------------------------------------------------
   dashboardSheet.getRange("A6:L6").merge()
     .setValue("🚌 各接駁車站點即時疏運明細（車 A: 成功 ｜ 車 B: 新烏日 ｜ 車 C: 經貿六 ｜ 車 D: 水湳）")
@@ -305,19 +294,19 @@ function createMultiStationBusSystem() {
   dashboardSheet.setRowHeight(2, 22);
   dashboardSheet.setRowHeight(3, 36);
   dashboardSheet.setRowHeight(4, 24);
-  dashboardSheet.setRowHeight(5, 14); // 車段落間隔
+  dashboardSheet.setRowHeight(5, 14);
   dashboardSheet.setRowHeight(6, 26);
   dashboardSheet.setRowHeight(7, 34);
   dashboardSheet.setRowHeight(8, 26);
   dashboardSheet.setRowHeight(9, 38);
   dashboardSheet.setRowHeight(10, 26);
   dashboardSheet.setRowHeight(11, 18);
-  dashboardSheet.setRowHeight(12, 18); // 人段落大間隔
+  dashboardSheet.setRowHeight(12, 18);
   dashboardSheet.setRowHeight(13, 28);
   dashboardSheet.setRowHeight(14, 22);
   dashboardSheet.setRowHeight(15, 36);
   dashboardSheet.setRowHeight(16, 24);
-  dashboardSheet.setRowHeight(17, 14); // 人細節間隔
+  dashboardSheet.setRowHeight(17, 14);
   dashboardSheet.setRowHeight(18, 26);
   dashboardSheet.setRowHeight(19, 34);
   dashboardSheet.setRowHeight(20, 26);
@@ -332,6 +321,93 @@ function createMultiStationBusSystem() {
   Logger.log("\n📱【最新回報表單網址】:\n" + newFormUrl);
   Logger.log("\n📊【最新主控即時戰情看板網址】:\n" + ssUrl);
   Logger.log("=======================================================\n");
+}
+
+// =========================================================================
+// 🎲【指令：一鍵產生 車 ABCD + 人 ABC 測試資料】
+// =========================================================================
+function runGenerateTestData() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let formSheet = null;
+  for (let s of ss.getSheets()) {
+    if (s.getName().includes("表單回應") || s.getName().includes("Form Responses")) {
+      formSheet = s;
+      break;
+    }
+  }
+
+  if (!formSheet) {
+    Logger.log("❌ 找不到表單回應工作表！請確認試算表已綁定表單。");
+    return;
+  }
+
+  const testRows = [];
+  const now = new Date();
+  const datePrefix = Utilities.formatDate(now, "Asia/Taipei", "yyyy/MM/dd");
+
+  // 1. 🚌 接駁車測試數據 (車 ABCD：成功 20、新烏日 50、經貿六 40、水湳 20)
+  const stList = [
+    { name: "🚌 成功車站（綠線）", count: 20 },
+    { name: "🚌 新烏日台鐵站（藍線）", count: 50 },
+    { name: "🚌 經貿六停車場（黃線）", count: 40 },
+    { name: "🚌 水湳轉運站（黃線）", count: 20 }
+  ];
+
+  stList.forEach(st => {
+    for (let i = 1; i <= st.count; i++) {
+      const busName = `${i} 號車`;
+      const goPax = Math.floor(Math.random() * 15) + 25; // 25~40人
+      testRows.push([`${datePrefix} 08:${String(10 + (i%40)).padStart(2,'0')}:15`, "👉 去程 (入場)", st.name, busName, goPax, ""]);
+      
+      // 85% 機率已返程
+      if (Math.random() > 0.15) {
+        const backPax = Math.floor(goPax * (0.8 + Math.random() * 0.2));
+        testRows.push([`${datePrefix} 17:${String(20 + (i%35)).padStart(2,'0')}:30`, "👈 返程 (離場)", st.name, busName, backPax, ""]);
+      }
+    }
+  });
+
+  // 2. 🚶 步行通道測試數據 (人 ABC：1號門綠、3號門藍、4號門黃)
+  const gates = ["🚶 1號門（綠線）", "🚶 3號門（藍線）", "🚶 4號門（黃線）"];
+  gates.forEach(gate => {
+    for (let p = 1; p <= 4; p++) {
+      const walkIn = Math.floor(Math.random() * 80) + 120; // 120~200人
+      testRows.push([`${datePrefix} 09:${String(10 + p*15).padStart(2,'0')}:00`, "👉 去程 (入場)", gate, "🚶 步行通道 (無車號)", walkIn, "入場批次"]);
+    }
+    for (let p = 1; p <= 4; p++) {
+      const walkOut = Math.floor(Math.random() * 70) + 100; // 100~170人
+      testRows.push([`${datePrefix} 18:${String(5 + p*15).padStart(2,'0')}:00`, "👈 返程 (離場)", gate, "🚶 步行通道 (無車號)", walkOut, "離場批次"]);
+    }
+  });
+
+  formSheet.getRange(formSheet.getLastRow() + 1, 1, testRows.length, 6).setValues(testRows);
+  Logger.log("🎉 已成功產生 " + testRows.length + " 筆測試數據！請回到「總即時戰情看板」查看數據！");
+}
+
+// =========================================================================
+// 🗑️【指令：一鍵清空全場數據歸零】
+// =========================================================================
+function clearAllData() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let formSheet = null;
+  for (let s of ss.getSheets()) {
+    if (s.getName().includes("表單回應") || s.getName().includes("Form Responses")) {
+      formSheet = s;
+      break;
+    }
+  }
+
+  if (formSheet && formSheet.getLastRow() > 1) {
+    formSheet.getRange(2, 1, formSheet.getLastRow() - 1, formSheet.getLastColumn()).clearContent();
+    Logger.log("🧹 表單流水帳已全部清空！");
+  }
+
+  const detailSheet = ss.getSheetByName("各車即時明細");
+  if (detailSheet) {
+    Logger.log("🧹 各車即時明細已透過公式自動歸零！");
+  }
+
+  Logger.log("✨ 全場數據已一秒清空歸零完畢！");
 }
 
 function fixAndFormatEverything() { createMultiStationBusSystem(); }
