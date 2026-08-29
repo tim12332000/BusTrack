@@ -1,24 +1,24 @@
 /**
  * =========================================================================
- * 🚌 接駁車與步行通道管理系統 - 【車輛接駁 + 1/3/4號門步行進出 戰情版】
+ * 🚌 接駁車與步行通道管理系統 - 【純淨專業戰情版 (4大車站 + 1/3/4號步行門)】
  * =========================================================================
  * 
- * ✨ 本版全新特例支援：
- * 1. 【步行進出通道 (1號門、3號門、4號門)】：
- *    - 整合於同一個 Google 表單中，工作人員可回報各門【👉 入場(去程)】與【👈 離場(返程)】人數！
- * 2. 【5 大戰情卡片佈局】：
- *    - 4 大接駁車站 (成功綠線、新烏日藍線、經貿六黃線、水湳黃線)
- *    - 1 大專屬【🚶 步行進出通道卡片】（1號門、3號門、4號門獨立小計與疏運率）
- * 3. 【全場總大盤全自動加總】：
- *    - 頂部總人次自動包含「車輛接駁」與「步行進出」全場大盤！
- * 4. 【右下角打勾按鈕】：點一下打勾即可產生 4 車站 + 3 步行門測試資料或一秒清空！
+ * ✨ 系統特色：
+ * 1. 【4 大接駁車站 + 3 大步行門通道】：
+ *    - 成功綠線(20輛)、新烏日藍線(50輛)、經貿六黃線(40輛)、水湳黃線(20輛)
+ *    - 步行門通道：1號門、3號門、4號門
+ * 2. 【5 大獨立戰情卡片】：
+ *    - 各站/各門【👉去程(入場) / 👈返程(離場) / 累計總量 / 疏運完成率 / 科技進度條】
+ * 3. 【頂部全場總大盤】：
+ *    - 全場總進場人次、全場入場、全場離場、全場總疏運完成率
+ * 4. 【純淨大氣界面】：已完全移除任何多餘按鈕，呈現最專業的商務大螢幕戰情中心！
  * 
  * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，點「執行 (Run)」即可！
  * =========================================================================
  */
 
 function createMultiStationBusSystem() {
-  Logger.log("🎨 開始建立【車輛 + 步行通道 現代戰情系統】...");
+  Logger.log("🎨 開始建立【純淨專業戰情系統】...");
 
   // 1. 建立全新 Google 表單
   const form = FormApp.create("🚌 接駁車與步行進出【去程(入場) / 返程(離場)】人數回報");
@@ -125,21 +125,21 @@ function createMultiStationBusSystem() {
   });
 
   // ==========================================
-  // 【B. 第一頁：總即時戰情看板 (5 大卡片現代設計)】
+  // 【B. 第一頁：總即時戰情看板 (純淨 5 大卡片)】
   // ==========================================
   try {
     dashboardSheet.getRange(1, 1, 40, 20).breakApart();
   } catch (e) {}
 
-  // 1. 頂部全場總大盤 (含 4 站接駁車 + 步行進出)
+  // 1. 頂部全場總大盤
   dashboardSheet.getRange("A1:C1").merge().setValue("🏆 全場總入場人次 (車輛+步行)").setBackground("#0F172A").setFontColor("#94A3B8").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
   dashboardSheet.getRange("A2:C3").merge().setFormula("=D2+G2").setBackground("#0F172A").setFontColor("#38BDF8").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
 
   dashboardSheet.getRange("D1:F1").merge().setValue("👉 全場入場/去程總人數").setBackground("#0F172A").setFontColor("#94A3B8").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
-  dashboardSheet.getRange("D2:F3").merge().setFormula("=B8+E8+H8+K8+N8").setBackground("#0F172A").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange("D2:F3").merge().setFormula("=B8+E8+H8+K8+M8").setBackground("#0F172A").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
 
   dashboardSheet.getRange("G1:I1").merge().setValue("👈 全場離場/返程總人數").setBackground("#0F172A").setFontColor("#94A3B8").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
-  dashboardSheet.getRange("G2:I3").merge().setFormula("=C8+F8+I8+L8+O8").setBackground("#0F172A").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange("G2:I3").merge().setFormula("=C8+F8+I8+L8+N8").setBackground("#0F172A").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
 
   dashboardSheet.getRange("J1:O1").merge().setValue("📈 全場總疏運/離場完成率").setBackground("#0F172A").setFontColor("#94A3B8").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
   dashboardSheet.getRange("J2:O3").merge().setFormula(`=IF(D2>0, TEXT(G2/D2, "0.0%"), "0.0%")`).setBackground("#0F172A").setFontColor("#34D399").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
@@ -197,10 +197,10 @@ function createMultiStationBusSystem() {
     dashboardSheet.setColumnWidth(col + 2, 105);
   });
 
-  // 3. 🌟 第 5 大卡片：【🚶 步行進出通道卡片 (1號門 / 3號門 / 4號門)】 (N6:P10)
-  const walkCol = 13; // M 欄開始，佔 M, N, O (即 13, 14, 15 欄)
+  // 3. 🌟 第 5 大卡片：【🚶 步行進出通道卡片 (1/3/4號門)】 (M6:O10)
+  const walkCol = 13; // M 欄
   dashboardSheet.getRange(6, walkCol, 1, 3).merge()
-    .setValue("🚶 步行進出通道 (1/3/4號門)")
+    .setValue("🚶 步行進出 (1/3/4號門)")
     .setBackground("#64748B").setFontColor("#FFFFFF").setFontWeight("bold").setFontSize(13).setHorizontalAlignment("center");
 
   dashboardSheet.getRange(7, walkCol).setValue("👉 入場人數").setBackground("#F1F5F9").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
@@ -230,19 +230,6 @@ function createMultiStationBusSystem() {
   dashboardSheet.setColumnWidth(walkCol + 1, 105);
   dashboardSheet.setColumnWidth(walkCol + 2, 105);
 
-  // 4. 🌟 右下角打勾按鈕（點勾勾即自動觸發）
-  dashboardSheet.getRange("M12").insertCheckboxes().setValue(false).setBackground("#EFF6FF");
-  dashboardSheet.getRange("N12:O12").merge()
-    .setValue("👈 點勾勾 ➔ 🎲 產生測試資料")
-    .setBackground("#EFF6FF").setFontColor("#1D4ED8").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("left");
-
-  dashboardSheet.getRange("M13").insertCheckboxes().setValue(false).setBackground("#FEF2F2");
-  dashboardSheet.getRange("N13:O13").merge()
-    .setValue("👈 點勾勾 ➔ 🗑️ 清空所有資料")
-    .setBackground("#FEF2F2").setFontColor("#DC2626").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("left");
-
-  dashboardSheet.getRange("M12:O13").setBorder(true, true, true, true, true, true, "#CBD5E1", SpreadsheetApp.BorderStyle.SOLID);
-
   // 列高設定
   dashboardSheet.setRowHeight(1, 26);
   dashboardSheet.setRowHeight(2, 28);
@@ -254,114 +241,14 @@ function createMultiStationBusSystem() {
   dashboardSheet.setRowHeight(8, 42);
   dashboardSheet.setRowHeight(9, 28);
   dashboardSheet.setRowHeight(10, 20);
-  dashboardSheet.setRowHeight(11, 16);
-  dashboardSheet.setRowHeight(12, 34);
-  dashboardSheet.setRowHeight(13, 34);
 
   const newFormUrl = form.getPublishedUrl();
 
   Logger.log("\n=======================================================");
-  Logger.log("🎉【全新車輛 + 步行通道 戰情看板建立完成！】");
+  Logger.log("🎉【全新純淨專業戰情看板建立完成！】");
   Logger.log("\n📱【最新回報表單網址】:\n" + newFormUrl);
   Logger.log("\n📊【最新主控即時戰情看板網址】:\n" + ssUrl);
   Logger.log("=======================================================\n");
-}
-
-// 🌟【自動監聽滑鼠點擊打勾事件】
-function onEdit(e) {
-  if (!e || !e.range) return;
-  const sheet = e.range.getSheet();
-  if (sheet.getName() !== "總即時戰情看板") return;
-
-  const row = e.range.getRow();
-  const col = e.range.getColumn();
-  const val = e.range.getValue();
-
-  // M 欄是第 13 欄
-  if (col === 13 && val === true) {
-    e.range.setValue(false); // 點完自動取消打勾
-    
-    if (row === 12) {
-      generateTestData();
-    } else if (row === 13) {
-      clearAllData();
-    }
-  }
-}
-
-// 🎲 產生 4 站接駁車 + 3 大步行門隨機測試資料
-function generateTestData() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/1GF3Y9oR_KidYlfdnQwkSF_xCRgElAlAC1PwJG8FJSrU/edit");
-  let formSheet = null;
-  for (let s of ss.getSheets()) {
-    if (s.getName().includes("表單回應") || s.getName().includes("Form Responses")) {
-      formSheet = s;
-      break;
-    }
-  }
-
-  if (!formSheet) return;
-
-  const testRows = [];
-  const now = new Date();
-  const datePrefix = Utilities.formatDate(now, "Asia/Taipei", "yyyy/MM/dd");
-
-  // 1. 車站測試數據
-  const stList = [
-    { name: "成功車站（綠線）", count: 20 },
-    { name: "新烏日台鐵站（藍線）", count: 50 },
-    { name: "經貿六停車場（黃線）", count: 40 },
-    { name: "水湳轉運站（黃線）", count: 20 }
-  ];
-
-  stList.forEach(st => {
-    for (let i = 1; i <= st.count; i++) {
-      const busName = `${i} 號車`;
-      const goPax = Math.floor(Math.random() * 15) + 25;
-      testRows.push([`${datePrefix} 08:${String(10 + (i%40)).padStart(2,'0')}:15`, "👉 去程 (入場)", st.name, busName, goPax, ""]);
-      
-      if (Math.random() > 0.1) {
-        const backPax = Math.floor(goPax * (0.85 + Math.random() * 0.15));
-        testRows.push([`${datePrefix} 17:${String(20 + (i%35)).padStart(2,'0')}:30`, "👈 返程 (離場)", st.name, busName, backPax, ""]);
-      }
-    }
-  });
-
-  // 2. 步行通道測試數據 (1號門、3號門、4號門)
-  const gates = ["🚶 步行：1號門", "🚶 步行：3號門", "🚶 步行：4號門"];
-  gates.forEach((gate, gIdx) => {
-    // 入場 3 批
-    for (let p = 1; p <= 3; p++) {
-      const walkIn = Math.floor(Math.random() * 80) + 120; // 120~200人
-      testRows.push([`${datePrefix} 09:${String(15 + p*15).padStart(2,'0')}:00`, "👉 去程 (入場)", gate, "🚶 步行通道 (無車號)", walkIn, "步行批次回報"]);
-    }
-    // 離場 3 批
-    for (let p = 1; p <= 3; p++) {
-      const walkOut = Math.floor(Math.random() * 70) + 110; // 110~180人
-      testRows.push([`${datePrefix} 18:${String(10 + p*15).padStart(2,'0')}:00`, "👈 返程 (離場)", gate, "🚶 步行通道 (無車號)", walkOut, "步行離場回報"]);
-    }
-  });
-
-  formSheet.getRange(formSheet.getLastRow() + 1, 1, testRows.length, 6).setValues(testRows);
-}
-
-// 🗑️ 清空所有流水帳回報資料
-function clearAllData() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet() || SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/1GF3Y9oR_KidYlfdnQwkSF_xCRgElAlAC1PwJG8FJSrU/edit");
-  let formSheet = null;
-  for (let s of ss.getSheets()) {
-    if (s.getName().includes("表單回應") || s.getName().includes("Form Responses")) {
-      formSheet = s;
-      break;
-    }
-  }
-
-  if (!formSheet) return;
-
-  const lastRow = formSheet.getLastRow();
-  if (lastRow > 1) {
-    formSheet.getRange(2, 1, lastRow - 1, formSheet.getLastColumn()).clearContent();
-  }
 }
 
 function fixAndFormatEverything() { createMultiStationBusSystem(); }
