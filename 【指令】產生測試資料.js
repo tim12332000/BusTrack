@@ -1,14 +1,27 @@
 /**
- * 🎲【指令：一鍵產生 車 ABCD + 人 ABC 測試資料】
- * 
- * 使用方式：
- * 1. 複製這段程式碼。
- * 2. 貼到 Google Apps Script 執行 `runGenerateTestData`。
- * 👉 試算表就會立刻填滿 4 站接駁車 + 3 大步行門去/返程數據與動態條！
+ * 🎲【指令：一鍵產生 車 ABCD + 人 ABC 測試資料 (防 null 終極版)】
  */
 
+function getTargetSpreadsheet() {
+  let ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (ss) return ss;
+
+  const files = DriveApp.getFilesByName("🚌 各站接駁車與步行通道【去/返程】即時戰情中心");
+  if (files.hasNext()) return SpreadsheetApp.open(files.next());
+
+  const fallbackFiles = DriveApp.searchFiles('title contains "即時戰情中心" and mimeType = "application/vnd.google-apps.spreadsheet"');
+  if (fallbackFiles.hasNext()) return SpreadsheetApp.open(fallbackFiles.next());
+
+  return null;
+}
+
 function runGenerateTestData() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getTargetSpreadsheet();
+  if (!ss) {
+    Logger.log("❌ 找不到戰情中心試算表！請先執行一次 `createMultiStationBusSystem` 建立系統。");
+    return;
+  }
+
   let formSheet = null;
   for (let s of ss.getSheets()) {
     if (s.getName().includes("表單回應") || s.getName().includes("Form Responses")) {
@@ -40,7 +53,6 @@ function runGenerateTestData() {
       const goPax = Math.floor(Math.random() * 15) + 25; // 25~40人
       testRows.push([`${datePrefix} 08:${String(10 + (i%40)).padStart(2,'0')}:15`, "👉 去程 (入場)", st.name, busName, goPax, ""]);
       
-      // 85% 機率已返程
       if (Math.random() > 0.15) {
         const backPax = Math.floor(goPax * (0.8 + Math.random() * 0.2));
         testRows.push([`${datePrefix} 17:${String(20 + (i%35)).padStart(2,'0')}:30`, "👈 返程 (離場)", st.name, busName, backPax, ""]);
@@ -51,12 +63,10 @@ function runGenerateTestData() {
   // 2. 🚶 步行通道測試數據 (人 ABC：1號門綠、3號門藍、4號門黃)
   const gates = ["🚶 1號門（綠線）", "🚶 3號門（藍線）", "🚶 4號門（黃線）"];
   gates.forEach(gate => {
-    // 模擬 4 批入場
     for (let p = 1; p <= 4; p++) {
       const walkIn = Math.floor(Math.random() * 80) + 120; // 120~200人
       testRows.push([`${datePrefix} 09:${String(10 + p*15).padStart(2,'0')}:00`, "👉 去程 (入場)", gate, "🚶 步行通道 (無車號)", walkIn, "入場批次"]);
     }
-    // 模擬 4 批離場
     for (let p = 1; p <= 4; p++) {
       const walkOut = Math.floor(Math.random() * 70) + 100; // 100~170人
       testRows.push([`${datePrefix} 18:${String(5 + p*15).padStart(2,'0')}:00`, "👈 返程 (離場)", gate, "🚶 步行通道 (無車號)", walkOut, "離場批次"]);

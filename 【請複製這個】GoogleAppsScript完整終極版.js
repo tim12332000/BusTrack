@@ -3,10 +3,8 @@
  * 🚌 接駁車與步行通道管理系統 - 【車總統計➔車ABCD ｜ 人總統計➔人ABC 終極整合版】
  * =========================================================================
  * 
- * ✨ 包含全部功能：
- * 1. `createMultiStationBusSystem`: 建立全新系統與戰情看板
- * 2. `runGenerateTestData`: 🎲 產生 車 ABCD + 人 ABC 測試數據
- * 3. `clearAllData`: 🗑️ 一鍵清空歸零全場數據
+ * ✨ 核心防錯升級：
+ * - 支援獨立專案 (Standalone) 與綁定專案 (Container-bound)，自動智慧搜尋試算表，絕不報 null 錯誤！
  * 
  * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，在上方下拉選單挑選想執行的 function 點「執行」即可！
  * =========================================================================
@@ -324,10 +322,37 @@ function createMultiStationBusSystem() {
 }
 
 // =========================================================================
+// 🔍【輔助函式：全自動智慧獲取試算表 (防 null 崩潰)】
+// =========================================================================
+function getTargetSpreadsheet() {
+  let ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (ss) return ss;
+
+  // 若在獨立專案執行，自動從雲端硬碟搜尋
+  const files = DriveApp.getFilesByName("🚌 各站接駁車與步行通道【去/返程】即時戰情中心");
+  if (files.hasNext()) {
+    return SpreadsheetApp.open(files.next());
+  }
+
+  // 嘗試搜尋包含「即時戰情中心」的試算表
+  const fallbackFiles = DriveApp.searchFiles('title contains "即時戰情中心" and mimeType = "application/vnd.google-apps.spreadsheet"');
+  if (fallbackFiles.hasNext()) {
+    return SpreadsheetApp.open(fallbackFiles.next());
+  }
+
+  return null;
+}
+
+// =========================================================================
 // 🎲【指令：一鍵產生 車 ABCD + 人 ABC 測試資料】
 // =========================================================================
 function runGenerateTestData() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getTargetSpreadsheet();
+  if (!ss) {
+    Logger.log("❌ 找不到戰情中心試算表！請先執行一次 `createMultiStationBusSystem` 建立系統。");
+    return;
+  }
+
   let formSheet = null;
   for (let s of ss.getSheets()) {
     if (s.getName().includes("表單回應") || s.getName().includes("Form Responses")) {
@@ -388,7 +413,12 @@ function runGenerateTestData() {
 // 🗑️【指令：一鍵清空全場數據歸零】
 // =========================================================================
 function clearAllData() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getTargetSpreadsheet();
+  if (!ss) {
+    Logger.log("❌ 找不到戰情中心試算表！");
+    return;
+  }
+
   let formSheet = null;
   for (let s of ss.getSheets()) {
     if (s.getName().includes("表單回應") || s.getName().includes("Form Responses")) {
