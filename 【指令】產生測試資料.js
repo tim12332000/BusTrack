@@ -27,7 +27,7 @@ function runGenerateTestData() {
   const now = new Date();
   const datePrefix = Utilities.formatDate(now, "Asia/Taipei", "yyyy/MM/dd");
 
-  // 1. 車站測試數據 (成功綠線 20、新烏日藍線 50、經貿六黃線 40、水湳黃線 20)
+  // 1. 車站測試數據 (成功 20、新烏日 50、經貿六 40、水湳 20)
   const stList = [
     { name: "成功車站（綠線）", count: 20 },
     { name: "新烏日台鐵站（藍線）", count: 50 },

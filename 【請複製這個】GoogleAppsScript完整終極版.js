@@ -1,17 +1,11 @@
 /**
  * =========================================================================
- * 🚌 接駁車與步行通道管理系統 - 【純淨專業戰情版 (4大車站 + 1/3/4號步行門)】
+ * 🚌 接駁車與步行通道管理系統 - 【純淨專業戰情版 (修復步行計算精準公式)】
  * =========================================================================
  * 
- * ✨ 系統特色：
- * 1. 【4 大接駁車站 + 3 大步行門通道】：
- *    - 成功綠線(20輛)、新烏日藍線(50輛)、經貿六黃線(40輛)、水湳黃線(20輛)
- *    - 步行門通道：1號門、3號門、4號門
- * 2. 【5 大獨立戰情卡片】：
- *    - 各站/各門【👉去程(入場) / 👈返程(離場) / 累計總量 / 疏運完成率 / 科技進度條】
- * 3. 【頂部全場總大盤】：
- *    - 全場總進場人次、全場入場、全場離場、全場總疏運完成率
- * 4. 【純淨大氣界面】：已完全移除任何多餘按鈕，呈現最專業的商務大螢幕戰情中心！
+ * ✨ 本版修復：
+ * - 步行通道改用精準 SUMIFS 條件加總（鎖定 1/3/4 號門關鍵字），徹底告別負數與誤差！
+ * - 4 大接駁車站 (成功、新烏日、經貿六、水湳) + 3 大步行門 (1/3/4號門) 完美運算！
  * 
  * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，點「執行 (Run)」即可！
  * =========================================================================
@@ -131,7 +125,7 @@ function createMultiStationBusSystem() {
     dashboardSheet.getRange(1, 1, 40, 20).breakApart();
   } catch (e) {}
 
-  // 1. 頂部全場總大盤
+  // 1. 頂部全場總大盤 (含 4 站接駁車 + 步行進出)
   dashboardSheet.getRange("A1:C1").merge().setValue("🏆 全場總入場人次 (車輛+步行)").setBackground("#0F172A").setFontColor("#94A3B8").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
   dashboardSheet.getRange("A2:C3").merge().setFormula("=D2+G2").setBackground("#0F172A").setFontColor("#38BDF8").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
 
@@ -207,9 +201,9 @@ function createMultiStationBusSystem() {
   dashboardSheet.getRange(7, walkCol + 1).setValue("👈 離場人數").setBackground("#F1F5F9").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
   dashboardSheet.getRange(7, walkCol + 2).setValue("🏆 步行總量").setBackground("#F1F5F9").setFontColor("#475569").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
 
-  // 計算 1號門 + 3號門 + 4號門 累計加總
-  dashboardSheet.getRange(8, walkCol).setFormula(`=SUMIF('${formSheetName}'!B:B, "*去程*", '${formSheetName}'!E:E) - (B8+E8+H8+K8)`).setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(18).setHorizontalAlignment("center");
-  dashboardSheet.getRange(8, walkCol + 1).setFormula(`=SUMIF('${formSheetName}'!B:B, "*返程*", '${formSheetName}'!E:E) - (C8+F8+I8+L8)`).setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(18).setHorizontalAlignment("center");
+  // 🌟【修復】：精準鎖定步行大門關鍵字做 SUMIFS，絕無負數！
+  dashboardSheet.getRange(8, walkCol).setFormula(`=SUMIFS('${formSheetName}'!E:E, '${formSheetName}'!B:B, "*去程*", '${formSheetName}'!C:C, "*門*")`).setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(18).setHorizontalAlignment("center");
+  dashboardSheet.getRange(8, walkCol + 1).setFormula(`=SUMIFS('${formSheetName}'!E:E, '${formSheetName}'!B:B, "*返程*", '${formSheetName}'!C:C, "*門*")`).setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(18).setHorizontalAlignment("center");
   dashboardSheet.getRange(8, walkCol + 2).setFormula(`=M8+N8`).setBackground("#FFFFFF").setFontColor("#7C3AED").setFontWeight("bold").setFontSize(18).setHorizontalAlignment("center");
 
   // 步行疏運率
