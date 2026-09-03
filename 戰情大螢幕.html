@@ -95,13 +95,6 @@
       color: #34D399;
       padding: 4px 12px;
       border-radius: 20px;
-      transition: all 0.3s ease;
-    }
-
-    .live-indicator.error {
-      background: rgba(220, 38, 38, 0.2);
-      border-color: rgba(220, 38, 38, 0.4);
-      color: #F87171;
     }
 
     .live-dot {
@@ -111,12 +104,6 @@
       background-color: #10B981;
       box-shadow: 0 0 10px #10B981;
       animation: pulse 1.5s infinite;
-    }
-
-    .live-indicator.error .live-dot {
-      background-color: #EF4444;
-      box-shadow: 0 0 10px #EF4444;
-      animation: none;
     }
 
     @keyframes pulse {
@@ -565,12 +552,11 @@
   </div>
 
   <footer>
-    💡 提示：按 <b>F11</b> 即可進入滿版大螢幕戰情室 ｜ 每 3 秒自動同步
+    💡 提示：按 <b>F11</b> 即可進入滿版大螢幕戰情室 ｜ 每 3 秒自動同步 (JSONP 零跨域)
   </footer>
 
   <script>
     const SPREADSHEET_ID = "1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w";
-    const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&gid=0`;
 
     function formatNumber(num) {
       return Number(num || 0).toLocaleString('en-US');
@@ -597,14 +583,10 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    async function fetchDashboardData() {
+    // 🏆 JSONP 回呼函式：100% 繞過任何瀏覽器 CORS / file 協議限制！
+    window.onGvizData = function(data) {
       try {
-        const response = await fetch(`${GVIZ_URL}&_nocache=${Date.now()}`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
-        const rawText = await response.text();
-        const jsonText = rawText.substring(rawText.indexOf('{'), rawText.lastIndexOf('}') + 1);
-        const data = JSON.parse(jsonText);
+        if (!data || !data.table || !data.table.rows) return;
         const rows = data.table.rows;
 
         const getVal = (r, c) => {
@@ -672,18 +654,31 @@
         updateCard('walk2', w2In, w2Out);
         updateCard('walk3', w3In, w3Out);
 
-        // 狀態標籤
         document.getElementById('liveBadge').className = 'live-indicator';
         document.getElementById('liveText').textContent = '即時同步中 (3秒)';
-
       } catch (err) {
-        console.warn("同步中...", err);
+        console.warn("更新異常:", err);
       }
+    };
+
+    // 🚀 JSONP 輪詢器：動態插入 Script 標籤，不受任何網域與檔案協議限制！
+    function requestGvizData() {
+      const oldScript = document.getElementById('gvizScript');
+      if (oldScript) {
+        oldScript.remove();
+      }
+      const script = document.createElement('script');
+      script.id = 'gvizScript';
+      script.src = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=responseHandler:onGvizData&gid=0&_t=${Date.now()}`;
+      script.onerror = function() {
+        document.getElementById('liveText').textContent = '連線重試中...';
+      };
+      document.head.appendChild(script);
     }
 
-    // 啟動定時輪詢 (每 3 秒自動抓取最新數字)
-    fetchDashboardData();
-    setInterval(fetchDashboardData, 3000);
+    // 立即載入並每 3 秒自動請求
+    requestGvizData();
+    setInterval(requestGvizData, 3000);
   </script>
 </body>
 </html>
