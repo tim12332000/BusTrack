@@ -99,6 +99,48 @@
       border-radius: 20px;
     }
 
+    .tool-btn {
+      background: #1E293B;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+    .tool-btn:hover {
+      background: #334155;
+      color: #FFFFFF;
+    }
+    .tool-btn.active {
+      background: var(--primary-blue);
+      color: #FFFFFF;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
+    }
+
+    /* 🪞 水平鏡像翻轉 */
+    body.is-flipped {
+      transform: scaleX(-1);
+    }
+
+    /* 🔄 90度橫向旋轉模式 */
+    body.is-rotated {
+      transform: rotate(90deg);
+      transform-origin: top left;
+      position: absolute;
+      top: 0;
+      left: 100vw;
+      width: 100vh !important;
+      height: 100vw !important;
+      overflow-x: hidden;
+    }
+
     .live-dot {
       width: 8px;
       height: 8px;
@@ -323,6 +365,8 @@
       <h1>「國防知性之旅-成功嶺營區開放」進場人數統計表</h1>
     </div>
     <div class="header-status">
+      <button id="btnRotate" class="tool-btn" onclick="toggleRotate()">🔄 轉橫螢幕</button>
+      <button id="btnFlip" class="tool-btn" onclick="toggleFlip()">🪞 水平鏡像</button>
       <div class="live-indicator" id="liveBadge">
         <span class="live-dot"></span>
         <span id="liveText">即時同步中 (3秒)</span>
@@ -676,6 +720,20 @@
     // 立即載入並每 3 秒自動請求
     requestGvizData();
     setInterval(requestGvizData, 3000);
+
+    // 🪞 水平鏡像切換
+    function toggleFlip() {
+      const isFlipped = document.body.classList.toggle('is-flipped');
+      const btn = document.getElementById('btnFlip');
+      btn.classList.toggle('active', isFlipped);
+    }
+
+    // 🔄 轉橫螢幕切換
+    function toggleRotate() {
+      const isRotated = document.body.classList.toggle('is-rotated');
+      const btn = document.getElementById('btnRotate');
+      btn.classList.toggle('active', isRotated);
+    }
   </script>
 </body>
 </html>
