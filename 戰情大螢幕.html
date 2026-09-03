@@ -124,6 +124,48 @@
       box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
     }
 
+    /* 📱 永遠置頂浮動控制列 (解決手機視角外問題) */
+    .floating-toolbar {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999999;
+      display: flex;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1.5px solid #38BDF8;
+      padding: 8px 14px;
+      border-radius: 40px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(56, 189, 248, 0.4);
+      backdrop-filter: blur(12px);
+    }
+
+    .fab-btn {
+      background: #1E293B;
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .fab-btn:hover, .fab-btn:active {
+      background: #2563EB;
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.6);
+    }
+
+    .fab-btn.active {
+      background: #059669;
+      border-color: #34D399;
+    }
+
     /* 🪞 水平鏡像翻轉 */
     body.is-flipped {
       transform: scaleX(-1);
@@ -358,6 +400,12 @@
 </head>
 <body>
 
+  <!-- 📱 浮動快捷工具列 (永遠固定在螢幕右下角，手機一看即點) -->
+  <div class="floating-toolbar">
+    <button id="fabRotate" class="fab-btn" onclick="toggleRotate()">🔄 轉橫螢幕</button>
+    <button id="fabFlip" class="fab-btn" onclick="toggleFlip()">🪞 水平鏡像</button>
+  </div>
+
   <!-- 頂部資訊列 -->
   <header>
     <div class="header-title">
@@ -365,8 +413,6 @@
       <h1>「國防知性之旅-成功嶺營區開放」進場人數統計表</h1>
     </div>
     <div class="header-status">
-      <button id="btnRotate" class="tool-btn" onclick="toggleRotate()">🔄 轉橫螢幕</button>
-      <button id="btnFlip" class="tool-btn" onclick="toggleFlip()">🪞 水平鏡像</button>
       <div class="live-indicator" id="liveBadge">
         <span class="live-dot"></span>
         <span id="liveText">即時同步中 (3秒)</span>
@@ -724,15 +770,15 @@
     // 🪞 水平鏡像切換
     function toggleFlip() {
       const isFlipped = document.body.classList.toggle('is-flipped');
-      const btn = document.getElementById('btnFlip');
-      btn.classList.toggle('active', isFlipped);
+      const btn = document.getElementById('fabFlip');
+      if (btn) btn.classList.toggle('active', isFlipped);
     }
 
     // 🔄 轉橫螢幕切換
     function toggleRotate() {
       const isRotated = document.body.classList.toggle('is-rotated');
-      const btn = document.getElementById('btnRotate');
-      btn.classList.toggle('active', isRotated);
+      const btn = document.getElementById('fabRotate');
+      if (btn) btn.classList.toggle('active', isRotated);
     }
   </script>
 </body>
