@@ -3,407 +3,783 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>各站接駁車【去/回】即時戰情中心 (模擬測試)</title>
+  <title>「國防知性之旅-成功嶺營區開放」即時戰情中心</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg-main: #0B0F19;
-      --bg-card: rgba(18, 24, 38, 0.8);
-      --border-color: rgba(255, 255, 255, 0.08);
-      --text-primary: #F8FAFC;
-      --text-secondary: #94A3B8;
-      --text-muted: #64748B;
-      
-      --color-chenggong: #3B82F6;
-      --color-xinwuri: #8B5CF6;
-      --color-jingmao: #EC4899;
-      --color-shuinan: #10B981;
+      --card-bg: #151D2F;
+      --card-inner: #1E293B;
+      --text-white: #FFFFFF;
+      --text-muted: #94A3B8;
+      --text-label: #64748B;
+      --accent-blue: #38BDF8;
+      --primary-blue: #2563EB;
+      --brand-green: #059669;
+      --brand-amber: #D97706;
+      --border-color: #243048;
+      --progress-bg: #1E293B;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
     body {
-      background: var(--bg-main);
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
-      background-attachment: fixed;
-      color: var(--text-primary);
-      padding: 24px;
+      background-color: var(--bg-main);
+      font-family: 'Noto Sans TC', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text-white);
+      padding: 16px 28px;
       min-height: 100vh;
+      width: 100%;
+      box-sizing: border-box;
+      margin: 0;
     }
 
-    .container { max-width: 1700px; margin: 0 auto; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 16px; }
-    .title-group h1 { font-size: 24px; font-weight: 800; }
-    .title-group p { color: var(--text-secondary); font-size: 13px; margin-top: 4px; }
-    
-    .btn {
-      padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
-      border: 1px solid var(--border-color); transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+    /* 頂部導航列 */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
-    .btn-primary { background: linear-gradient(135deg, #3B82F6, #1D4ED8); color: #fff; border: none; }
-    .btn-secondary { background: var(--bg-card); color: var(--text-primary); }
 
-    /* Top Big KPI Cards */
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px; }
-    .kpi-card {
-      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; backdrop-filter: blur(16px);
-      border-top: 3px solid #38BDF8;
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
-    .kpi-card.go { border-top-color: #60A5FA; }
-    .kpi-card.back { border-top-color: #34D399; }
-    .kpi-card.total { border-top-color: #F59E0B; }
-    .kpi-title { font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; }
-    .kpi-value { font-size: 30px; font-weight: 800; margin: 6px 0 2px; }
-    .kpi-sub { font-size: 11px; color: var(--text-muted); }
 
-    /* Layout: 4 Stations Grid */
-    .stations-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    @media (max-width: 1400px) { .stations-container { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 800px) { .stations-container { grid-template-columns: 1fr; } }
-
-    .station-box {
-      background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; overflow: hidden; backdrop-filter: blur(12px);
-      display: flex; flex-direction: column;
+    .header-badge {
+      background: #DC2626;
+      color: #FFF;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 6px;
+      letter-spacing: 1px;
     }
-    .station-header {
-      padding: 12px 16px; font-weight: 800; font-size: 14px; display: flex; justify-content: space-between; align-items: center;
-      color: #fff;
-    }
-    .sh-chenggong { background: linear-gradient(135deg, #2563EB, #1D4ED8); }
-    .sh-xinwuri { background: linear-gradient(135deg, #7C3AED, #6D28D9); }
-    .sh-jingmao { background: linear-gradient(135deg, #DB2777, #BE185D); }
-    .sh-shuinan { background: linear-gradient(135deg, #059669, #047857); }
 
-    .station-summary {
-      display: grid; grid-template-columns: 1fr 1fr; padding: 10px 14px; background: rgba(0,0,0,0.3); font-size: 12px; font-weight: 600;
+    h1 {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #FFFFFF, #E2E8F0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34D399;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    .tool-btn {
+      background: #1E293B;
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+    .tool-btn:hover {
+      background: #334155;
+      color: #FFFFFF;
+    }
+    .tool-btn.active {
+      background: var(--primary-blue);
+      color: #FFFFFF;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
+    }
+
+    /* 📱 永遠置頂浮動控制列 (解決手機視角外問題) */
+    .floating-toolbar {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999999;
+      display: flex;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1.5px solid #38BDF8;
+      padding: 8px 14px;
+      border-radius: 40px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(56, 189, 248, 0.4);
+      backdrop-filter: blur(12px);
+    }
+
+    .fab-btn {
+      background: #1E293B;
+      color: #FFFFFF;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .fab-btn:hover, .fab-btn:active {
+      background: #2563EB;
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.6);
+    }
+
+    .fab-btn.active {
+      background: #059669;
+      border-color: #34D399;
+    }
+
+    /* 🪞 水平鏡像翻轉 */
+    body.is-flipped {
+      transform: scaleX(-1);
+    }
+
+    /* 🔄 90度橫向旋轉模式 */
+    body.is-rotated {
+      transform: rotate(90deg);
+      transform-origin: top left;
+      position: absolute;
+      top: 0;
+      left: 100vw;
+      width: 100vh !important;
+      height: 100vw !important;
+      overflow-x: hidden;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #10B981;
+      box-shadow: 0 0 10px #10B981;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.7; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.7; }
+    }
+
+    /* 區塊容器 */
+    .section-container {
+      margin-bottom: 20px;
+    }
+
+    /* 大盤統計橫幅 */
+    .summary-banner {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      margin-bottom: 12px;
+    }
+
+    .banner-header {
+      background: #0F172A;
+      padding: 10px 20px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #93C5FD;
       border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    .bus-table-wrap { max-height: 520px; overflow-y: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; text-align: center; }
-    th { background: rgba(255,255,255,0.04); color: var(--text-secondary); padding: 8px 4px; font-weight: 600; position: sticky; top: 0; backdrop-filter: blur(8px); }
-    td { padding: 7px 4px; border-bottom: 1px solid rgba(255,255,255,0.03); }
-    tr:hover { background: rgba(255,255,255,0.04); cursor: pointer; }
-
-    .tag-go { color: #60A5FA; font-weight: 700; }
-    .tag-back { color: #34D399; font-weight: 700; }
-    .time-text { font-size: 10px; color: var(--text-muted); }
-
-    /* Modal / Form Simulator */
-    .form-panel {
-      margin-top: 24px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 14px; padding: 18px 24px;
-      display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;
+    .banner-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      padding: 14px 20px;
+      gap: 16px;
+      background: #141C2E;
     }
-    .form-item { display: flex; flex-direction: column; gap: 6px; }
-    .form-item label { font-size: 12px; color: var(--text-secondary); font-weight: 600; }
-    .form-item select, .form-item input {
-      background: rgba(0,0,0,0.4); border: 1px solid var(--border-color); padding: 8px 12px; border-radius: 8px; color: #fff; font-size: 13px; outline: none;
+
+    .metric-box {
+      text-align: center;
+      background: var(--card-inner);
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .metric-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 32px;
+      font-weight: 900;
+      font-family: 'Inter', sans-serif;
+      color: #FFFFFF;
+      letter-spacing: -0.5px;
+    }
+
+    .metric-value.rate {
+      color: #34D399;
+    }
+
+    /* 大盤總進度條 */
+    .banner-progress-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      background: #0F172A;
+      border-top: 1px solid var(--border-color);
+      gap: 16px;
+    }
+
+    .progress-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      min-width: 65px;
+    }
+
+    .progress-track {
+      flex: 1;
+      height: 12px;
+      background: var(--progress-bg);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0284C7, #38BDF8);
+      border-radius: 6px;
+      width: 0%;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+    }
+
+    /* 卡片網格 */
+    .cards-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* 單一站點/門區卡片 */
+    .station-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      padding: 10px 14px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #FFFFFF;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    .bg-green { background: #059669; }
+    .bg-blue  { background: #2563EB; }
+    .bg-amber { background: #D97706; }
+
+    .card-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 12px;
+      gap: 8px;
+      background: #FFFFFF;
+    }
+
+    .card-col {
+      text-align: center;
+    }
+
+    .card-col-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: #64748B;
+      margin-bottom: 2px;
+    }
+
+    .card-col-num {
+      font-size: 26px;
+      font-weight: 900;
+      font-family: 'Inter', sans-serif;
+      color: #0F172A;
+    }
+
+    .card-footer {
+      padding: 10px 14px;
+      background: #F8FAFC;
+      border-top: 1px solid #E2E8F0;
+    }
+
+    .card-status-text {
+      font-size: 12px;
+      font-weight: 800;
+      color: #0F172A;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .card-progress-track {
+      height: 8px;
+      background: #E2E8F0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .card-progress-fill {
+      height: 100%;
+      background: var(--primary-blue);
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.8s ease;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 13px;
+      color: #64748B;
+      margin-top: 14px;
+      padding-bottom: 14px;
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <header>
-      <div class="title-group">
-        <h1>🚌 各站接駁車【去/回】即時戰情中心</h1>
-        <p>4 大接駁點（成功、新烏日、經貿六、水湳）· 去程與回程獨立即時統計</p>
-      </div>
-      <div style="display:flex;gap:10px;">
-        <button class="btn btn-secondary" onclick="simulateRandomBatch()">🎲 模擬隨機 10 趟次回報</button>
-        <button class="btn btn-primary" onclick="simulateAllStations()">⚡ 一鍵模擬全場尖峰</button>
-        <button class="btn btn-secondary" onclick="resetAll()">🔄 清空重置</button>
-      </div>
-    </header>
-
-    <!-- KPI Summary -->
-    <div class="kpi-grid">
-      <div class="kpi-card total">
-        <div class="kpi-title">🏆 全場總運輸人次</div>
-        <div class="kpi-value" id="kpiTotalTransport">0 <span style="font-size:14px;color:var(--text-muted);font-weight:normal">人次</span></div>
-        <div class="kpi-sub" id="kpiTotalSub">4 個站點累計</div>
-      </div>
-      <div class="kpi-card go">
-        <div class="kpi-title">👉 去程總人數</div>
-        <div class="kpi-value" id="kpiGoTotal">0 <span style="font-size:14px;color:var(--text-muted);font-weight:normal">人</span></div>
-        <div class="kpi-sub">往會場方向</div>
-      </div>
-      <div class="kpi-card back">
-        <div class="kpi-title">👈 回程總人數</div>
-        <div class="kpi-value" id="kpiBackTotal">0 <span style="font-size:14px;color:var(--text-muted);font-weight:normal">人</span></div>
-        <div class="kpi-sub">離開會場方向</div>
-      </div>
-    </div>
-
-    <!-- 4 Stations Grid -->
-    <div class="stations-container">
-      
-      <!-- 1. 成功車站 (1~20) -->
-      <div class="station-box">
-        <div class="station-header sh-chenggong">
-          <span>📍 成功車站 (共 20 輛)</span>
-          <span style="font-size:11px;opacity:0.9">1 ~ 20 號</span>
-        </div>
-        <div class="station-summary">
-          <div>👉 去: <span class="tag-go" id="sum-chenggong-go">0</span> 人</div>
-          <div>👈 回: <span class="tag-back" id="sum-chenggong-back">0</span> 人</div>
-        </div>
-        <div class="bus-table-wrap">
-          <table>
-            <thead>
-              <tr><th>車號</th><th>👉去程</th><th>時間</th><th>👈回程</th><th>時間</th></tr>
-            </thead>
-            <tbody id="tbody-chenggong"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- 2. 新烏日台鐵站 (1~50) -->
-      <div class="station-box">
-        <div class="station-header sh-xinwuri">
-          <span>📍 新烏日台鐵站 (共 50 輛)</span>
-          <span style="font-size:11px;opacity:0.9">1 ~ 50 號</span>
-        </div>
-        <div class="station-summary">
-          <div>👉 去: <span class="tag-go" id="sum-xinwuri-go">0</span> 人</div>
-          <div>👈 回: <span class="tag-back" id="sum-xinwuri-back">0</span> 人</div>
-        </div>
-        <div class="bus-table-wrap">
-          <table>
-            <thead>
-              <tr><th>車號</th><th>👉去程</th><th>時間</th><th>👈回程</th><th>時間</th></tr>
-            </thead>
-            <tbody id="tbody-xinwuri"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- 3. 經貿六停車場 (1~40) -->
-      <div class="station-box">
-        <div class="station-header sh-jingmao">
-          <span>📍 經貿六停車場 (共 40 輛)</span>
-          <span style="font-size:11px;opacity:0.9">1 ~ 40 號</span>
-        </div>
-        <div class="station-summary">
-          <div>👉 去: <span class="tag-go" id="sum-jingmao-go">0</span> 人</div>
-          <div>👈 回: <span class="tag-back" id="sum-jingmao-back">0</span> 人</div>
-        </div>
-        <div class="bus-table-wrap">
-          <table>
-            <thead>
-              <tr><th>車號</th><th>👉去程</th><th>時間</th><th>👈回程</th><th>時間</th></tr>
-            </thead>
-            <tbody id="tbody-jingmao"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- 4. 水湳轉運站 (1~20) -->
-      <div class="station-box">
-        <div class="station-header sh-shuinan">
-          <span>📍 水湳轉運站 (共 20 輛)</span>
-          <span style="font-size:11px;opacity:0.9">1 ~ 20 號</span>
-        </div>
-        <div class="station-summary">
-          <div>👉 去: <span class="tag-go" id="sum-shuinan-go">0</span> 人</div>
-          <div>👈 回: <span class="tag-back" id="sum-shuinan-back">0</span> 人</div>
-        </div>
-        <div class="bus-table-wrap">
-          <table>
-            <thead>
-              <tr><th>車號</th><th>👉去程</th><th>時間</th><th>👈回程</th><th>時間</th></tr>
-            </thead>
-            <tbody id="tbody-shuinan"></tbody>
-          </table>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Quick Submit Form Simulation -->
-    <div class="form-panel">
-      <div style="font-weight:700;font-size:14px;width:100%;margin-bottom:-4px;">📱 車長手機填表模擬 (Google Form)</div>
-      
-      <div class="form-item">
-        <label>1. 選擇接駁站點</label>
-        <select id="formStation" onchange="updateBusOptions()">
-          <option value="chenggong">成功車站 (1~20號)</option>
-          <option value="xinwuri">新烏日台鐵站 (1~50號)</option>
-          <option value="jingmao">經貿六停車場 (1~40號)</option>
-          <option value="shuinan">水湳轉運站 (1~20號)</option>
-        </select>
-      </div>
-
-      <div class="form-item">
-        <label>2. 選擇車號</label>
-        <select id="formBusNum"></select>
-      </div>
-
-      <div class="form-item">
-        <label>3. 行程方向</label>
-        <select id="formDirection">
-          <option value="go">👉 去程</option>
-          <option value="back">👈 回程</option>
-        </select>
-      </div>
-
-      <div class="form-item">
-        <label>4. 搭乘人數</label>
-        <input type="number" id="formCount" value="30" min="0" max="50" style="width:100px;">
-      </div>
-
-      <button class="btn btn-primary" onclick="submitSingleReport()" style="padding:10px 20px;">
-        📤 提交回報
-      </button>
-    </div>
-
+  <!-- 📱 浮動快捷工具列 (永遠固定在螢幕右下角，手機一看即點) -->
+  <div class="floating-toolbar">
+    <button id="fabRotate" class="fab-btn" onclick="toggleRotate()">🔄 轉橫螢幕</button>
+    <button id="fabFlip" class="fab-btn" onclick="toggleFlip()">🪞 水平鏡像</button>
   </div>
 
+  <!-- 頂部資訊列 -->
+  <header>
+    <div class="header-title">
+      <span class="header-badge">運管中心</span>
+      <h1>「國防知性之旅-成功嶺營區開放」進場人數統計表</h1>
+    </div>
+    <div class="header-status">
+      <div class="live-indicator" id="liveBadge">
+        <span class="live-dot"></span>
+        <span id="liveText">即時同步中 (3秒)</span>
+      </div>
+      <div id="currentTime">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- 🚌 段落一：接駁車疏運概況 -->
+  <!-- ========================================== -->
+  <div class="section-container">
+    <div class="summary-banner">
+      <div class="banner-header">
+        <span>🚌 接駁車疏運概況</span>
+        <span style="font-size: 12px; color: #64748B;">4大接駁站 / 130輛專車</span>
+      </div>
+      <div class="banner-metrics">
+        <div class="metric-box">
+          <div class="metric-label">👉 進場總人數</div>
+          <div class="metric-value" id="busTotalIn">0</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">👈 離場總人數</div>
+          <div class="metric-value" id="busTotalOut">0</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">📈 離場完成率</div>
+          <div class="metric-value rate" id="busTotalRate">0.0%</div>
+        </div>
+      </div>
+      <div class="banner-progress-row">
+        <span class="progress-label">離場進度</span>
+        <div class="progress-track">
+          <div class="progress-fill" id="busMainBar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 大接駁車站卡片 -->
+    <div class="cards-grid grid-4">
+      <!-- 成功車站 -->
+      <div class="station-card">
+        <div class="card-header bg-green">🚌 成功車站</div>
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">進場</div>
+            <div class="card-col-num" id="bus1In">0</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">離場</div>
+            <div class="card-col-num" id="bus1Out">0</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="bus1Status">0.0% · 尚餘 0 人</div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" id="bus1Bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 新烏日台鐵站 -->
+      <div class="station-card">
+        <div class="card-header bg-blue">🚌 新烏日台鐵站</div>
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">進場</div>
+            <div class="card-col-num" id="bus2In">0</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">離場</div>
+            <div class="card-col-num" id="bus2Out">0</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="bus2Status">0.0% · 尚餘 0 人</div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" id="bus2Bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 經貿六停車場 -->
+      <div class="station-card">
+        <div class="card-header bg-amber">🚌 經貿六停車場</div>
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">進場</div>
+            <div class="card-col-num" id="bus3In">0</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">離場</div>
+            <div class="card-col-num" id="bus3Out">0</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="bus3Status">0.0% · 尚餘 0 人</div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" id="bus3Bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 水湳轉運站 -->
+      <div class="station-card">
+        <div class="card-header bg-amber">🚌 水湳轉運站</div>
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">進場</div>
+            <div class="card-col-num" id="bus4In">0</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">離場</div>
+            <div class="card-col-num" id="bus4Out">0</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="bus4Status">0.0% · 尚餘 0 人</div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" id="bus4Bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 🚶 段落二：步行通道疏運概況 -->
+  <!-- ========================================== -->
+  <div class="section-container">
+    <div class="summary-banner">
+      <div class="banner-header">
+        <span>🚶 步行通道疏運概況</span>
+        <span style="font-size: 12px; color: #64748B;">3處主要徒步進出口</span>
+      </div>
+      <div class="banner-metrics">
+        <div class="metric-box">
+          <div class="metric-label">👉 進場總人數</div>
+          <div class="metric-value" id="walkTotalIn">0</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">👈 離場總人數</div>
+          <div class="metric-value" id="walkTotalOut">0</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">📈 離場完成率</div>
+          <div class="metric-value rate" id="walkTotalRate">0.0%</div>
+        </div>
+      </div>
+      <div class="banner-progress-row">
+        <span class="progress-label">離場進度</span>
+        <div class="progress-track">
+          <div class="progress-fill" id="walkMainBar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 大步行門卡片 -->
+    <div class="cards-grid grid-3">
+      <!-- 1號門 -->
+      <div class="station-card">
+        <div class="card-header bg-green">🚶 1號門</div>
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">進場</div>
+            <div class="card-col-num" id="walk1In">0</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">離場</div>
+            <div class="card-col-num" id="walk1Out">0</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="walk1Status">0.0% · 尚餘 0 人</div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" id="walk1Bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3號門 -->
+      <div class="station-card">
+        <div class="card-header bg-blue">🚶 3號門</div>
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">進場</div>
+            <div class="card-col-num" id="walk2In">0</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">離場</div>
+            <div class="card-col-num" id="walk2Out">0</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="walk2Status">0.0% · 尚餘 0 人</div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" id="walk2Bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4號門 -->
+      <div class="station-card">
+        <div class="card-header bg-amber">🚶 4號門</div>
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">進場</div>
+            <div class="card-col-num" id="walk3In">0</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">離場</div>
+            <div class="card-col-num" id="walk3Out">0</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="walk3Status">0.0% · 尚餘 0 人</div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" id="walk3Bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    💡 提示：按 <b>F11</b> 即可進入滿版大螢幕戰情室 ｜ 每 3 秒自動同步 (JSONP 零跨域)
+  </footer>
+
   <script>
-    const STATIONS = {
-      chenggong: { name: '成功車站', count: 20, buses: [] },
-      xinwuri: { name: '新烏日台鐵站', count: 50, buses: [] },
-      jingmao: { name: '經貿六停車場', count: 40, buses: [] },
-      shuinan: { name: '水湳轉運站', count: 20, buses: [] }
+    const SPREADSHEET_ID = "1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w";
+
+    function formatNumber(num) {
+      return Number(num || 0).toLocaleString('en-US');
+    }
+
+    function calcRate(inVal, outVal) {
+      if (!inVal || inVal <= 0) return { pctText: "0.0%", pctNum: 0, remain: 0 };
+      const pct = Math.min(100, Math.round((outVal / inVal) * 1000) / 10);
+      const remain = Math.max(0, inVal - outVal);
+      return {
+        pctText: pct.toFixed(1) + "%",
+        pctNum: pct,
+        remain: remain
+      };
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('currentTime').textContent = `${hours}:${minutes}:${seconds}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // 🏆 JSONP 回呼函式：100% 繞過任何瀏覽器 CORS / file 協議限制！
+    window.onGvizData = function(data) {
+      try {
+        if (!data || !data.table || !data.table.rows) return;
+        const rows = data.table.rows;
+
+        const getVal = (r, c) => {
+          try {
+            if (!rows[r] || !rows[r].c || !rows[r].c[c]) return 0;
+            const cell = rows[r].c[c];
+            if (typeof cell.v === 'number') return cell.v;
+            const parsed = parseFloat(cell.v || cell.f || 0);
+            return isNaN(parsed) ? 0 : parsed;
+          } catch(e) { return 0; }
+        };
+
+        // 1. 接駁車站點數據 (精確位置：Row 5)
+        const b1In = getVal(5, 0);
+        const b1Out = getVal(5, 3);
+        const b2In = getVal(5, 6);
+        const b2Out = getVal(5, 9);
+        const b3In = getVal(5, 12);
+        const b3Out = getVal(5, 15);
+        const b4In = getVal(5, 18);
+        const b4Out = getVal(5, 21);
+
+        // 接駁車大盤 (精確位置：Row 0)
+        const busTotalIn = getVal(0, 0) || (b1In + b2In + b3In + b4In);
+        const busTotalOut = getVal(0, 8) || (b1Out + b2Out + b3Out + b4Out);
+        const busRate = calcRate(busTotalIn, busTotalOut);
+
+        document.getElementById('busTotalIn').textContent = formatNumber(busTotalIn);
+        document.getElementById('busTotalOut').textContent = formatNumber(busTotalOut);
+        document.getElementById('busTotalRate').textContent = busRate.pctText;
+        document.getElementById('busMainBar').style.width = busRate.pctNum + "%";
+
+        const updateCard = (prefix, inVal, outVal) => {
+          document.getElementById(`${prefix}In`).textContent = formatNumber(inVal);
+          document.getElementById(`${prefix}Out`).textContent = formatNumber(outVal);
+          const r = calcRate(inVal, outVal);
+          document.getElementById(`${prefix}Status`).textContent = `${r.pctText}  ·  尚餘 ${formatNumber(r.remain)} 人`;
+          document.getElementById(`${prefix}Bar`).style.width = r.pctNum + "%";
+        };
+
+        updateCard('bus1', b1In, b1Out);
+        updateCard('bus2', b2In, b2Out);
+        updateCard('bus3', b3In, b3Out);
+        updateCard('bus4', b4In, b4Out);
+
+        // 2. 步行通道數據 (精確位置：Row 14)
+        const w1In = getVal(14, 0);
+        const w1Out = getVal(14, 4);
+        const w2In = getVal(14, 8);
+        const w2Out = getVal(14, 12);
+        const w3In = getVal(14, 16);
+        const w3Out = getVal(14, 20);
+
+        // 步行大盤 (精確位置：Row 9)
+        const walkTotalIn = getVal(9, 0) || (w1In + w2In + w3In);
+        const walkTotalOut = getVal(9, 8) || (w1Out + w2Out + w3Out);
+        const walkRate = calcRate(walkTotalIn, walkTotalOut);
+
+        document.getElementById('walkTotalIn').textContent = formatNumber(walkTotalIn);
+        document.getElementById('walkTotalOut').textContent = formatNumber(walkTotalOut);
+        document.getElementById('walkTotalRate').textContent = walkRate.pctText;
+        document.getElementById('walkMainBar').style.width = walkRate.pctNum + "%";
+
+        updateCard('walk1', w1In, w1Out);
+        updateCard('walk2', w2In, w2Out);
+        updateCard('walk3', w3In, w3Out);
+
+        document.getElementById('liveBadge').className = 'live-indicator';
+        document.getElementById('liveText').textContent = '即時同步中 (3秒)';
+      } catch (err) {
+        console.warn("更新異常:", err);
+      }
     };
 
-    function init() {
-      for (const key in STATIONS) {
-        const st = STATIONS[key];
-        st.buses = [];
-        for (let i = 1; i <= st.count; i++) {
-          st.buses.push({
-            id: i,
-            name: `${i} 號車`,
-            goActual: 0,
-            goTime: '-',
-            backActual: 0,
-            backTime: '-'
-          });
-        }
+    // 🚀 JSONP 輪詢器：動態插入 Script 標籤，不受任何網域與檔案協議限制！
+    function requestGvizData() {
+      const oldScript = document.getElementById('gvizScript');
+      if (oldScript) {
+        oldScript.remove();
       }
-      updateBusOptions();
-      render();
+      const script = document.createElement('script');
+      script.id = 'gvizScript';
+      script.src = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=responseHandler:onGvizData&gid=0&_t=${Date.now()}`;
+      script.onerror = function() {
+        document.getElementById('liveText').textContent = '連線重試中...';
+      };
+      document.head.appendChild(script);
     }
 
-    function updateBusOptions() {
-      const stKey = document.getElementById('formStation').value;
-      const st = STATIONS[stKey];
-      const sel = document.getElementById('formBusNum');
-      sel.innerHTML = '';
-      for (let i = 1; i <= st.count; i++) {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = `${i} 號車`;
-        sel.appendChild(opt);
-      }
+    // 立即載入並每 3 秒自動請求
+    requestGvizData();
+    setInterval(requestGvizData, 3000);
+
+    // 🪞 水平鏡像切換
+    function toggleFlip() {
+      const isFlipped = document.body.classList.toggle('is-flipped');
+      const btn = document.getElementById('fabFlip');
+      if (btn) btn.classList.toggle('active', isFlipped);
     }
 
-    function submitSingleReport() {
-      const stKey = document.getElementById('formStation').value;
-      const busId = parseInt(document.getElementById('formBusNum').value);
-      const dir = document.getElementById('formDirection').value;
-      const count = parseInt(document.getElementById('formCount').value) || 0;
-      const timeStr = new Date().toLocaleTimeString('zh-TW', { hour12: false });
-
-      const bus = STATIONS[stKey].buses.find(b => b.id === busId);
-      if (bus) {
-        if (dir === 'go') {
-          bus.goActual = count;
-          bus.goTime = timeStr;
-        } else {
-          bus.backActual = count;
-          bus.backTime = timeStr;
-        }
-      }
-      render();
+    // 🔄 轉橫螢幕切換
+    function toggleRotate() {
+      const isRotated = document.body.classList.toggle('is-rotated');
+      const btn = document.getElementById('fabRotate');
+      if (btn) btn.classList.toggle('active', isRotated);
     }
-
-    function render() {
-      let grandGo = 0;
-      let grandBack = 0;
-
-      for (const key in STATIONS) {
-        const st = STATIONS[key];
-        let stGo = 0;
-        let stBack = 0;
-        const tbody = document.getElementById(`tbody-${key}`);
-        tbody.innerHTML = '';
-
-        st.buses.forEach(b => {
-          stGo += b.goActual;
-          stBack += b.backActual;
-
-          const tr = document.createElement('tr');
-          tr.onclick = () => {
-            document.getElementById('formStation').value = key;
-            updateBusOptions();
-            document.getElementById('formBusNum').value = b.id;
-          };
-          tr.innerHTML = `
-            <td style="font-weight:700;">${b.name}</td>
-            <td class="tag-go">${b.goActual > 0 ? b.goActual + '人' : '-'}</td>
-            <td class="time-text">${b.goTime}</td>
-            <td class="tag-back">${b.backActual > 0 ? b.backActual + '人' : '-'}</td>
-            <td class="time-text">${b.backTime}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-
-        document.getElementById(`sum-${key}-go`).textContent = stGo;
-        document.getElementById(`sum-${key}-back`).textContent = stBack;
-
-        grandGo += stGo;
-        grandBack += stBack;
-      }
-
-      document.getElementById('kpiGoTotal').innerHTML = `${grandGo.toLocaleString()} <span style="font-size:14px;color:var(--text-muted);font-weight:normal">人</span>`;
-      document.getElementById('kpiBackTotal').innerHTML = `${grandBack.toLocaleString()} <span style="font-size:14px;color:var(--text-muted);font-weight:normal">人</span>`;
-      document.getElementById('kpiTotalTransport').innerHTML = `${(grandGo + grandBack).toLocaleString()} <span style="font-size:14px;color:var(--text-muted);font-weight:normal">人次</span>`;
-    }
-
-    function simulateRandomBatch() {
-      const keys = ['chenggong', 'xinwuri', 'jingmao', 'shuinan'];
-      for (let i = 0; i < 10; i++) {
-        const key = keys[Math.floor(Math.random() * keys.length)];
-        const st = STATIONS[key];
-        const bus = st.buses[Math.floor(Math.random() * st.buses.length)];
-        const isGo = Math.random() > 0.4;
-        const count = Math.floor(Math.random() * 25) + 15;
-        const timeStr = new Date().toLocaleTimeString('zh-TW', { hour12: false });
-        if (isGo) {
-          bus.goActual = count;
-          bus.goTime = timeStr;
-        } else {
-          bus.backActual = count;
-          bus.backTime = timeStr;
-        }
-      }
-      render();
-    }
-
-    function simulateAllStations() {
-      for (const key in STATIONS) {
-        const st = STATIONS[key];
-        st.buses.forEach(b => {
-          b.goActual = Math.floor(Math.random() * 20) + 20;
-          b.goTime = '08:25:10';
-          b.backActual = Math.floor(Math.random() * 20) + 18;
-          b.backTime = '17:40:30';
-        });
-      }
-      render();
-    }
-
-    function resetAll() {
-      init();
-    }
-
-    init();
   </script>
 </body>
 </html>
