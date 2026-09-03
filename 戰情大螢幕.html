@@ -95,6 +95,13 @@
       color: #34D399;
       padding: 4px 12px;
       border-radius: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .live-indicator.error {
+      background: rgba(220, 38, 38, 0.2);
+      border-color: rgba(220, 38, 38, 0.4);
+      color: #F87171;
     }
 
     .live-dot {
@@ -106,10 +113,30 @@
       animation: pulse 1.5s infinite;
     }
 
+    .live-indicator.error .live-dot {
+      background-color: #EF4444;
+      box-shadow: 0 0 10px #EF4444;
+      animation: none;
+    }
+
     @keyframes pulse {
       0% { transform: scale(0.95); opacity: 0.7; }
       50% { transform: scale(1.2); opacity: 1; }
       100% { transform: scale(0.95); opacity: 0.7; }
+    }
+
+    /* 權限警告橫幅 */
+    #authBanner {
+      display: none;
+      background: linear-gradient(90deg, #991B1B, #B91C1C);
+      color: #FFFFFF;
+      padding: 12px 20px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
     }
 
     /* 區塊容器 */
@@ -303,7 +330,6 @@
       transition: width 0.8s ease;
     }
 
-    /* 快捷說明底部 */
     footer {
       text-align: center;
       font-size: 12px;
@@ -312,7 +338,6 @@
       padding-bottom: 10px;
     }
 
-    /* 全螢幕自適應 */
     @media (max-width: 1024px) {
       .grid-4 { grid-template-columns: repeat(2, 1fr); }
       .grid-3 { grid-template-columns: 1fr; }
@@ -328,13 +353,18 @@
       <h1>「國防知性之旅-成功嶺營區開放」進場人數統計表</h1>
     </div>
     <div class="header-status">
-      <div class="live-indicator">
+      <div class="live-indicator" id="liveBadge">
         <span class="live-dot"></span>
-        <span>即時同步中</span>
+        <span id="liveText">即時連線中...</span>
       </div>
       <div id="currentTime">--:--:--</div>
     </div>
   </header>
+
+  <!-- 權限提示橫幅 (未開放共用時顯示) -->
+  <div id="authBanner">
+    ⚠️ 尚未獲取到雲端數據！請至 Google 試算表右上角點「共用」➔ 將一般存取權改為<b>「知道連結的任何人」</b>(檢視者) 即可即時同步！
+  </div>
 
   <!-- ========================================== -->
   <!-- 🚌 段落一：接駁車疏運概況 -->
@@ -554,20 +584,18 @@
   </div>
 
   <footer>
-    💡 提示：按 <b>F11</b> 即可開啟全螢幕極致大螢幕戰情室 ｜ 每 3 秒自動與 Google 雲端同步
+    💡 提示：按 <b>F11</b> 即可進入滿版大螢幕戰情室 ｜ 每 3 秒自動同步
   </footer>
 
   <script>
-    // 鎖定官方 Google 試算表 ID
     const SPREADSHEET_ID = "1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w";
-    const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=總即時戰情看板`;
+    // 使用 gid=0 (首頁總即時戰情看板) 保證最高相容性
+    const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&gid=0`;
 
-    // 格式化數字千分位
     function formatNumber(num) {
       return Number(num || 0).toLocaleString('en-US');
     }
 
-    // 計算百分比
     function calcRate(inVal, outVal) {
       if (!inVal || inVal <= 0) return { pctText: "0.0%", pctNum: 0, remain: 0 };
       const pct = Math.min(100, Math.round((outVal / inVal) * 1000) / 10);
@@ -579,7 +607,6 @@
       };
     }
 
-    // 更新時間
     function updateClock() {
       const now = new Date();
       const hours = String(now.getHours()).padStart(2, '0');
@@ -590,31 +617,37 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // 核心數據抓取函式 (每 3 秒非同步抓取)
     async function fetchDashboardData() {
       try {
-        const response = await fetch(`${GVIZ_URL}&_ts=${Date.now()}`);
+        const response = await fetch(`${GVIZ_URL}&_nocache=${Date.now()}`);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
         const rawText = await response.text();
         const jsonText = rawText.substring(rawText.indexOf('{'), rawText.lastIndexOf('}') + 1);
         const data = JSON.parse(jsonText);
         const rows = data.table.rows;
 
-        // 安全取得數值工具
+        // 安全取得數值 (支援直接數字或格式化文字)
         const getVal = (r, c) => {
           try {
-            return rows[r].c[c] ? (rows[r].c[c].v || 0) : 0;
+            if (!rows[r] || !rows[r].c || !rows[r].c[c]) return 0;
+            const cell = rows[r].c[c];
+            if (typeof cell.v === 'number') return cell.v;
+            const parsed = parseFloat(cell.v || cell.f || 0);
+            return isNaN(parsed) ? 0 : parsed;
           } catch(e) { return 0; }
         };
 
         // 1. 接駁車站點數據 (第 10 列，索引 9)
-        const b1In = Number(getVal(9, 0)) || 0;
-        const b1Out = Number(getVal(9, 3)) || 0;
-        const b2In = Number(getVal(9, 6)) || 0;
-        const b2Out = Number(getVal(9, 9)) || 0;
-        const b3In = Number(getVal(9, 12)) || 0;
-        const b3Out = Number(getVal(9, 15)) || 0;
-        const b4In = Number(getVal(9, 18)) || 0;
-        const b4Out = Number(getVal(9, 21)) || 0;
+        const b1In = getVal(9, 0);
+        const b1Out = getVal(9, 3);
+        const b2In = getVal(9, 6);
+        const b2Out = getVal(9, 9);
+        const b3In = getVal(9, 12);
+        const b3Out = getVal(9, 15);
+        const b4In = getVal(9, 18);
+        const b4Out = getVal(9, 21);
 
         // 接駁車大盤
         const busTotalIn = b1In + b2In + b3In + b4In;
@@ -626,7 +659,6 @@
         document.getElementById('busTotalRate').textContent = busRate.pctText;
         document.getElementById('busMainBar').style.width = busRate.pctNum + "%";
 
-        // 更新 4 大接駁車站
         const updateCard = (prefix, inVal, outVal) => {
           document.getElementById(`${prefix}In`).textContent = formatNumber(inVal);
           document.getElementById(`${prefix}Out`).textContent = formatNumber(outVal);
@@ -641,12 +673,12 @@
         updateCard('bus4', b4In, b4Out);
 
         // 2. 步行通道數據 (第 22 列，索引 21)
-        const w1In = Number(getVal(21, 0)) || 0;
-        const w1Out = Number(getVal(21, 4)) || 0;
-        const w2In = Number(getVal(21, 8)) || 0;
-        const w2Out = Number(getVal(21, 12)) || 0;
-        const w3In = Number(getVal(21, 16)) || 0;
-        const w3Out = Number(getVal(21, 20)) || 0;
+        const w1In = getVal(21, 0);
+        const w1Out = getVal(21, 4);
+        const w2In = getVal(21, 8);
+        const w2Out = getVal(21, 12);
+        const w3In = getVal(21, 16);
+        const w3Out = getVal(21, 20);
 
         // 步行大盤
         const walkTotalIn = w1In + w2In + w3In;
@@ -658,17 +690,23 @@
         document.getElementById('walkTotalRate').textContent = walkRate.pctText;
         document.getElementById('walkMainBar').style.width = walkRate.pctNum + "%";
 
-        // 更新 3 大步行門
         updateCard('walk1', w1In, w1Out);
         updateCard('walk2', w2In, w2Out);
         updateCard('walk3', w3In, w3Out);
 
+        // 恢復正常連線燈號
+        document.getElementById('liveBadge').className = 'live-indicator';
+        document.getElementById('liveText').textContent = '即時同步中 (3秒)';
+        document.getElementById('authBanner').style.display = 'none';
+
       } catch (err) {
-        console.warn("即時資料同步中...", err);
+        console.warn("同步失敗或權限未開:", err);
+        document.getElementById('liveBadge').className = 'live-indicator error';
+        document.getElementById('liveText').textContent = '未開放共用權限';
+        document.getElementById('authBanner').style.display = 'block';
       }
     }
 
-    // 啟動定時輪詢 (每 3 秒自動抓取最新數字)
     fetchDashboardData();
     setInterval(fetchDashboardData, 3000);
   </script>
