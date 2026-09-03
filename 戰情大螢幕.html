@@ -125,20 +125,6 @@
       100% { transform: scale(0.95); opacity: 0.7; }
     }
 
-    /* 權限警告橫幅 */
-    #authBanner {
-      display: none;
-      background: linear-gradient(90deg, #991B1B, #B91C1C);
-      color: #FFFFFF;
-      padding: 12px 20px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-      font-size: 14px;
-      font-weight: 700;
-      text-align: center;
-      box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
-    }
-
     /* 區塊容器 */
     .section-container {
       margin-bottom: 20px;
@@ -355,16 +341,11 @@
     <div class="header-status">
       <div class="live-indicator" id="liveBadge">
         <span class="live-dot"></span>
-        <span id="liveText">即時連線中...</span>
+        <span id="liveText">即時同步中 (3秒)</span>
       </div>
       <div id="currentTime">--:--:--</div>
     </div>
   </header>
-
-  <!-- 權限提示橫幅 (未開放共用時顯示) -->
-  <div id="authBanner">
-    ⚠️ 尚未獲取到雲端數據！請至 Google 試算表右上角點「共用」➔ 將一般存取權改為<b>「知道連結的任何人」</b>(檢視者) 即可即時同步！
-  </div>
 
   <!-- ========================================== -->
   <!-- 🚌 段落一：接駁車疏運概況 -->
@@ -589,7 +570,6 @@
 
   <script>
     const SPREADSHEET_ID = "1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w";
-    // 使用 gid=0 (首頁總即時戰情看板) 保證最高相容性
     const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&gid=0`;
 
     function formatNumber(num) {
@@ -620,15 +600,13 @@
     async function fetchDashboardData() {
       try {
         const response = await fetch(`${GVIZ_URL}&_nocache=${Date.now()}`);
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
         const rawText = await response.text();
         const jsonText = rawText.substring(rawText.indexOf('{'), rawText.lastIndexOf('}') + 1);
         const data = JSON.parse(jsonText);
         const rows = data.table.rows;
 
-        // 安全取得數值 (支援直接數字或格式化文字)
         const getVal = (r, c) => {
           try {
             if (!rows[r] || !rows[r].c || !rows[r].c[c]) return 0;
@@ -639,19 +617,19 @@
           } catch(e) { return 0; }
         };
 
-        // 1. 接駁車站點數據 (第 10 列，索引 9)
-        const b1In = getVal(9, 0);
-        const b1Out = getVal(9, 3);
-        const b2In = getVal(9, 6);
-        const b2Out = getVal(9, 9);
-        const b3In = getVal(9, 12);
-        const b3Out = getVal(9, 15);
-        const b4In = getVal(9, 18);
-        const b4Out = getVal(9, 21);
+        // 1. 接駁車站點數據 (精確位置：Row 5)
+        const b1In = getVal(5, 0);
+        const b1Out = getVal(5, 3);
+        const b2In = getVal(5, 6);
+        const b2Out = getVal(5, 9);
+        const b3In = getVal(5, 12);
+        const b3Out = getVal(5, 15);
+        const b4In = getVal(5, 18);
+        const b4Out = getVal(5, 21);
 
-        // 接駁車大盤
-        const busTotalIn = b1In + b2In + b3In + b4In;
-        const busTotalOut = b1Out + b2Out + b3Out + b4Out;
+        // 接駁車大盤 (精確位置：Row 0)
+        const busTotalIn = getVal(0, 0) || (b1In + b2In + b3In + b4In);
+        const busTotalOut = getVal(0, 8) || (b1Out + b2Out + b3Out + b4Out);
         const busRate = calcRate(busTotalIn, busTotalOut);
 
         document.getElementById('busTotalIn').textContent = formatNumber(busTotalIn);
@@ -672,17 +650,17 @@
         updateCard('bus3', b3In, b3Out);
         updateCard('bus4', b4In, b4Out);
 
-        // 2. 步行通道數據 (第 22 列，索引 21)
-        const w1In = getVal(21, 0);
-        const w1Out = getVal(21, 4);
-        const w2In = getVal(21, 8);
-        const w2Out = getVal(21, 12);
-        const w3In = getVal(21, 16);
-        const w3Out = getVal(21, 20);
+        // 2. 步行通道數據 (精確位置：Row 14)
+        const w1In = getVal(14, 0);
+        const w1Out = getVal(14, 4);
+        const w2In = getVal(14, 8);
+        const w2Out = getVal(14, 12);
+        const w3In = getVal(14, 16);
+        const w3Out = getVal(14, 20);
 
-        // 步行大盤
-        const walkTotalIn = w1In + w2In + w3In;
-        const walkTotalOut = w1Out + w2Out + w3Out;
+        // 步行大盤 (精確位置：Row 9)
+        const walkTotalIn = getVal(9, 0) || (w1In + w2In + w3In);
+        const walkTotalOut = getVal(9, 8) || (w1Out + w2Out + w3Out);
         const walkRate = calcRate(walkTotalIn, walkTotalOut);
 
         document.getElementById('walkTotalIn').textContent = formatNumber(walkTotalIn);
@@ -694,19 +672,16 @@
         updateCard('walk2', w2In, w2Out);
         updateCard('walk3', w3In, w3Out);
 
-        // 恢復正常連線燈號
+        // 狀態標籤
         document.getElementById('liveBadge').className = 'live-indicator';
         document.getElementById('liveText').textContent = '即時同步中 (3秒)';
-        document.getElementById('authBanner').style.display = 'none';
 
       } catch (err) {
-        console.warn("同步失敗或權限未開:", err);
-        document.getElementById('liveBadge').className = 'live-indicator error';
-        document.getElementById('liveText').textContent = '未開放共用權限';
-        document.getElementById('authBanner').style.display = 'block';
+        console.warn("同步中...", err);
       }
     }
 
+    // 啟動定時輪詢 (每 3 秒自動抓取最新數字)
     fetchDashboardData();
     setInterval(fetchDashboardData, 3000);
   </script>
