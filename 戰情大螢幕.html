@@ -389,6 +389,50 @@
       transition: width 0.8s ease;
     }
 
+    /* 📱 顯眼控制橫幅 */
+    .control-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1E293B;
+      border: 1.5px solid #38BDF8;
+      border-radius: 10px;
+      padding: 10px 18px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #94A3B8;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    }
+    .control-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .control-btn {
+      background: #2563EB;
+      color: #FFFFFF;
+      border: 1px solid #38BDF8;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+    }
+    .control-btn:hover {
+      background: #1D4ED8;
+      transform: translateY(-1px);
+    }
+    .control-btn.active {
+      background: #059669;
+      border-color: #34D399;
+    }
+
     footer {
       text-align: center;
       font-size: 13px;
@@ -399,12 +443,6 @@
   </style>
 </head>
 <body>
-
-  <!-- 📱 浮動快捷工具列 (永遠固定在螢幕右下角，手機一看即點) -->
-  <div class="floating-toolbar">
-    <button id="fabRotate" class="fab-btn" onclick="toggleRotate()">🔄 轉橫螢幕</button>
-    <button id="fabFlip" class="fab-btn" onclick="toggleFlip()">🪞 水平鏡像</button>
-  </div>
 
   <!-- 頂部資訊列 -->
   <header>
@@ -420,6 +458,18 @@
       <div id="currentTime">--:--:--</div>
     </div>
   </header>
+
+  <!-- 📱 畫面控制快捷列 (置頂第一眼可見，100% 不會被螢幕切到) -->
+  <div class="control-banner">
+    <div class="control-left">
+      <span style="color: #F8FAFC;">⚙️ 畫面顯示控制：</span>
+      <button id="topBtnRotate" class="control-btn" onclick="toggleRotate()">🔄 一鍵轉橫螢幕 (Landscape)</button>
+      <button id="topBtnFlip" class="control-btn" onclick="toggleFlip()">🪞 水平鏡像翻轉 (Mirror)</button>
+    </div>
+    <div style="font-size: 12px; color: #64748B;">
+      💡 手機亦可直接橫拿（關閉直向鎖定）自動填滿全螢幕
+    </div>
+  </div>
 
   <!-- ========================================== -->
   <!-- 🚌 段落一：接駁車疏運概況 -->
@@ -770,14 +820,14 @@
     // 🪞 水平鏡像切換
     function toggleFlip() {
       const isFlipped = document.body.classList.toggle('is-flipped');
-      const btn = document.getElementById('fabFlip');
+      const btn = document.getElementById('topBtnFlip');
       if (btn) btn.classList.toggle('active', isFlipped);
     }
 
     // 🔄 轉橫螢幕切換
     function toggleRotate() {
       const isRotated = document.body.classList.toggle('is-rotated');
-      const btn = document.getElementById('fabRotate');
+      const btn = document.getElementById('topBtnRotate');
       if (btn) btn.classList.toggle('active', isRotated);
     }
   </script>
