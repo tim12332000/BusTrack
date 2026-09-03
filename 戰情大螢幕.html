@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=1150, user-scalable=yes, initial-scale=0.35, minimum-scale=0.2, maximum-scale=3.0">
   <title>「國防知性之旅-成功嶺營區開放」即時戰情中心</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,7 +36,9 @@
       color: var(--text-white);
       padding: 16px 24px;
       min-height: 100vh;
-      overflow-x: hidden;
+      width: 1150px;
+      min-width: 1150px;
+      margin: 0 auto;
     }
 
     /* 頂部導航列 */
@@ -305,57 +307,10 @@
 
     footer {
       text-align: center;
-      font-size: 12px;
-      color: #475569;
-      margin-top: 10px;
-      padding-bottom: 10px;
-    }
-
-    @media (max-width: 1024px) {
-      .grid-4 { grid-template-columns: repeat(2, 1fr); }
-      .grid-3 { grid-template-columns: 1fr; }
-    }
-
-    /* 📱 手機直向極致自適應 (Mobile Responsive) */
-    @media (max-width: 640px) {
-      body {
-        padding: 10px 12px;
-      }
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-        padding: 12px 14px;
-      }
-      h1 {
-        font-size: 16px;
-      }
-      .header-status {
-        width: 100%;
-        justify-content: space-between;
-        font-size: 12px;
-      }
-      .banner-metrics {
-        grid-template-columns: 1fr;
-        gap: 8px;
-        padding: 10px;
-      }
-      .metric-box {
-        padding: 8px 14px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .metric-label {
-        margin-bottom: 0;
-        font-size: 13px;
-      }
-      .metric-value {
-        font-size: 22px;
-      }
-      .grid-4 {
-        grid-template-columns: 1fr;
-      }
+      font-size: 13px;
+      color: #64748B;
+      margin-top: 14px;
+      padding-bottom: 14px;
     }
   </style>
 </head>
