@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1150, user-scalable=yes, initial-scale=0.35, minimum-scale=0.2, maximum-scale=3.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes">
   <title>「國防知性之旅-成功嶺營區開放」即時戰情中心</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,11 +34,12 @@
       background-color: var(--bg-main);
       font-family: 'Noto Sans TC', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: var(--text-white);
-      padding: 16px 24px;
+      padding: 12px 18px;
       min-height: 100vh;
-      width: 1150px;
-      min-width: 1150px;
-      margin: 0 auto;
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      box-sizing: border-box;
     }
 
     /* 頂部導航列 */
@@ -171,7 +172,7 @@
       transform: scaleX(-1);
     }
 
-    /* 🔄 90度橫向旋轉模式 */
+    /* 🔄 90度橫向旋轉模式 (100% 滿版橫螢幕，無黑邊) */
     body.is-rotated {
       transform: rotate(90deg);
       transform-origin: top left;
@@ -179,8 +180,11 @@
       top: 0;
       left: 100vw;
       width: 100vh !important;
+      min-width: 100vh !important;
       height: 100vw !important;
       overflow-x: hidden;
+      padding: 10px 14px !important;
+      box-sizing: border-box !important;
     }
 
     .live-dot {
