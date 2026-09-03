@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>「國防知性之旅-成功嶺營區開放」即時戰情中心</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0B0F19;
+      --card-bg: #151D2F;
+      --card-inner: #1E293B;
+      --text-white: #FFFFFF;
+      --text-muted: #94A3B8;
+      --text-label: #64748B;
+      --accent-blue: #38BDF8;
+      --primary-blue: #2563EB;
+      --brand-green: #059669;
+      --brand-amber: #D97706;
+      --border-color: #243048;
+      --progress-bg: #1E293B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      font-family: 'Noto Sans TC', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text-white);
+      padding: 16px 24px;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* 頂部導航列 */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header-badge {
+      background: #DC2626;
+      color: #FFF;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 6px;
+      letter-spacing: 1px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #FFFFFF, #E2E8F0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34D399;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #10B981;
+      box-shadow: 0 0 10px #10B981;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.7; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.7; }
+    }
+
+    /* 區塊容器 */
+    .section-container {
+      margin-bottom: 20px;
+    }
+
+    /* 大盤統計橫幅 */
+    .summary-banner {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      margin-bottom: 12px;
+    }
+
+    .banner-header {
+      background: #0F172A;
+      padding: 10px 20px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #93C5FD;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .banner-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      padding: 14px 20px;
+      gap: 16px;
+      background: #141C2E;
+    }
+
+    .metric-box {
+      text-align: center;
+      background: var(--card-inner);
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .metric-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .metric-value {
+      font-size: 32px;
+      font-weight: 900;
+      font-family: 'Inter', sans-serif;
+      color: #FFFFFF;
+      letter-spacing: -0.5px;
+    }
+
+    .metric-value.rate {
+      color: #34D399;
+    }
+
+    /* 大盤總進度條 */
+    .banner-progress-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      background: #0F172A;
+      border-top: 1px solid var(--border-color);
+      gap: 16px;
+    }
+
+    .progress-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-muted);
+      min-width: 65px;
+    }
+
+    .progress-track {
+      flex: 1;
+      height: 12px;
+      background: var(--progress-bg);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0284C7, #38BDF8);
+      border-radius: 6px;
+      width: 0%;
+      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+    }
+
+    /* 卡片網格 */
+    .cards-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    /* 單一站點/門區卡片 */
+    .station-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .card-header {
+      padding: 10px 14px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #FFFFFF;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    .bg-green { background: #059669; }
+    .bg-blue  { background: #2563EB; }
+    .bg-amber { background: #D97706; }
+
+    .card-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 12px;
+      gap: 8px;
+      background: #FFFFFF;
+    }
+
+    .card-col {
+      text-align: center;
+    }
+
+    .card-col-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: #64748B;
+      margin-bottom: 2px;
+    }
+
+    .card-col-num {
+      font-size: 26px;
+      font-weight: 900;
+      font-family: 'Inter', sans-serif;
+      color: #0F172A;
+    }
+
+    .card-footer {
+      padding: 10px 14px;
+      background: #F8FAFC;
+      border-top: 1px solid #E2E8F0;
+    }
+
+    .card-status-text {
+      font-size: 12px;
+      font-weight: 800;
+      color: #0F172A;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .card-progress-track {
+      height: 8px;
+      background: #E2E8F0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .card-progress-fill {
+      height: 100%;
+      background: var(--primary-blue);
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.8s ease;
+    }
+
+    /* 快捷說明底部 */
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: #475569;
+      margin-top: 10px;
+      padding-bottom: 10px;
+    }
+
+    /* 全螢幕自適應 */
+    @media (max-width: 1024px) {
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .grid-3 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 頂部資訊列 -->
+  <header>
+    <div class="header-title">
+      <span class="header-badge">指揮中心</span>
+      <h1>「國防知性之旅-成功嶺營區開放」進場人數統計表</h1>
+    </div>
+    <div class="header-status">
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        <span>即時同步中</span>
+      </div>
+      <div id="currentTime">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- ========================================== -->
+  <!-- 🚌 段落一：接駁車疏運概況 -->
+  <!-- ========================================== -->
+  <div class="section-container">
+    <div class="summary-banner">
+      <div class="banner-header">
+        <span>🚌 接駁車疏運概況</span>
+        <span style="font-size: 12px; color: #64748B;">4大接駁站 / 130輛專車</span>
+      </div>
+      <div class="banner-metrics">
+        <div class="metric-box">
+          <div class="metric-label">👉 進場總人數</div>
+          <div class="metric-value" id="busTotalIn">0</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">👈 離場總人數</div>
+          <div class="metric-value" id="busTotalOut">0</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">📈 離場完成率</div>
+          <div class="metric-value rate" id="busTotalRate">0.0%</div>
+        </div>
+      </div>
+      <div class="banner-progress-row">
+        <span class="progress-label">離場進度</span>
+        <div class="progress-track">
+          <div class="progress-fill" id="busMainBar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 大接駁車站卡片 -->
+    <div class="cards-grid grid-4">
+      <!-- 成功車站 -->
+      <div class="station-card">
+        <div class="card-header bg-green">🚌 成功車站</div>
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">進場</div>
+            <div class="card-col-num" id="bus1In">0</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">離場</div>
+            <div class="card-col-num" id="bus1Out">0</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="bus1Status">0.0% · 尚餘 0 人</div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" id="bus1Bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 新烏日台鐵站 -->
+      <div class="station-card">
+        <div class="card-header bg-blue">🚌 新烏日台鐵站</div>
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">進場</div>
+            <div class="card-col-num" id="bus2In">0</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">離場</div>
+            <div class="card-col-num" id="bus2Out">0</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="bus2Status">0.0% · 尚餘 0 人</div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" id="bus2Bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 經貿六停車場 -->
+      <div class="station-card">
+        <div class="card-header bg-amber">🚌 經貿六停車場</div>
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">進場</div>
+            <div class="card-col-num" id="bus3In">0</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">離場</div>
+            <div class="card-col-num" id="bus3Out">0</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="bus3Status">0.0% · 尚餘 0 人</div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" id="bus3Bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 水湳轉運站 -->
+      <div class="station-card">
+        <div class="card-header bg-amber">🚌 水湳轉運站</div>
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">進場</div>
+            <div class="card-col-num" id="bus4In">0</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">離場</div>
+            <div class="card-col-num" id="bus4Out">0</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="bus4Status">0.0% · 尚餘 0 人</div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" id="bus4Bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 🚶 段落二：步行通道疏運概況 -->
+  <!-- ========================================== -->
+  <div class="section-container">
+    <div class="summary-banner">
+      <div class="banner-header">
+        <span>🚶 步行通道疏運概況</span>
+        <span style="font-size: 12px; color: #64748B;">3處主要徒步進出口</span>
+      </div>
+      <div class="banner-metrics">
+        <div class="metric-box">
+          <div class="metric-label">👉 進場總人數</div>
+          <div class="metric-value" id="walkTotalIn">0</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">👈 離場總人數</div>
+          <div class="metric-value" id="walkTotalOut">0</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-label">📈 離場完成率</div>
+          <div class="metric-value rate" id="walkTotalRate">0.0%</div>
+        </div>
+      </div>
+      <div class="banner-progress-row">
+        <span class="progress-label">離場進度</span>
+        <div class="progress-track">
+          <div class="progress-fill" id="walkMainBar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 大步行門卡片 -->
+    <div class="cards-grid grid-3">
+      <!-- 1號門 -->
+      <div class="station-card">
+        <div class="card-header bg-green">🚶 1號門</div>
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">進場</div>
+            <div class="card-col-num" id="walk1In">0</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">離場</div>
+            <div class="card-col-num" id="walk1Out">0</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="walk1Status">0.0% · 尚餘 0 人</div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" id="walk1Bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3號門 -->
+      <div class="station-card">
+        <div class="card-header bg-blue">🚶 3號門</div>
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">進場</div>
+            <div class="card-col-num" id="walk2In">0</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">離場</div>
+            <div class="card-col-num" id="walk2Out">0</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="walk2Status">0.0% · 尚餘 0 人</div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" id="walk2Bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4號門 -->
+      <div class="station-card">
+        <div class="card-header bg-amber">🚶 4號門</div>
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">進場</div>
+            <div class="card-col-num" id="walk3In">0</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">離場</div>
+            <div class="card-col-num" id="walk3Out">0</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="walk3Status">0.0% · 尚餘 0 人</div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" id="walk3Bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    💡 提示：按 <b>F11</b> 即可開啟全螢幕極致大螢幕戰情室 ｜ 每 3 秒自動與 Google 雲端同步
+  </footer>
+
+  <script>
+    // 鎖定官方 Google 試算表 ID
+    const SPREADSHEET_ID = "1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w";
+    const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&sheet=總即時戰情看板`;
+
+    // 格式化數字千分位
+    function formatNumber(num) {
+      return Number(num || 0).toLocaleString('en-US');
+    }
+
+    // 計算百分比
+    function calcRate(inVal, outVal) {
+      if (!inVal || inVal <= 0) return { pctText: "0.0%", pctNum: 0, remain: 0 };
+      const pct = Math.min(100, Math.round((outVal / inVal) * 1000) / 10);
+      const remain = Math.max(0, inVal - outVal);
+      return {
+        pctText: pct.toFixed(1) + "%",
+        pctNum: pct,
+        remain: remain
+      };
+    }
+
+    // 更新時間
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('currentTime').textContent = `${hours}:${minutes}:${seconds}`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // 核心數據抓取函式 (每 3 秒非同步抓取)
+    async function fetchDashboardData() {
+      try {
+        const response = await fetch(`${GVIZ_URL}&_ts=${Date.now()}`);
+        const rawText = await response.text();
+        const jsonText = rawText.substring(rawText.indexOf('{'), rawText.lastIndexOf('}') + 1);
+        const data = JSON.parse(jsonText);
+        const rows = data.table.rows;
+
+        // 安全取得數值工具
+        const getVal = (r, c) => {
+          try {
+            return rows[r].c[c] ? (rows[r].c[c].v || 0) : 0;
+          } catch(e) { return 0; }
+        };
+
+        // 1. 接駁車站點數據 (第 10 列，索引 9)
+        const b1In = Number(getVal(9, 0)) || 0;
+        const b1Out = Number(getVal(9, 3)) || 0;
+        const b2In = Number(getVal(9, 6)) || 0;
+        const b2Out = Number(getVal(9, 9)) || 0;
+        const b3In = Number(getVal(9, 12)) || 0;
+        const b3Out = Number(getVal(9, 15)) || 0;
+        const b4In = Number(getVal(9, 18)) || 0;
+        const b4Out = Number(getVal(9, 21)) || 0;
+
+        // 接駁車大盤
+        const busTotalIn = b1In + b2In + b3In + b4In;
+        const busTotalOut = b1Out + b2Out + b3Out + b4Out;
+        const busRate = calcRate(busTotalIn, busTotalOut);
+
+        document.getElementById('busTotalIn').textContent = formatNumber(busTotalIn);
+        document.getElementById('busTotalOut').textContent = formatNumber(busTotalOut);
+        document.getElementById('busTotalRate').textContent = busRate.pctText;
+        document.getElementById('busMainBar').style.width = busRate.pctNum + "%";
+
+        // 更新 4 大接駁車站
+        const updateCard = (prefix, inVal, outVal) => {
+          document.getElementById(`${prefix}In`).textContent = formatNumber(inVal);
+          document.getElementById(`${prefix}Out`).textContent = formatNumber(outVal);
+          const r = calcRate(inVal, outVal);
+          document.getElementById(`${prefix}Status`).textContent = `${r.pctText}  ·  尚餘 ${formatNumber(r.remain)} 人`;
+          document.getElementById(`${prefix}Bar`).style.width = r.pctNum + "%";
+        };
+
+        updateCard('bus1', b1In, b1Out);
+        updateCard('bus2', b2In, b2Out);
+        updateCard('bus3', b3In, b3Out);
+        updateCard('bus4', b4In, b4Out);
+
+        // 2. 步行通道數據 (第 22 列，索引 21)
+        const w1In = Number(getVal(21, 0)) || 0;
+        const w1Out = Number(getVal(21, 4)) || 0;
+        const w2In = Number(getVal(21, 8)) || 0;
+        const w2Out = Number(getVal(21, 12)) || 0;
+        const w3In = Number(getVal(21, 16)) || 0;
+        const w3Out = Number(getVal(21, 20)) || 0;
+
+        // 步行大盤
+        const walkTotalIn = w1In + w2In + w3In;
+        const walkTotalOut = w1Out + w2Out + w3Out;
+        const walkRate = calcRate(walkTotalIn, walkTotalOut);
+
+        document.getElementById('walkTotalIn').textContent = formatNumber(walkTotalIn);
+        document.getElementById('walkTotalOut').textContent = formatNumber(walkTotalOut);
+        document.getElementById('walkTotalRate').textContent = walkRate.pctText;
+        document.getElementById('walkMainBar').style.width = walkRate.pctNum + "%";
+
+        // 更新 3 大步行門
+        updateCard('walk1', w1In, w1Out);
+        updateCard('walk2', w2In, w2Out);
+        updateCard('walk3', w3In, w3Out);
+
+      } catch (err) {
+        console.warn("即時資料同步中...", err);
+      }
+    }
+
+    // 啟動定時輪詢 (每 3 秒自動抓取最新數字)
+    fetchDashboardData();
+    setInterval(fetchDashboardData, 3000);
+  </script>
+</body>
+</html>
