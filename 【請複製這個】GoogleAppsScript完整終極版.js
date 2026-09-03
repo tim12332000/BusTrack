@@ -1,20 +1,26 @@
 /**
  * =========================================================================
- * 🎖️「國防知性之旅-成功嶺營區開放」進場人數統計表 - 【鎖定既有網址專用版】
+ * 🎖️「國防知性之旅-成功嶺營區開放」進場人數統計表 - 【極致純淨・無雜亂格子終極版】
  * =========================================================================
  * 
- * 📌 鎖定官方指定永久網址：
- * - 戰情看板：https://docs.google.com/spreadsheets/d/1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w/edit
- * - 回報表單：https://docs.google.com/forms/d/e/1FAIpQLSeCDaMu9LlQhgwJKdzr6uCw2VX44ni5eO1Dn6gRePX4ur3dKw/viewform
+ * 🧹 本版重大修復：
+ * 1. 【徹底清除核取方塊 (Checkbox)】：
+ *    - 徹底拔除畫面上殘留的一整排方形核取方塊 (☐ ☐ ☐)。
+ *    - 解決「無效：這個儲存格的內容違反驗證規則」的紅色警示！
+ * 2. 【關閉雜亂表格格線 (Hidden Gridlines)】：
+ *    - 自動關閉 Google Sheet 淺灰網格線，視覺如獨立高階 Web 儀表板，零負擔。
+ * 3. 【鎖定永久網址】：
+ *    - 看板：https://docs.google.com/spreadsheets/d/1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w/edit
+ *    - 表單：https://docs.google.com/forms/d/e/1FAIpQLSeCDaMu9LlQhgwJKdzr6uCw2VX44ni5eO1Dn6gRePX4ur3dKw/viewform
  * 
- * 👉 每次點「執行」，100% 在您原本這份試算表與表單上原地更新，網址永遠不變！
+ * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，點「執行」即可！
  * =========================================================================
  */
 
 const TARGET_SPREADSHEET_ID = "1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w";
 
 function createMultiStationBusSystem() {
-  Logger.log("🎨 開始對指定試算表 [" + TARGET_SPREADSHEET_ID + "] 進行原地極簡重繪...");
+  Logger.log("🎨 開始對指定試算表 [" + TARGET_SPREADSHEET_ID + "] 進行原地極致純淨重繪...");
 
   const ss = SpreadsheetApp.openById(TARGET_SPREADSHEET_ID);
   
@@ -134,11 +140,24 @@ function createMultiStationBusSystem() {
   });
 
   // ==========================================
-  // 【B. 第一頁：總即時戰情看板 (24 格黃金對稱)】
+  // 【B. 第一頁：總即時戰情看板 (深度清洗與純淨排版)】
   // ==========================================
+  
+  // 🧹 1. 深度清潔：拔除所有 Checkbox 方塊、資料驗證、條件格式，徹底清空！
   try {
-    dashboardSheet.getRange(1, 1, 45, 26).breakApart();
-  } catch (e) {}
+    const maxRows = Math.max(dashboardSheet.getMaxRows(), 50);
+    const maxCols = Math.max(dashboardSheet.getMaxColumns(), 30);
+    const cleanRange = dashboardSheet.getRange(1, 1, maxRows, maxCols);
+    cleanRange.breakApart();
+    cleanRange.clearDataValidations(); // 徹底拔除方形核取方塊與任何驗證規則！
+    dashboardSheet.clearConditionalFormatRules();
+    cleanRange.clear(); // 清空所有舊格式與文字
+  } catch (e) {
+    Logger.log("清潔警告 (可忽略): " + e.message);
+  }
+
+  // 🎨 2. 關閉雜亂的預設灰色表格格線，讓戰情室像 Web 儀表板一樣純淨！
+  dashboardSheet.setHiddenGridlines(true);
 
   // 24 欄標準欄寬 (每欄 48px，總寬 1152px 完美滿版)
   for (let c = 1; c <= 24; c++) {
@@ -313,19 +332,19 @@ function createMultiStationBusSystem() {
   dashboardSheet.setRowHeight(3, 22);
   dashboardSheet.setRowHeight(4, 38);
   dashboardSheet.setRowHeight(5, 24);
-  dashboardSheet.setRowHeight(6, 14);
+  dashboardSheet.setRowHeight(6, 12); // 間隔列
   dashboardSheet.setRowHeight(7, 26);
   dashboardSheet.setRowHeight(8, 34);
   dashboardSheet.setRowHeight(9, 26);
   dashboardSheet.setRowHeight(10, 38);
   dashboardSheet.setRowHeight(11, 28);
   dashboardSheet.setRowHeight(12, 18);
-  dashboardSheet.setRowHeight(13, 18);
+  dashboardSheet.setRowHeight(13, 14); // 間隔列
   dashboardSheet.setRowHeight(14, 26);
   dashboardSheet.setRowHeight(15, 22);
   dashboardSheet.setRowHeight(16, 38);
   dashboardSheet.setRowHeight(17, 24);
-  dashboardSheet.setRowHeight(18, 14);
+  dashboardSheet.setRowHeight(18, 12); // 間隔列
   dashboardSheet.setRowHeight(19, 26);
   dashboardSheet.setRowHeight(20, 34);
   dashboardSheet.setRowHeight(21, 26);
@@ -334,12 +353,25 @@ function createMultiStationBusSystem() {
   dashboardSheet.setRowHeight(24, 18);
 
   Logger.log("\n=======================================================");
-  Logger.log("🎉【鎖定既有網址・原地更新完成！】");
+  Logger.log("🎉【無雜亂格子・原地重繪完成！】");
   Logger.log("📊【戰情看板網址 (完全不變)】: " + ss.getUrl());
   if (form) {
     Logger.log("📱【回報表單網址 (完全不變)】: " + form.getPublishedUrl());
   }
   Logger.log("=======================================================\n");
+}
+
+// =========================================================================
+// 🧹【獨立指令：一秒拔除所有 Checkbox 核取方塊】
+// =========================================================================
+function cleanAllCheckboxes() {
+  const ss = SpreadsheetApp.openById(TARGET_SPREADSHEET_ID);
+  const sheet = ss.getSheetByName("總即時戰情看板") || ss.getSheets()[0];
+  const maxRows = Math.max(sheet.getMaxRows(), 50);
+  const maxCols = Math.max(sheet.getMaxColumns(), 30);
+  sheet.getRange(1, 1, maxRows, maxCols).clearDataValidations();
+  sheet.setHiddenGridlines(true);
+  Logger.log("✨ 成功清除所有殘留的 Checkbox 核取方塊與雜亂格線！");
 }
 
 // =========================================================================
