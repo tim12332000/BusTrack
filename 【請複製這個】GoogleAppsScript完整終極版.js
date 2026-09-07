@@ -224,6 +224,24 @@ function createMultiStationBusSystem() {
     pSheet.getRange(1, 1, 1, 5).setBackground("#334155").setFontColor("#FFFFFF").setFontWeight("bold");
   }
 
+  // 🎯 動態精確抓取「區域」、「動作」、「數量」所在欄位字母 (防 Google 表單欄位向右偏移到 F/G/H 欄)
+  let colAreaLetter = "B";
+  let colActionLetter = "C";
+  let colQtyLetter = "D";
+
+  if (pSheet) {
+    const lastCol = Math.max(pSheet.getLastColumn(), 10);
+    const headerRow = pSheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    headerRow.forEach((h, idx) => {
+      const str = String(h || "");
+      const letter = String.fromCharCode(65 + idx);
+      if (str.includes("停車場區域")) colAreaLetter = letter;
+      if (str.includes("回報項目") || str.includes("動作")) colActionLetter = letter;
+      if (str.includes("車輛數量") || str.includes("數量")) colQtyLetter = letter;
+    });
+  }
+  Logger.log(`🎯 停車場真實欄位鎖定：分頁=[${parkingSheetName}], 區域=[${colAreaLetter}欄], 動作=[${colActionLetter}欄], 數量=[${colQtyLetter}欄]`);
+
   // 🛠️ 清理人員表單回應欄位漂移
   let formSheet = ss.getSheetByName(formSheetName);
   if (formSheet) {
@@ -439,7 +457,7 @@ function createMultiStationBusSystem() {
 
     // 數值 (Row 34)
     dashboardSheet.getRange(34, col, 1, 2).merge()
-      .setFormula(`=MAX(0, SUMIFS('${parkingSheetName}'!D:D, '${parkingSheetName}'!B:B, "*${lot.keyword}*", '${parkingSheetName}'!C:C, "*進場*") - SUMIFS('${parkingSheetName}'!D:D, '${parkingSheetName}'!B:B, "*${lot.keyword}*", '${parkingSheetName}'!C:C, "*離場*"))`)
+      .setFormula(`=MAX(0, SUMIFS('${parkingSheetName}'!${colQtyLetter}:${colQtyLetter}, '${parkingSheetName}'!${colAreaLetter}:${colAreaLetter}, "*${lot.keyword}*", '${parkingSheetName}'!${colActionLetter}:${colActionLetter}, "*進場*") - SUMIFS('${parkingSheetName}'!${colQtyLetter}:${colQtyLetter}, '${parkingSheetName}'!${colAreaLetter}:${colAreaLetter}, "*${lot.keyword}*", '${parkingSheetName}'!${colActionLetter}:${colActionLetter}, "*離場*"))`)
       .setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(22).setHorizontalAlignment("center");
 
     dashboardSheet.getRange(34, col + 2, 1, 2).merge()
