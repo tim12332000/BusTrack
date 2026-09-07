@@ -195,25 +195,33 @@ function createMultiStationBusSystem() {
     }
   }
 
-  // 識別停車場回報表單分頁 (表單回應 2)
-  let parkingSheetName = "表單回應 2";
-  let hasParkingSheet = false;
+  // 識別停車場回報表單分頁 (尋找標題包含「停車場」或「車輛數量」的真實回報分頁)
+  let parkingSheetName = "表單回應 3";
+  let maxParkingRows = -1;
+
   for (let s of ss.getSheets()) {
     const sName = s.getName();
-    if (sName.includes("停車場") || sName.includes("回應 2") || (sName !== "總即時戰情看板" && sName !== "各車即時明細" && sName !== formSheetName)) {
-      parkingSheetName = sName;
-      hasParkingSheet = true;
-      break;
-    }
-  }
+    if (sName === "總即時戰情看板" || sName === "各車即時明細" || sName === formSheetName) continue;
 
-  if (!hasParkingSheet) {
-    let pSheet = ss.getSheetByName(parkingSheetName);
-    if (!pSheet) {
-      pSheet = ss.insertSheet(parkingSheetName);
-      pSheet.getRange(1, 1, 1, 5).setValues([["時間戳記", "1. 停車場區域", "2. 回報項目 / 動作", "3. 車輛數量 (輛)", "4. 備註"]]);
-      pSheet.getRange(1, 1, 1, 5).setBackground("#334155").setFontColor("#FFFFFF").setFontWeight("bold");
-    }
+    try {
+      const lastCol = s.getLastColumn();
+      if (lastCol >= 3) {
+        const headerValues = s.getRange(1, 1, 1, Math.min(lastCol, 10)).getValues()[0].join(" ");
+        if (headerValues.includes("停車場") || headerValues.includes("車輛數量")) {
+          const rowCount = s.getLastRow();
+          if (rowCount > maxParkingRows) {
+            maxParkingRows = rowCount;
+            parkingSheetName = sName;
+          }
+        }
+      }
+    } catch (e) {}
+  }
+  let pSheet = ss.getSheetByName(parkingSheetName);
+  if (!pSheet) {
+    pSheet = ss.insertSheet(parkingSheetName);
+    pSheet.getRange(1, 1, 1, 5).setValues([["時間戳記", "1. 停車場區域", "2. 回報項目 / 動作", "3. 車輛數量 (輛)", "4. 備註"]]);
+    pSheet.getRange(1, 1, 1, 5).setBackground("#334155").setFontColor("#FFFFFF").setFontWeight("bold");
   }
 
   // 🛠️ 清理人員表單回應欄位漂移
