@@ -195,8 +195,9 @@ function createMultiStationBusSystem() {
     }
   }
 
-  // 識別停車場回報表單分頁 (尋找標題包含「停車場」或「車輛數量」的真實回報分頁)
-  let parkingSheetName = "表單回應 3";
+  // 識別停車場回報表單分頁 (尋找真正含有「停車場」回報數據的工作表)
+  let pSheet = null;
+  let parkingSheetName = "Form_Responses2";
   let maxParkingRows = -1;
 
   for (let s of ss.getSheets()) {
@@ -205,29 +206,44 @@ function createMultiStationBusSystem() {
 
     try {
       const lastCol = s.getLastColumn();
-      if (lastCol >= 3) {
+      if (lastCol >= 2) {
         const headerValues = s.getRange(1, 1, 1, Math.min(lastCol, 10)).getValues()[0].join(" ");
         if (headerValues.includes("停車場") || headerValues.includes("車輛數量")) {
           const rowCount = s.getLastRow();
           if (rowCount > maxParkingRows) {
             maxParkingRows = rowCount;
+            pSheet = s;
             parkingSheetName = sName;
           }
         }
       }
     } catch (e) {}
   }
-  let pSheet = ss.getSheetByName(parkingSheetName);
+
   if (!pSheet) {
-    pSheet = ss.insertSheet(parkingSheetName);
-    pSheet.getRange(1, 1, 1, 5).setValues([["時間戳記", "1. 停車場區域", "2. 回報項目 / 動作", "3. 車輛數量 (輛)", "4. 備註"]]);
-    pSheet.getRange(1, 1, 1, 5).setBackground("#334155").setFontColor("#FFFFFF").setFontWeight("bold");
+    pSheet = ss.getSheetByName(parkingSheetName);
+    if (!pSheet) {
+      pSheet = ss.insertSheet(parkingSheetName);
+      pSheet.getRange(1, 1, 1, 5).setValues([["時間戳記", "1. 停車場區域", "2. 回報項目 / 動作", "3. 車輛數量 (輛)", "4. 備註"]]);
+      pSheet.getRange(1, 1, 1, 5).setBackground("#334155").setFontColor("#FFFFFF").setFontWeight("bold");
+    }
   }
 
-  // 🎯 動態精確抓取「區域」、「動作」、「數量」所在欄位字母 (防 Google 表單欄位向右偏移到 F/G/H 欄)
-  let colAreaLetter = "B";
-  let colActionLetter = "C";
-  let colQtyLetter = "D";
+  // 🎯 自動清理多餘的「3. 車號」空欄 (如用戶截圖所示)
+  try {
+    const headerCheck = pSheet.getRange(1, 1, 1, Math.min(pSheet.getLastColumn(), 10)).getValues()[0];
+    for (let c = headerCheck.length - 1; c >= 0; c--) {
+      if (String(headerCheck[c]).includes("車號")) {
+        pSheet.deleteColumn(c + 1);
+        Logger.log("✨ 成功刪除停車場回報中的多餘車號空欄 (Col " + (c + 1) + ")！");
+      }
+    }
+  } catch (e) {}
+
+  // 🎯 動態精確抓取「區域」、「動作」、「數量」所在欄位字母
+  let colAreaLetter = "C";
+  let colActionLetter = "D";
+  let colQtyLetter = "E";
 
   if (pSheet) {
     const lastCol = Math.max(pSheet.getLastColumn(), 10);
@@ -240,7 +256,7 @@ function createMultiStationBusSystem() {
       if (str.includes("車輛數量") || str.includes("數量")) colQtyLetter = letter;
     });
   }
-  Logger.log(`🎯 停車場真實欄位鎖定：分頁=[${parkingSheetName}], 區域=[${colAreaLetter}欄], 動作=[${colActionLetter}欄], 數量=[${colQtyLetter}欄]`);
+  Logger.log(`🎯 停車場真實欄位鎖定：分頁=['${parkingSheetName}'], 區域=[${colAreaLetter}欄], 動作=[${colActionLetter}欄], 數量=[${colQtyLetter}欄] (共 ${pSheet.getLastRow()} 列)`);
 
   // 🛠️ 清理人員表單回應欄位漂移
   let formSheet = ss.getSheetByName(formSheetName);
@@ -433,12 +449,12 @@ function createMultiStationBusSystem() {
     .setBackground("#334155").setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("left");
 
   const parkingLots = [
-    { name: "🅿️ A 區 (500席)", keyword: "A 區", startCol: 1, tagColor: "#2563EB" },
-    { name: "🅿️ B 區 (500席)", keyword: "B 區", startCol: 5, tagColor: "#059669" },
-    { name: "🅿️ C 區 (500席)", keyword: "C 區", startCol: 9, tagColor: "#D97706" },
-    { name: "🅿️ D 區 (500席)", keyword: "D 區", startCol: 13, tagColor: "#7C3AED" },
-    { name: "🅿️ E 區 (500席)", keyword: "E 區", startCol: 17, tagColor: "#DB2777" },
-    { name: "🅿️ F 區 (500席)", keyword: "F 區", startCol: 21, tagColor: "#0D9488" }
+    { name: "🅿️ A 區 (500席)", keyword: "*A*區*", startCol: 1, tagColor: "#2563EB" },
+    { name: "🅿️ B 區 (500席)", keyword: "*B*區*", startCol: 5, tagColor: "#059669" },
+    { name: "🅿️ C 區 (500席)", keyword: "*C*區*", startCol: 9, tagColor: "#D97706" },
+    { name: "🅿️ D 區 (500席)", keyword: "*D*區*", startCol: 13, tagColor: "#7C3AED" },
+    { name: "🅿️ E 區 (500席)", keyword: "*E*區*", startCol: 17, tagColor: "#DB2777" },
+    { name: "🅿️ F 區 (500席)", keyword: "*F*區*", startCol: 21, tagColor: "#0D9488" }
   ];
 
   parkingLots.forEach(lot => {
@@ -457,7 +473,7 @@ function createMultiStationBusSystem() {
 
     // 數值 (Row 34)
     dashboardSheet.getRange(34, col, 1, 2).merge()
-      .setFormula(`=MAX(0, SUMIFS('${parkingSheetName}'!${colQtyLetter}:${colQtyLetter}, '${parkingSheetName}'!${colAreaLetter}:${colAreaLetter}, "*${lot.keyword}*", '${parkingSheetName}'!${colActionLetter}:${colActionLetter}, "*進場*") - SUMIFS('${parkingSheetName}'!${colQtyLetter}:${colQtyLetter}, '${parkingSheetName}'!${colAreaLetter}:${colAreaLetter}, "*${lot.keyword}*", '${parkingSheetName}'!${colActionLetter}:${colActionLetter}, "*離場*"))`)
+      .setFormula(`=MAX(0, SUMIFS('${parkingSheetName}'!${colQtyLetter}:${colQtyLetter}, '${parkingSheetName}'!${colAreaLetter}:${colAreaLetter}, "${lot.keyword}", '${parkingSheetName}'!${colActionLetter}:${colActionLetter}, "*進*") - SUMIFS('${parkingSheetName}'!${colQtyLetter}:${colQtyLetter}, '${parkingSheetName}'!${colAreaLetter}:${colAreaLetter}, "${lot.keyword}", '${parkingSheetName}'!${colActionLetter}:${colActionLetter}, "*離*"))`)
       .setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(22).setHorizontalAlignment("center");
 
     dashboardSheet.getRange(34, col + 2, 1, 2).merge()
@@ -476,6 +492,11 @@ function createMultiStationBusSystem() {
 
     dashboardSheet.getRange(32, col, 5, 4).setBorder(true, true, true, true, true, true, "#CBD5E1", SpreadsheetApp.BorderStyle.SOLID);
   });
+
+  const valA = dashboardSheet.getRange("A34").getValue();
+  const valC = dashboardSheet.getRange("I34").getValue();
+  const valTotal = dashboardSheet.getRange("A28").getValue();
+  Logger.log(`📊【現場驗證結果】A區已停: ${valA} 輛 | C區已停: ${valC} 輛 | 全區已停: ${valTotal} 輛`);
 
   // 設定列高
   dashboardSheet.setRowHeight(1, 38);
