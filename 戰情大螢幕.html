@@ -850,7 +850,10 @@
     // 🏆 JSONP 回呼函式：100% 繞過任何瀏覽器 CORS / file 協議限制！
     window.onGvizData = function(data) {
       try {
-        if (!data || !data.table || !data.table.rows) return;
+        if (!data || data.status === 'error' || !data.table || !data.table.rows) {
+          document.getElementById('liveText').textContent = '讀取失敗，請確認看板分頁與共用權限';
+          return;
+        }
         const rows = data.table.rows;
 
         const getVal = (r, c) => {
@@ -1004,6 +1007,7 @@
         document.getElementById('liveBadge').className = 'live-indicator';
         document.getElementById('liveText').textContent = '即時同步中 (3秒)';
       } catch (err) {
+        document.getElementById('liveText').textContent = '更新失敗，正在重試...';
         console.warn("更新異常:", err);
       }
     };
@@ -1016,7 +1020,7 @@
       }
       const script = document.createElement('script');
       script.id = 'gvizScript';
-      script.src = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=responseHandler:onGvizData&gid=0&_t=${Date.now()}`;
+      script.src = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=responseHandler:onGvizData&sheet=${encodeURIComponent("總即時戰情看板")}&_t=${Date.now()}`;
       script.onerror = function() {
         document.getElementById('liveText').textContent = '連線重試中...';
       };

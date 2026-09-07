@@ -11,7 +11,7 @@
  * 2. 【防欄位漂移機制】：
  *    - 題目存在時不重複刪建，永久鎖定欄位結構！
  * 3. 【三合一綜合戰情看板】：
- *    - 人員疏運 + 停車場在席車位全部彙整在同一個工作表「總即時戰情看板」（gid=0）！
+ *    - 人員疏運 + 停車場在席車位全部彙整在同一個工作表「總即時戰情看板」（依分頁名稱讀取）！
  *    - 前端大螢幕 HTML 一次 JSONP 抓取即可全部同步更新！
  * 
  * 👉 使用方式：全選複製貼到 Google Apps Script 覆蓋，點「執行」即可！
@@ -20,7 +20,53 @@
 
 const TARGET_SPREADSHEET_ID = "1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w";
 
-function createMultiStationBusSystem() {
+// 日常修復請執行此函式：只修復公式與看板，不修改表單題目或回應資料。
+function repairDashboard() {
+  createMultiStationBusSystem(true);
+}
+
+// 多個同類回應分頁無法唯一辨識時，在此填入目前使用的分頁名稱。
+const RESPONSE_SHEET_NAMES = { people: "", parking: "" };
+
+function responseColumnLetter(index) {
+  let result = "";
+  for (let n = index + 1; n > 0; n = Math.floor((n - 1) / 26)) {
+    result = String.fromCharCode(65 + (n - 1) % 26) + result;
+  }
+  return result;
+}
+
+function findResponseSource(ss, kind) {
+  const patterns = kind === "people"
+    ? { time: /^(時間戳記|時間標記|Timestamp)$/i, direction: /方向/, station: /站點.*門號/, bus: /車號/, quantity: /^(?:4[.、．]\s*)?人數$/ }
+    : { area: /停車場區域/, action: /回報項目|動作/, quantity: /車輛數量/ };
+  const candidates = [];
+  ss.getSheets().forEach(sheet => {
+    if (!sheet.getLastColumn()) return;
+    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    const columns = {};
+    for (const key of Object.keys(patterns)) {
+      const matches = headers.map((h, i) => patterns[key].test(String(h).trim()) ? i : -1).filter(i => i >= 0);
+      // 同名題目欄位不可任意選取，以免讀到已停用的舊欄位。
+      if (matches.length !== 1) return;
+      columns[key] = responseColumnLetter(matches[0]);
+    }
+    candidates.push({ sheet, columns });
+  });
+  const explicitName = RESPONSE_SHEET_NAMES[kind];
+  let selected = explicitName ? candidates.filter(c => c.sheet.getName() === explicitName) : candidates;
+  if (!explicitName && selected.length > 1) {
+    const linked = selected.filter(c => c.sheet.getFormUrl());
+    if (linked.length === 1) selected = linked;
+  }
+  if (selected.length !== 1) {
+    throw new Error(`${kind} 回應分頁無法唯一辨識。候選：${candidates.map(c => c.sheet.getName()).join("、") || "無（請检查題目標題是否缺少或重複）"}。請設定 RESPONSE_SHEET_NAMES。未改動回應資料。`);
+  }
+  Logger.log(`${kind} 資料來源：${selected[0].sheet.getName()}，欄位：${JSON.stringify(selected[0].columns)}`);
+  return selected[0];
+}
+
+function createMultiStationBusSystem(dashboardOnly) {
   Logger.log("🎨 開始對指定試算表 [" + TARGET_SPREADSHEET_ID + "] 進行雙表單建置與看板重繪...");
 
   const ss = SpreadsheetApp.openById(TARGET_SPREADSHEET_ID);
@@ -29,6 +75,8 @@ function createMultiStationBusSystem() {
   // 1. 維護【表單 1：人員疏運回報】(依專屬名稱鎖定獨立表單，絕不與表單2混淆)
   // =========================================================================
   let form1 = null;
+  let parkingForm = null;
+  if (dashboardOnly !== true) {
   const form1Files = DriveApp.getFilesByName("「國防知性之旅-成功嶺營區開放」人數回報");
   if (form1Files.hasNext()) {
     try {
@@ -96,8 +144,6 @@ function createMultiStationBusSystem() {
   // =========================================================================
   const props = PropertiesService.getScriptProperties();
   let parkingFormId = props.getProperty("PARKING_FORM_ID");
-  let parkingForm = null;
-
   if (parkingFormId) {
     try {
       parkingForm = FormApp.openById(parkingFormId);
@@ -171,102 +217,25 @@ function createMultiStationBusSystem() {
     }
   }
 
-  // =========================================================================
-  // 3. 識別與整理各工作表
-  // =========================================================================
+  }
+
+  // 在任何看板寫入之前檢查來源；不依分頁順序、語言或資料列數猜測。
+  const people = findResponseSource(ss, "people");
+  const parking = findResponseSource(ss, "parking");
+  const formSheetName = people.sheet.getName().replace(/'/g, "''");
+  const parkingSheetName = parking.sheet.getName().replace(/'/g, "''");
+  const personCols = people.columns;
+  const colAreaLetter = parking.columns.area;
+  const colActionLetter = parking.columns.action;
+  const colQtyLetter = parking.columns.quantity;
   let dashboardSheet = ss.getSheetByName("總即時戰情看板");
-  if (!dashboardSheet) {
-    dashboardSheet = ss.getSheets()[0];
-    dashboardSheet.setName("總即時戰情看板");
-  }
-
+  if (!dashboardSheet) dashboardSheet = ss.insertSheet("總即時戰情看板");
   let detailSheet = ss.getSheetByName("各車即時明細");
-  if (!detailSheet) {
-    detailSheet = ss.insertSheet("各車即時明細");
-  }
-
-  // 識別人員回報表單分頁 (表單回應 1)
-  let formSheetName = "表單回應 1";
-  for (let s of ss.getSheets()) {
-    const sName = s.getName();
-    if (sName !== "總即時戰情看板" && sName !== "各車即時明細" && !sName.includes("停車場") && !sName.includes("回應 2")) {
-      formSheetName = sName;
-      break;
-    }
-  }
-
-  // 識別停車場回報表單分頁 (尋找真正含有「停車場」回報數據的工作表)
-  let pSheet = null;
-  let parkingSheetName = "Form_Responses2";
-  let maxParkingRows = -1;
-
-  for (let s of ss.getSheets()) {
-    const sName = s.getName();
-    if (sName === "總即時戰情看板" || sName === "各車即時明細" || sName === formSheetName) continue;
-
-    try {
-      const lastCol = s.getLastColumn();
-      if (lastCol >= 2) {
-        const headerValues = s.getRange(1, 1, 1, Math.min(lastCol, 10)).getValues()[0].join(" ");
-        if (headerValues.includes("停車場") || headerValues.includes("車輛數量")) {
-          const rowCount = s.getLastRow();
-          if (rowCount > maxParkingRows) {
-            maxParkingRows = rowCount;
-            pSheet = s;
-            parkingSheetName = sName;
-          }
-        }
-      }
-    } catch (e) {}
-  }
-
-  if (!pSheet) {
-    pSheet = ss.getSheetByName(parkingSheetName);
-    if (!pSheet) {
-      pSheet = ss.insertSheet(parkingSheetName);
-      pSheet.getRange(1, 1, 1, 5).setValues([["時間戳記", "1. 停車場區域", "2. 回報項目 / 動作", "3. 車輛數量 (輛)", "4. 備註"]]);
-      pSheet.getRange(1, 1, 1, 5).setBackground("#334155").setFontColor("#FFFFFF").setFontWeight("bold");
-    }
-  }
-
-  // 🎯 自動清理多餘的「3. 車號」空欄 (如用戶截圖所示)
-  try {
-    const headerCheck = pSheet.getRange(1, 1, 1, Math.min(pSheet.getLastColumn(), 10)).getValues()[0];
-    for (let c = headerCheck.length - 1; c >= 0; c--) {
-      if (String(headerCheck[c]).includes("車號")) {
-        pSheet.deleteColumn(c + 1);
-        Logger.log("✨ 成功刪除停車場回報中的多餘車號空欄 (Col " + (c + 1) + ")！");
-      }
-    }
-  } catch (e) {}
-
-  // 🎯 動態精確抓取「區域」、「動作」、「數量」所在欄位字母
-  let colAreaLetter = "C";
-  let colActionLetter = "D";
-  let colQtyLetter = "E";
-
-  if (pSheet) {
-    const lastCol = Math.max(pSheet.getLastColumn(), 10);
-    const headerRow = pSheet.getRange(1, 1, 1, lastCol).getValues()[0];
-    headerRow.forEach((h, idx) => {
-      const str = String(h || "");
-      const letter = String.fromCharCode(65 + idx);
-      if (str.includes("停車場區域")) colAreaLetter = letter;
-      if (str.includes("回報項目") || str.includes("動作")) colActionLetter = letter;
-      if (str.includes("車輛數量") || str.includes("數量")) colQtyLetter = letter;
-    });
-  }
-  Logger.log(`🎯 停車場真實欄位鎖定：分頁=['${parkingSheetName}'], 區域=[${colAreaLetter}欄], 動作=[${colActionLetter}欄], 數量=[${colQtyLetter}欄] (共 ${pSheet.getLastRow()} 列)`);
-
-  // 🛠️ 清理人員表單回應欄位漂移
-  let formSheet = ss.getSheetByName(formSheetName);
-  if (formSheet) {
-    const lastCol = formSheet.getLastColumn();
-    if (lastCol > 6) {
-      formSheet.deleteColumns(2, lastCol - 6);
-      Logger.log("✨ 成功校準人員表單回應欄位！最新數據已自動移回 B、C、D、E 欄！");
-    }
-  }
+  if (!detailSheet) detailSheet = ss.insertSheet("各車即時明細");
+  if (dashboardSheet.getMaxRows() < 50) dashboardSheet.insertRowsAfter(dashboardSheet.getMaxRows(), 50 - dashboardSheet.getMaxRows());
+  if (dashboardSheet.getMaxColumns() < 24) dashboardSheet.insertColumnsAfter(dashboardSheet.getMaxColumns(), 24 - dashboardSheet.getMaxColumns());
+  if (detailSheet.getMaxRows() < 52) detailSheet.insertRowsAfter(detailSheet.getMaxRows(), 52 - detailSheet.getMaxRows());
+  if (detailSheet.getMaxColumns() < 20) detailSheet.insertColumnsAfter(detailSheet.getMaxColumns(), 20 - detailSheet.getMaxColumns());
 
   // =========================================================================
   // 【A. 第二頁：各車即時明細 (4 大車站車輛明細)】
@@ -291,10 +260,10 @@ function createMultiStationBusSystem() {
     const busRows = [];
     for (let b = 1; b <= st.busCount; b++) {
       const busName = `${b} 號車`;
-      const fInActual = `=IFERROR(INDEX('${formSheetName}'!E:E, MAX(FILTER(ROW('${formSheetName}'!E:E), ISNUMBER(SEARCH("進場", '${formSheetName}'!B:B)), ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!C:C)), '${formSheetName}'!D:D="${busName}"))), 0)`;
-      const fInTime = `=IFERROR(TEXT(INDEX('${formSheetName}'!A:A, MAX(FILTER(ROW('${formSheetName}'!A:A), ISNUMBER(SEARCH("進場", '${formSheetName}'!B:B)), ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!C:C)), '${formSheetName}'!D:D="${busName}"))), "hh:mm:ss"), "-")`;
-      const fOutActual = `=IFERROR(INDEX('${formSheetName}'!E:E, MAX(FILTER(ROW('${formSheetName}'!E:E), ISNUMBER(SEARCH("離場", '${formSheetName}'!B:B)), ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!C:C)), '${formSheetName}'!D:D="${busName}"))), 0)`;
-      const fOutTime = `=IFERROR(TEXT(INDEX('${formSheetName}'!A:A, MAX(FILTER(ROW('${formSheetName}'!A:A), ISNUMBER(SEARCH("離場", '${formSheetName}'!B:B)), ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!C:C)), '${formSheetName}'!D:D="${busName}"))), "hh:mm:ss"), "-")`;
+      const fInActual = `=IFERROR(INDEX('${formSheetName}'!${personCols.quantity}:${personCols.quantity}, MAX(FILTER(ROW('${formSheetName}'!${personCols.quantity}:${personCols.quantity}), ISNUMBER(SEARCH("進場", '${formSheetName}'!${personCols.direction}:${personCols.direction})), ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!${personCols.station}:${personCols.station})), '${formSheetName}'!${personCols.bus}:${personCols.bus}="${busName}"))), 0)`;
+      const fInTime = `=IFERROR(TEXT(INDEX('${formSheetName}'!${personCols.time}:${personCols.time}, MAX(FILTER(ROW('${formSheetName}'!${personCols.time}:${personCols.time}), ISNUMBER(SEARCH("進場", '${formSheetName}'!${personCols.direction}:${personCols.direction})), ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!${personCols.station}:${personCols.station})), '${formSheetName}'!${personCols.bus}:${personCols.bus}="${busName}"))), "hh:mm:ss"), "-")`;
+      const fOutActual = `=IFERROR(INDEX('${formSheetName}'!${personCols.quantity}:${personCols.quantity}, MAX(FILTER(ROW('${formSheetName}'!${personCols.quantity}:${personCols.quantity}), ISNUMBER(SEARCH("離場", '${formSheetName}'!${personCols.direction}:${personCols.direction})), ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!${personCols.station}:${personCols.station})), '${formSheetName}'!${personCols.bus}:${personCols.bus}="${busName}"))), 0)`;
+      const fOutTime = `=IFERROR(TEXT(INDEX('${formSheetName}'!${personCols.time}:${personCols.time}, MAX(FILTER(ROW('${formSheetName}'!${personCols.time}:${personCols.time}), ISNUMBER(SEARCH("離場", '${formSheetName}'!${personCols.direction}:${personCols.direction})), ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!${personCols.station}:${personCols.station})), '${formSheetName}'!${personCols.bus}:${personCols.bus}="${busName}"))), "hh:mm:ss"), "-")`;
       busRows.push([busName, fInActual, fInTime, fOutActual, fOutTime]);
     }
     detailSheet.getRange(3, col, st.busCount, 5).setValues(busRows);
@@ -305,14 +274,14 @@ function createMultiStationBusSystem() {
   // 【B. 第一頁：總即時戰情看板 (人員疏運 + 六大停車場全合一)】
   // =========================================================================
   try {
-    const maxRows = Math.max(dashboardSheet.getMaxRows(), 50);
-    const maxCols = Math.max(dashboardSheet.getMaxColumns(), 30);
+    const maxRows = dashboardSheet.getMaxRows();
+    const maxCols = dashboardSheet.getMaxColumns();
     const cleanRange = dashboardSheet.getRange(1, 1, maxRows, maxCols);
     cleanRange.breakApart();
     cleanRange.clearDataValidations();
     dashboardSheet.clearConditionalFormatRules();
     cleanRange.clear();
-  } catch (e) {}
+  } catch (e) { throw new Error("看板重設失敗：" + e.message); }
 
   dashboardSheet.setHiddenGridlines(true);
 
@@ -413,8 +382,8 @@ function createMultiStationBusSystem() {
     const colLetterIn = String.fromCharCode(64 + col);
     const colLetterOut = String.fromCharCode(64 + col + 4);
 
-    dashboardSheet.getRange(22, col, 1, 4).merge().setFormula(`=SUMIFS('${formSheetName}'!E:E, '${formSheetName}'!B:B, "*進場*", '${formSheetName}'!C:C, "*${wg.keyword}*")`).setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(24).setHorizontalAlignment("center");
-    dashboardSheet.getRange(22, col + 4, 1, 4).merge().setFormula(`=SUMIFS('${formSheetName}'!E:E, '${formSheetName}'!B:B, "*離場*", '${formSheetName}'!C:C, "*${wg.keyword}*")`).setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(24).setHorizontalAlignment("center");
+    dashboardSheet.getRange(22, col, 1, 4).merge().setFormula(`=SUMIFS('${formSheetName}'!${personCols.quantity}:${personCols.quantity}, '${formSheetName}'!${personCols.direction}:${personCols.direction}, "*進場*", '${formSheetName}'!${personCols.station}:${personCols.station}, "*${wg.keyword}*")`).setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(24).setHorizontalAlignment("center");
+    dashboardSheet.getRange(22, col + 4, 1, 4).merge().setFormula(`=SUMIFS('${formSheetName}'!${personCols.quantity}:${personCols.quantity}, '${formSheetName}'!${personCols.direction}:${personCols.direction}, "*離場*", '${formSheetName}'!${personCols.station}:${personCols.station}, "*${wg.keyword}*")`).setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(24).setHorizontalAlignment("center");
     dashboardSheet.getRange(23, col, 1, 8).merge().setFormula(`=IF(${colLetterIn}22>0, TEXT(${colLetterOut}22/${colLetterIn}22, "0.0%") & "  ·  尚餘 " & MAX(0, ${colLetterIn}22 - ${colLetterOut}22) & " 人", "0.0%  ·  已完成")`).setBackground("#F8FAFC").setFontColor("#0F172A").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
     dashboardSheet.getRange(24, col, 1, 8).merge().setFormula(`=IF(${colLetterIn}22>0, SPARKLINE(${colLetterOut}22, {"charttype", "bar"; "max", ${colLetterIn}22; "color1", "${THEME_CARD_BAR}"}), "")`).setBackground("#F1F5F9");
     dashboardSheet.getRange(20, col, 5, 8).setBorder(true, true, true, true, true, true, "#CBD5E1", SpreadsheetApp.BorderStyle.SOLID);
@@ -493,6 +462,7 @@ function createMultiStationBusSystem() {
     dashboardSheet.getRange(32, col, 5, 4).setBorder(true, true, true, true, true, true, "#CBD5E1", SpreadsheetApp.BorderStyle.SOLID);
   });
 
+  SpreadsheetApp.flush();
   const valA = dashboardSheet.getRange("A34").getValue();
   const valC = dashboardSheet.getRange("I34").getValue();
   const valTotal = dashboardSheet.getRange("A28").getValue();

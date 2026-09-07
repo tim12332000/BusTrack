@@ -11,3 +11,9 @@ Desktop.ini
 # Node
 node_modules/
 dist/
+
+# Local agent state, cloud backups and authentication
+.omx/
+.clasprc.json
+.clasp.json
+client_secret*.json
