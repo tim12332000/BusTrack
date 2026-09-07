@@ -26,13 +26,13 @@ function createMultiStationBusSystem() {
   const ss = SpreadsheetApp.openById(TARGET_SPREADSHEET_ID);
   
   // =========================================================================
-  // 1. 維護【表單 1：人員疏運回報】(智慧維護，不重複刪建防漂移)
+  // 1. 維護【表單 1：人員疏運回報】(依專屬名稱鎖定獨立表單，絕不與表單2混淆)
   // =========================================================================
   let form1 = null;
-  const form1Url = ss.getFormUrl();
-  if (form1Url) {
+  const form1Files = DriveApp.getFilesByName("「國防知性之旅-成功嶺營區開放」人數回報");
+  if (form1Files.hasNext()) {
     try {
-      form1 = FormApp.openByUrl(form1Url);
+      form1 = FormApp.openById(form1Files.next().getId());
     } catch (e) {}
   }
 
@@ -517,12 +517,10 @@ function createMultiStationBusSystem() {
 
   Logger.log("\n=======================================================");
   Logger.log("🎉【雙表單整合戰情室建置完成！】");
-  if (form1) {
-    Logger.log("📱【表單 1・人員回報網址】: " + form1.getPublishedUrl());
-  }
-  if (parkingForm) {
-    Logger.log("🅿️【表單 2・六大停車場回報網址】: " + parkingForm.getPublishedUrl());
-  }
+  const form1UrlFinal = (form1 && form1.getPublishedUrl().includes("1FAIpQLSe")) ? form1.getPublishedUrl() : "https://docs.google.com/forms/d/e/1FAIpQLSeCDaMu9LlQhgwJKdzr6uCw2VX44ni5eO1Dn6gRePX4ur3dKw/viewform";
+  const form2UrlFinal = (parkingForm && parkingForm.getPublishedUrl().includes("1FAIpQLSd")) ? parkingForm.getPublishedUrl() : "https://docs.google.com/forms/d/e/1FAIpQLSdNP01CZkqh5EeCkfmzrwQpQcPCw0fmXZmkQ50FVbvJrxUIPA/viewform";
+  Logger.log("📱【表單 1・人員疏運回報專用】: " + form1UrlFinal);
+  Logger.log("🅿️【表單 2・六大停車場車位回報】: " + form2UrlFinal);
   Logger.log("📊【Google 試算表看板網址】: " + ss.getUrl());
   Logger.log("=======================================================\n");
 }
