@@ -2,16 +2,17 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1150, user-scalable=yes, initial-scale=0.35, minimum-scale=0.2, maximum-scale=3.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>「國防知性之旅-成功嶺營區開放」即時戰情中心</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-main: #0B0F19;
-      --card-bg: #151D2F;
-      --card-inner: #1E293B;
+      --bg-main: #0B111E;
+      --bg-gradient: radial-gradient(circle at 50% 0%, #16233B 0%, #0B111E 75%);
+      --card-bg: #141D2F;
+      --card-inner: #1B263B;
       --text-white: #FFFFFF;
       --text-muted: #94A3B8;
       --text-label: #64748B;
@@ -19,8 +20,10 @@
       --primary-blue: #2563EB;
       --brand-green: #059669;
       --brand-amber: #D97706;
-      --border-color: #243048;
+      --border-color: #222F46;
       --progress-bg: #1E293B;
+      --card-white: #FFFFFF;
+      --card-border-subtle: #E2E8F0;
     }
 
     * {
@@ -28,17 +31,23 @@
       margin: 0;
       padding: 0;
       user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background-color: var(--bg-main);
+      background: var(--bg-main) var(--bg-gradient);
       font-family: 'Noto Sans TC', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: var(--text-white);
-      padding: 16px 24px 80px 24px;
-      min-height: 100vh;
-      width: 1150px;
-      min-width: 1150px;
+      padding: 10px 14px;
+      min-height: 100svh;
+      width: 100%;
       margin: 0 auto;
+      display: grid;
+      grid-template-rows: auto repeat(3, 1fr) auto;
+      gap: 10px;
+      overflow-x: hidden;
+      font-feature-settings: "tnum";
+      font-variant-numeric: tabular-nums;
     }
 
     /* 頂部導航列 */
@@ -46,99 +55,130 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-      border: 1px solid var(--border-color);
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 12px;
-      padding: 12px 24px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+      padding: 8px 14px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+      gap: 12px;
+      backdrop-filter: blur(10px);
     }
 
     .header-title {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
+      min-width: 0;
     }
 
     .header-badge {
-      background: #DC2626;
+      background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
       color: #FFF;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
       padding: 4px 8px;
       border-radius: 6px;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 10px rgba(220, 38, 38, 0.4);
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     h1 {
-      font-size: 22px;
+      font-size: clamp(14px, 1.3vw, 20px);
       font-weight: 900;
-      letter-spacing: 0.5px;
-      background: linear-gradient(90deg, #FFFFFF, #E2E8F0);
+      letter-spacing: 0.3px;
+      background: linear-gradient(180deg, #FFFFFF 20%, #E2E8F0 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .header-status {
       display: flex;
       align-items: center;
-      gap: 20px;
-      font-size: 14px;
+      gap: 12px;
+      font-size: 13px;
       font-weight: 600;
       color: var(--text-muted);
+      margin-left: auto;
+      flex-shrink: 0;
     }
 
     .live-indicator {
       display: flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.3);
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.35);
       color: #34D399;
-      padding: 4px 12px;
+      padding: 4px 10px;
       border-radius: 20px;
+      font-size: 12px;
+      white-space: nowrap;
     }
 
-    /* 📱 永遠置頂浮動控制列 (全螢幕 / 旋轉 / 鏡像) */
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background-color: #10B981;
+      box-shadow: 0 0 8px #10B981;
+      animation: pulse 1.6s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.7; box-shadow: 0 0 4px #10B981; }
+      50% { transform: scale(1.25); opacity: 1; box-shadow: 0 0 12px #10B981; }
+      100% { transform: scale(0.9); opacity: 0.7; box-shadow: 0 0 4px #10B981; }
+    }
+
+    #currentTime {
+      font-family: 'Inter', monospace;
+      font-weight: 700;
+      color: #CBD5E1;
+      letter-spacing: 0.5px;
+    }
+
+    /* 📱 置頂控制按鈕列 (全螢幕 / 旋轉 / 鏡像) */
     .floating-toolbar {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 999999;
       display: flex;
-      gap: 10px;
-      background: rgba(15, 23, 42, 0.92);
-      border: 1.5px solid #38BDF8;
-      padding: 8px 14px;
-      border-radius: 40px;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 15px rgba(56, 189, 248, 0.4);
-      backdrop-filter: blur(12px);
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
     }
 
     .fab-btn {
-      background: #1E293B;
-      color: #FFFFFF;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      padding: 8px 16px;
-      border-radius: 30px;
-      font-size: 14px;
-      font-weight: 800;
+      background: rgba(30, 41, 59, 0.85);
+      color: #E2E8F0;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      transition: all 0.2s ease;
+      gap: 4px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       white-space: nowrap;
     }
 
     .fab-btn:hover, .fab-btn:active {
-      background: #2563EB;
-      box-shadow: 0 0 12px rgba(37, 99, 235, 0.6);
+      background: var(--primary-blue);
+      color: #FFFFFF;
+      border-color: #60A5FA;
+      box-shadow: 0 0 12px rgba(37, 99, 235, 0.5);
+      transform: translateY(-1px);
     }
 
     .fab-btn.active {
-      background: #059669;
+      background: var(--brand-green);
       border-color: #34D399;
+      color: #FFFFFF;
+      box-shadow: 0 0 10px rgba(5, 150, 105, 0.5);
     }
 
     /* 🪞 水平鏡像翻轉 */
@@ -153,45 +193,32 @@
       position: absolute;
       top: 0;
       left: 100vw;
-      width: 100vh !important;
-      height: 100vw !important;
-      overflow-x: hidden;
+      width: 100vh;
+      min-height: 100vw;
     }
-
-    .live-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background-color: #10B981;
-      box-shadow: 0 0 10px #10B981;
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0% { transform: scale(0.95); opacity: 0.7; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(0.95); opacity: 0.7; }
-    }
+    body.is-rotated.is-flipped { transform: rotate(90deg) scaleY(-1); }
 
     /* 區塊容器 */
     .section-container {
-      margin-bottom: 20px;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 8px;
+      min-width: 0;
     }
 
     /* 大盤統計橫幅 */
     .summary-banner {
       background: var(--card-bg);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
+      border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      margin-bottom: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
     }
 
     .banner-header {
       background: #0F172A;
-      padding: 10px 20px;
-      font-size: 15px;
+      padding: 6px 14px;
+      font-size: 13px;
       font-weight: 800;
       color: #93C5FD;
       border-bottom: 1px solid var(--border-color);
@@ -206,69 +233,73 @@
 
     .banner-metrics {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      padding: 14px 20px;
-      gap: 16px;
+      grid-template-columns: repeat(3, 1fr);
+      padding: 8px 12px;
+      gap: 10px;
       background: #141C2E;
     }
 
     .metric-box {
       text-align: center;
       background: var(--card-inner);
-      padding: 12px 16px;
-      border-radius: 8px;
+      padding: 6px 8px;
+      border-radius: 6px;
       border: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .metric-label {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--text-muted);
-      margin-bottom: 4px;
+      margin-bottom: 2px;
+      white-space: nowrap;
     }
 
     .metric-value {
-      font-size: 32px;
+      font-size: clamp(20px, 2.6vh, 30px);
       font-weight: 900;
       font-family: 'Inter', sans-serif;
       color: #FFFFFF;
       letter-spacing: -0.5px;
+      line-height: 1.15;
     }
 
-    .metric-value.rate {
-      color: #34D399;
-    }
+    .metric-value.rate { color: #34D399; }
+    .metric-value.amber { color: #FBBF24; }
+    .metric-value.blue { color: #38BDF8; }
 
-    .metric-value.amber {
-      color: #FBBF24;
-    }
-
-    .metric-value.blue {
-      color: #38BDF8;
+    .metric-capacity {
+      color: var(--text-muted);
+      font-size: 11px;
+      margin-top: 2px;
     }
 
     /* 大盤總進度條 */
     .banner-progress-row {
       display: flex;
       align-items: center;
-      padding: 10px 20px;
+      padding: 5px 12px;
       background: #0F172A;
       border-top: 1px solid var(--border-color);
-      gap: 16px;
+      gap: 10px;
     }
 
     .progress-label {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--text-muted);
-      min-width: 65px;
+      min-width: 55px;
+      white-space: nowrap;
     }
 
     .progress-track {
       flex: 1;
-      height: 12px;
+      height: 7px;
       background: var(--progress-bg);
-      border-radius: 6px;
+      border-radius: 4px;
       overflow: hidden;
       position: relative;
       border: 1px solid rgba(255, 255, 255, 0.05);
@@ -277,75 +308,78 @@
     .progress-fill {
       height: 100%;
       background: linear-gradient(90deg, #0284C7, #38BDF8);
-      border-radius: 6px;
+      border-radius: 4px;
       width: 0%;
-      transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+      transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
     }
 
     .progress-fill.amber {
       background: linear-gradient(90deg, #D97706, #F59E0B);
-      box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
     }
 
     /* 卡片網格 */
     .cards-grid {
       display: grid;
-      gap: 14px;
+      gap: 8px;
     }
 
-    .grid-4 {
-      grid-template-columns: repeat(4, 1fr);
-    }
+    .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
 
-    .grid-3 {
-      grid-template-columns: repeat(3, 1fr);
-    }
-
-    .grid-6 {
-      grid-template-columns: repeat(6, 1fr);
-      gap: 12px;
-    }
-
-    /* 單一卡片 */
+    /* 單一站點與停車場卡片 */
     .station-card {
-      background: var(--card-bg);
+      background: var(--card-white);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
+      border-radius: 8px;
       overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
       display: flex;
       flex-direction: column;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
+      min-width: 0;
+    }
+
+    .station-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
     }
 
     .card-header {
-      padding: 10px 12px;
-      font-size: 14px;
+      padding: 6px 8px;
+      font-size: clamp(11px, 0.95vw, 14px);
       font-weight: 800;
       color: #FFFFFF;
       text-align: center;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.12);
     }
 
-    .bg-green  { background: #059669; }
-    .bg-blue   { background: #2563EB; }
-    .bg-amber  { background: #D97706; }
-    .bg-purple { background: #7C3AED; }
-    .bg-pink   { background: #DB2777; }
-    .bg-teal   { background: #0D9488; }
+    .bg-green  { background: linear-gradient(135deg, #059669 0%, #10B981 100%); }
+    .bg-blue   { background: linear-gradient(135deg, #1D4ED8 0%, #3B82F6 100%); }
+    .bg-amber  { background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%); }
+    .bg-purple { background: linear-gradient(135deg, #7C3AED 0%, #8B5CF6 100%); }
+    .bg-pink   { background: linear-gradient(135deg, #DB2777 0%, #EC4899 100%); }
+    .bg-teal   { background: linear-gradient(135deg, #0D9488 0%, #14B8A6 100%); }
 
     .card-body {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      padding: 10px 8px;
-      gap: 6px;
-      background: #FFFFFF;
+      padding: 6px 8px;
+      gap: 4px;
+      background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+      flex: 1;
+      align-items: center;
     }
 
     .card-col {
       text-align: center;
+      min-width: 0;
     }
 
     .card-col-label {
@@ -356,32 +390,33 @@
     }
 
     .card-col-num {
-      font-size: 24px;
+      font-size: clamp(20px, 2.8vh, 28px);
       font-weight: 900;
       font-family: 'Inter', sans-serif;
       color: #0F172A;
+      line-height: 1.15;
+      white-space: nowrap;
     }
-
-    .parking-table { width: 100%; border-collapse: collapse; background: var(--card-bg); border: 1px solid var(--border-color); }
-    .parking-table th, .parking-table td { padding: 9px 20px; border-bottom: 1px solid var(--border-color); }
-    .parking-table thead th { background: #0F172A; color: var(--text-muted); font-size: 13px; }
-    .parking-table th { text-align: left; width: 36%; font-size: 16px; }
-    .parking-table td, .parking-table thead th:not(:first-child) { text-align: right; width: 32%; }
-    .parking-number { font-family: 'Inter', 'Noto Sans TC', sans-serif; font-size: 24px; font-weight: 800; color: var(--accent-blue); }
-    .parking-table td:last-child .parking-number { color: #FBBF24; }
-    .parking-capacity { display: inline-block; min-width: 112px; margin-left: 14px; color: var(--text-muted); font-size: 12px; }
-    .parking-table td .parking-number.unavailable,
-    .parking-table td:last-child .parking-number.unavailable { color: var(--text-label); }
-    .metric-capacity { margin-top: 4px; color: var(--text-muted); font-size: 12px; }
 
     .card-col-num.remain {
       color: #0284C7;
     }
 
+    .card-col-num.unavailable {
+      color: #94A3B8;
+    }
+
+    .parking-capacity {
+      color: #64748B;
+      font-size: 11px;
+      margin-top: 2px;
+      white-space: nowrap;
+    }
+
     .card-footer {
-      padding: 8px 12px;
-      background: #F8FAFC;
-      border-top: 1px solid #E2E8F0;
+      padding: 5px 8px;
+      background: #F1F5F9;
+      border-top: 1px solid var(--card-border-subtle);
     }
 
     .card-status-text {
@@ -389,51 +424,272 @@
       font-weight: 800;
       color: #0F172A;
       text-align: center;
-      margin-bottom: 5px;
+      margin-bottom: 3px;
       white-space: nowrap;
     }
 
     .card-progress-track {
-      height: 7px;
+      height: 5px;
       background: #E2E8F0;
-      border-radius: 4px;
+      border-radius: 3px;
       overflow: hidden;
     }
 
     .card-progress-fill {
       height: 100%;
       background: var(--primary-blue);
-      border-radius: 4px;
+      border-radius: 3px;
       width: 0%;
-      transition: width 0.8s ease;
+      transition: width 0.6s ease;
     }
 
-    .card-progress-fill.warning {
-      background: #F59E0B !important;
-    }
-
-    .card-progress-fill.danger {
-      background: #EF4444 !important;
-    }
+    .card-progress-fill.warning { background: #F59E0B !important; }
+    .card-progress-fill.danger  { background: #EF4444 !important; }
 
     footer {
       text-align: center;
-      font-size: 13px;
+      font-size: 11px;
       color: #64748B;
-      margin-top: 20px;
-      padding-bottom: 14px;
+      padding: 4px 0;
+    }
+
+    /* ========================================================= */
+    /* 📱 手機橫向螢幕專屬排版 (Landscape & Max-Height: 520px)   */
+    /* ========================================================= */
+    @media (orientation: landscape) and (max-height: 520px) {
+      body {
+        padding: max(4px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(4px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+        grid-template-columns: 56fr 44fr;
+        grid-template-rows: auto auto auto auto;
+        gap: 6px;
+        height: auto;
+        min-height: 100svh;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      header, #parkingSection, footer {
+        grid-column: 1 / -1;
+      }
+
+      /* 緊湊型頂部列 */
+      header {
+        padding: 4px 8px;
+        gap: 8px;
+        border-radius: 8px;
+      }
+      .header-badge {
+        font-size: 9px;
+        padding: 2px 5px;
+      }
+      h1 {
+        font-size: 12px;
+        letter-spacing: 0;
+      }
+      .header-status {
+        gap: 6px;
+        font-size: 11px;
+      }
+      .live-indicator {
+        padding: 2px 6px;
+        font-size: 10px;
+        gap: 4px;
+      }
+      .live-dot {
+        width: 5px;
+        height: 5px;
+      }
+      #currentTime {
+        font-size: 11px;
+      }
+      .fab-btn {
+        font-size: 10px;
+        padding: 3px 6px;
+        gap: 2px;
+      }
+
+      /* 區塊容器 */
+      .section-container {
+        gap: 4px;
+      }
+
+      /* 緊湊型大盤橫幅 (精緻橫向排版) */
+      .summary-banner {
+        border-radius: 6px;
+      }
+      .banner-header {
+        padding: 3px 8px;
+        font-size: 11px;
+      }
+      .banner-header > span:last-child {
+        font-size: 9px !important;
+      }
+      .banner-metrics {
+        padding: 3px 6px;
+        gap: 4px;
+      }
+      .metric-box {
+        padding: 2px 4px;
+        border-radius: 4px;
+      }
+      .metric-label {
+        font-size: 9px;
+        line-height: 1.1;
+        margin-bottom: 1px;
+      }
+      .metric-value {
+        font-size: 17px;
+        line-height: 1.1;
+      }
+      .metric-capacity {
+        font-size: 9px;
+        line-height: 1;
+      }
+      .banner-progress-row {
+        padding: 2px 8px;
+        gap: 6px;
+      }
+      .progress-label {
+        font-size: 9px;
+        min-width: 42px;
+      }
+      .progress-track {
+        height: 4px;
+      }
+
+      /* 卡片網格與卡身精緻化 */
+      .cards-grid {
+        gap: 4px;
+      }
+      .station-card {
+        border-radius: 6px;
+      }
+      .card-header {
+        padding: 3px 2px;
+        font-size: 10px;
+        line-height: 1.2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .card-body {
+        padding: 4px 2px;
+        gap: 2px;
+      }
+      .card-col-label {
+        font-size: 9px;
+        line-height: 1.1;
+        margin-bottom: 1px;
+      }
+      .card-col-num {
+        font-size: 17px;
+        line-height: 1.1;
+      }
+      .card-footer {
+        padding: 2px 4px;
+      }
+      .card-status-text {
+        font-size: 9px;
+        margin-bottom: 2px;
+        line-height: 1.1;
+      }
+      .card-progress-track {
+        height: 3px;
+      }
+
+      /* 🅿️ 停車場 7 處卡片專屬優化：乾淨並排、無擠壓 */
+      #parkingSection .cards-grid {
+        gap: 4px;
+      }
+      #parkingSection .card-header {
+        font-size: 10px;
+        padding: 3px 1px;
+      }
+      #parkingSection .card-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        padding: 3px 2px;
+        gap: 2px;
+      }
+      #parkingSection .card-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      #parkingSection .card-col-label {
+        font-size: 9px;
+      }
+      #parkingSection .card-col-num {
+        font-size: 14px;
+        line-height: 1.15;
+      }
+      #parkingSection .parking-capacity {
+        font-size: 9px;
+        line-height: 1;
+        margin-top: 1px;
+      }
+
+      footer {
+        font-size: 9px;
+        padding: 2px 0;
+      }
+    }
+
+    /* 針對超薄高度螢幕 (Safari 網址列開啟，可視高度 < 350px) 保持順暢瀏覽 */
+    @media (orientation: landscape) and (max-height: 350px) {
+      body {
+        gap: 4px;
+        padding: 2px 6px;
+      }
+      .section-container {
+        gap: 3px;
+      }
+      .card-col-num {
+        font-size: 15px;
+      }
+      #parkingSection .card-col-num {
+        font-size: 13px;
+      }
+      .metric-value {
+        font-size: 15px;
+      }
+    }
+
+    /* 直向手機模式 (Portrait & Max-Width: 900px) 保留流暢雙欄/三欄捲動 */
+    @media (orientation: portrait) and (max-width: 900px) {
+      body {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 8px 10px;
+        min-height: 100svh;
+      }
+      header {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      h1 {
+        font-size: 15px;
+      }
+      .header-status {
+        margin-left: 0;
+        width: 100%;
+        justify-content: space-between;
+      }
+      .grid-4, .grid-7 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .grid-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      #parkingSection .cards-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
   </style>
 </head>
 <body>
-
-  <!-- 📱 浮動快捷工具列 (永遠固定在螢幕右下角，支援全螢幕、旋轉、鏡像) -->
-  <div class="floating-toolbar">
-    <button id="fabFullscreen" class="fab-btn" onclick="toggleFullscreen()">⛶ 全螢幕</button>
-    <button id="fabRotate" class="fab-btn" onclick="toggleRotate()">🔄 轉橫螢幕</button>
-    <button id="fabFlip" class="fab-btn" onclick="toggleFlip()">🪞 水平鏡像</button>
-  </div>
-
   <!-- 頂部資訊列 -->
   <header>
     <div class="header-title">
@@ -447,6 +703,11 @@
       </div>
       <div id="currentTime">--:--:--</div>
     </div>
+  <div class="floating-toolbar">
+    <button id="fabFullscreen" class="fab-btn" onclick="toggleFullscreen()">⛶ 全螢幕</button>
+    <button id="fabRotate" class="fab-btn" onclick="toggleRotate()">🔄 橫向</button>
+    <button id="fabFlip" class="fab-btn" onclick="toggleFlip()">🪞 鏡像</button>
+  </div>
   </header>
 
   <!-- ========================================== -->
@@ -681,51 +942,60 @@
         <div class="metric-box"><div class="metric-label">已回報停車場</div><div class="metric-value" id="parkReported">0/7 處</div></div>
       </div>
     </div>
-    <table class="parking-table">
-      <thead><tr><th scope="col">停車場</th><th scope="col">剩餘汽車位</th><th scope="col">剩餘機車位</th></tr></thead>
-      <tbody>
-        <tr>
-          <th scope="row">五都日出</th>
-          <td><span class="parking-number" id="park1Cars">未回報</span><span class="parking-capacity">總容量 1,008 位</span></td>
-          <td><span class="parking-number" id="park1Motorcycles">未回報</span><span class="parking-capacity">總容量 168 位</span></td>
-        </tr>
-        <tr>
-          <th scope="row">新烏日</th>
-          <td><span class="parking-number" id="park2Cars">未回報</span><span class="parking-capacity">總容量 266 位</span></td>
-          <td><span class="parking-number" id="park2Motorcycles">未回報</span><span class="parking-capacity">總容量 352 位</span></td>
-        </tr>
-        <tr>
-          <th scope="row">*嶺東科大</th>
-          <td><span class="parking-number" id="park3Cars">未回報</span><span class="parking-capacity">總容量 90 位</span></td>
-          <td><span class="parking-number" id="park3Motorcycles">未回報</span><span class="parking-capacity">總容量 800 位</span></td>
-        </tr>
-        <tr>
-          <th scope="row">*台中科大</th>
-          <td><span class="parking-number unavailable" id="park4Cars">—</span><span class="parking-capacity">不提供此車位</span></td>
-          <td><span class="parking-number" id="park4Motorcycles">未回報</span><span class="parking-capacity">總容量 200 位</span></td>
-        </tr>
-        <tr>
-          <th scope="row">水湳轉運站</th>
-          <td><span class="parking-number" id="park5Cars">未回報</span><span class="parking-capacity">總容量 614 位</span></td>
-          <td><span class="parking-number" id="park5Motorcycles">未回報</span><span class="parking-capacity">總容量 1,253 位</span></td>
-        </tr>
-        <tr>
-          <th scope="row">*經貿六</th>
-          <td><span class="parking-number" id="park6Cars">未回報</span><span class="parking-capacity">總容量 563 位</span></td>
-          <td><span class="parking-number unavailable" id="park6Motorcycles">—</span><span class="parking-capacity">不提供此車位</span></td>
-        </tr>
-        <tr>
-          <th scope="row">*經貿八</th>
-          <td><span class="parking-number" id="park7Cars">未回報</span><span class="parking-capacity">總容量 482 位</span></td>
-          <td><span class="parking-number unavailable" id="park7Motorcycles">—</span><span class="parking-capacity">不提供此車位</span></td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="cards-grid grid-7">
+      <div class="station-card">
+        <div class="card-header bg-blue">🅿️ 五都日出</div>
+        <div class="card-body">
+          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park1Cars">未回報</div><div class="parking-capacity">容量 1,008</div></div>
+          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park1Motorcycles">未回報</div><div class="parking-capacity">容量 168</div></div>
+        </div>
+      </div>
+      <div class="station-card">
+        <div class="card-header bg-green">🅿️ 新烏日</div>
+        <div class="card-body">
+          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park2Cars">未回報</div><div class="parking-capacity">容量 266</div></div>
+          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park2Motorcycles">未回報</div><div class="parking-capacity">容量 352</div></div>
+        </div>
+      </div>
+      <div class="station-card">
+        <div class="card-header bg-amber">🅿️ *嶺東科大</div>
+        <div class="card-body">
+          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park3Cars">未回報</div><div class="parking-capacity">容量 90</div></div>
+          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park3Motorcycles">未回報</div><div class="parking-capacity">容量 800</div></div>
+        </div>
+      </div>
+      <div class="station-card">
+        <div class="card-header bg-purple">🅿️ *台中科大</div>
+        <div class="card-body">
+          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain unavailable" id="park4Cars">—</div><div class="parking-capacity">不提供</div></div>
+          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park4Motorcycles">未回報</div><div class="parking-capacity">容量 200</div></div>
+        </div>
+      </div>
+      <div class="station-card">
+        <div class="card-header bg-teal">🅿️ 水湳轉運站</div>
+        <div class="card-body">
+          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park5Cars">未回報</div><div class="parking-capacity">容量 614</div></div>
+          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park5Motorcycles">未回報</div><div class="parking-capacity">容量 1,253</div></div>
+        </div>
+      </div>
+      <div class="station-card">
+        <div class="card-header bg-pink">🅿️ *經貿六</div>
+        <div class="card-body">
+          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park6Cars">未回報</div><div class="parking-capacity">容量 563</div></div>
+          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain unavailable" id="park6Motorcycles">—</div><div class="parking-capacity">不提供</div></div>
+        </div>
+      </div>
+      <div class="station-card">
+        <div class="card-header bg-blue">🅿️ *經貿八</div>
+        <div class="card-body">
+          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park7Cars">未回報</div><div class="parking-capacity">容量 482</div></div>
+          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain unavailable" id="park7Motorcycles">—</div><div class="parking-capacity">不提供</div></div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <footer>
-    💡 提示：點擊右下角「⛶ 全螢幕」即可進入滿版大螢幕戰情室 ｜ 每 3 秒自動同步 (JSONP 零跨域)
-  </footer>
+  <footer>每 3 秒同步 · 可使用右上角全螢幕檢視</footer>
 
   <script>
     const SPREADSHEET_ID = "1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w";
@@ -861,7 +1131,7 @@
           document.getElementById(`${prefix}In`).textContent = formatNumber(inVal);
           document.getElementById(`${prefix}Out`).textContent = formatNumber(outVal);
           const r = calcRate(inVal, outVal);
-          document.getElementById(`${prefix}Status`).textContent = `${r.pctText}  ·  尚餘 ${formatNumber(r.remain)} 人`;
+          document.getElementById(`${prefix}Status`).textContent = `${r.pctText} · 餘${formatNumber(r.remain)}人`;
           document.getElementById(`${prefix}Bar`).style.width = r.pctNum + "%";
         };
 

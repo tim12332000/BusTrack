@@ -76,7 +76,7 @@ test('capacity stays secondary and never initializes current remaining availabil
   assert.match(html, /總容量 3,023 位/);
   assert.match(html, /總容量 2,773 位/);
   for (const name of ['五都日出', '新烏日', '*嶺東科大', '*台中科大', '水湳轉運站', '*經貿六', '*經貿八']) {
-    assert.ok(html.includes('<th scope="row">' + name + '</th>'));
+    assert.ok(html.includes('🅿️ ' + name + '</div>'));
   }
 });
 
