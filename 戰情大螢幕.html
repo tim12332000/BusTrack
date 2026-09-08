@@ -9,34 +9,133 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      /* 🇨🇭 瑞士極簡工藝風 (Swiss Minimalist Craftsmanship) - 核心色彩規範 */
-      --swiss-bg: #0C0D12;              /* 消光曜石黑 (Matte Obsidian) */
-      --swiss-surface: #14161F;         /* 工藝底板炭灰 (Architectural Charcoal) */
-      --swiss-surface-inner: #1B1E2B;   /* 內嵌量表底盤 */
-      --swiss-border: #262A38;          /* 1px 精密切割硬邊 (Precision Hairline) */
-      --swiss-border-light: #343A4E;    /* 次級刻度線 */
+      /* 預設基礎主題變數 (🇯🇵 日本鐵道 JR 指揮中樞風 - 標竿秩序與極致易讀) */
+      --theme-bg: #101419;
+      --theme-grid: linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      --theme-grid-size: 32px 32px;
       
-      --text-white: #F9FAFB;            /* 瑞士純淨白 */
-      --text-muted: #9CA3AF;            /* 冷調石墨灰 (Cool Slate) */
-      --text-label: #4B5563;            /* 標籤工程深灰 */
-      --text-dark: #0B0F19;             /* 高對比極黑墨炭 (High-Contrast Carbon) */
+      --theme-surface: #171E25;
+      --theme-surface-inner: #212933;
+      --theme-border: #2B3746;
+      --theme-border-light: #3E4E63;
       
-      --swiss-red: #E02424;             /* 經典瑞士紅 (Swiss Chrono Red) */
-      --swiss-blue: #1D4ED8;            /* 瑞士精密深藍 */
-      --swiss-green: #057A55;           /* 瑞士工藝深翡翠綠 */
-      --swiss-amber: #B45309;           /* 腕表琥珀金 */
+      --text-white: #FFFFFF;
+      --text-muted: #94A3B8;
+      --text-label: #475569;
+      --text-dark: #0A0F15;
       
-      --card-white: #FFFFFF;            /* 純白面盤 (Pure White Dial) */
-      --card-border: #D1D5DB;           /* 極細外圈金屬框線 */
-      --card-footer: #F8FAFC;           /* 極簡霧面底 */
+      --badge-bg: #047857;
+      --badge-text: #FFFFFF;
+      --badge-border: #065F46;
       
-      /* 🇨🇭 瑞士國際主義色標 - 嚴謹、低反射、高識別度 */
-      --mil-green: #065F46;   /* 深翡翠綠 (綠線接駁) */
-      --mil-blue: #1E40AF;    /* 深邃海軍藍 (藍線接駁) */
-      --mil-amber: #92400E;   /* 經典深琥珀 (黃線接駁) */
-      --mil-purple: #581C87;  /* 玄武岩深紫 (紫線接駁) */
-      --mil-teal: #0F766E;    /* 松石青 (步行路線) */
-      --mil-wine: #831843;    /* 瑞士深緋紅 (紅線接駁) */
+      --card-white: #FFFFFF;
+      --card-border: #CBD5E1;
+      --card-footer: #F8FAFC;
+      --card-radius: 3px;
+      
+      --track-bg: #E2E8F0;
+      --fill-default: #0369A1;
+      --warning-color: #D97706;
+      --danger-color: #DC2626;
+      
+      /* JR 鐵道路線色標 (高辨識度、極度清楚) */
+      --mil-green: #15803D;   /* 山手線綠 (綠線) */
+      --mil-blue: #0284C7;    /* 京濱東北藍 (藍線) */
+      --mil-amber: #D97706;   /* 總武線琥珀 (黃線) */
+      --mil-purple: #7C3AED;  /* 半藏門紫 (紫線) */
+      --mil-teal: #0D9488;    /* 常磐線青 (步行) */
+      --mil-wine: #DC2626;    /* 丸之內紅 (紅線) */
+    }
+
+    /* 🛡️ 主題 2：Palantir 國防深海鈦金風 (五角大廈與國防態勢感知) */
+    body.theme-palantir {
+      --theme-bg: #090E17;
+      --theme-grid: radial-gradient(rgba(56, 189, 248, 0.08) 1px, transparent 1px);
+      --theme-grid-size: 24px 24px;
+      --theme-surface: #0F1726;
+      --theme-surface-inner: #152238;
+      --theme-border: #1E2E48;
+      --theme-border-light: #2A4064;
+      --badge-bg: #1E3A8A;
+      --badge-text: #93C5FD;
+      --badge-border: #2563EB;
+      --card-radius: 4px;
+      --mil-green: #065F46;
+      --mil-blue: #1E40AF;
+      --mil-amber: #92400E;
+      --mil-purple: #581C87;
+      --mil-teal: #0F766E;
+      --mil-wine: #831843;
+      --fill-default: #2563EB;
+    }
+
+    /* 🚀 主題 3：SpaceX 航太任務控制室黑魂風 (消光黑底、雷射精準) */
+    body.theme-spacex {
+      --theme-bg: #050608;
+      --theme-grid: none;
+      --theme-surface: #0E1015;
+      --theme-surface-inner: #161922;
+      --theme-border: #222632;
+      --theme-border-light: #32384A;
+      --badge-bg: #B91C1C;
+      --badge-text: #FFFFFF;
+      --badge-border: #DC2626;
+      --card-radius: 2px;
+      --card-border: #4B5563;
+      --mil-green: #059669;
+      --mil-blue: #2563EB;
+      --mil-amber: #D97706;
+      --mil-purple: #9333EA;
+      --mil-teal: #0D9488;
+      --mil-wine: #E11D48;
+      --fill-default: #FFFFFF;
+    }
+
+    /* 🌲 主題 4：北歐智慧交通 ITS 工業風 (Volvo / 歐規交通調度) */
+    body.theme-nordic {
+      --theme-bg: #111827;
+      --theme-grid: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      --theme-grid-size: 28px 28px;
+      --theme-surface: #1F2937;
+      --theme-surface-inner: #374151;
+      --theme-border: #4B5563;
+      --theme-border-light: #6B7280;
+      --badge-bg: #0F766E;
+      --badge-text: #CCFBF1;
+      --badge-border: #14B8A6;
+      --card-radius: 6px;
+      --mil-green: #047857;
+      --mil-blue: #1D4ED8;
+      --mil-amber: #B45309;
+      --mil-purple: #6D28D9;
+      --mil-teal: #0E7490;
+      --mil-wine: #BE123C;
+      --fill-default: #0284C7;
+    }
+
+    /* 🇨🇭 主題 5：瑞士極簡工藝風 (理性幾何、包浩斯排印) */
+    body.theme-swiss {
+      --theme-bg: #0C0D12;
+      --theme-grid: linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      --theme-grid-size: 32px 32px;
+      --theme-surface: #14161F;
+      --theme-surface-inner: #1B1E2B;
+      --theme-border: #262A38;
+      --theme-border-light: #343A4E;
+      --badge-bg: #181B26;
+      --badge-text: #E2E8F0;
+      --badge-border: #33394B;
+      --card-radius: 3px;
+      --mil-green: #065F46;
+      --mil-blue: #1E40AF;
+      --mil-amber: #92400E;
+      --mil-purple: #581C87;
+      --mil-teal: #0F766E;
+      --mil-wine: #831843;
+      --fill-default: #1D4ED8;
     }
 
     * {
@@ -48,12 +147,9 @@
     }
 
     body {
-      background-color: var(--swiss-bg);
-      /* 精密切密切割格線 (Precision 32px Hairline Grid) */
-      background-image: 
-        linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
-      background-size: 32px 32px;
+      background-color: var(--theme-bg);
+      background-image: var(--theme-grid);
+      background-size: var(--theme-grid-size);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", 'Noto Sans TC', sans-serif;
       color: var(--text-white);
       padding: 8px 12px;
@@ -69,16 +165,16 @@
       letter-spacing: -0.01em;
     }
 
-    /* 頂部導航列 - 瑞士工藝直角切面儀表 */
+    /* 頂部導航列 */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: var(--swiss-surface);
-      border: 1px solid var(--swiss-border);
-      border-radius: 3px;
+      background: var(--theme-surface);
+      border: 1px solid var(--theme-border);
+      border-radius: var(--card-radius);
       padding: 6px 12px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
       gap: 10px;
     }
 
@@ -90,15 +186,14 @@
     }
 
     .header-badge {
-      background: #181B26;
-      color: #E2E8F0;
-      border: 1px solid #33394B;
+      background: var(--badge-bg);
+      color: var(--badge-text);
+      border: 1px solid var(--badge-border);
       font-size: 10px;
       font-weight: 800;
       padding: 2px 7px;
       border-radius: 2px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      letter-spacing: 0.06em;
       white-space: nowrap;
       flex-shrink: 0;
     }
@@ -107,7 +202,7 @@
       font-size: clamp(14px, 1.25vw, 18px);
       font-weight: 800;
       color: #FFFFFF;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.01em;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -128,7 +223,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      background: rgba(5, 122, 85, 0.15);
+      background: rgba(5, 122, 85, 0.18);
       border: 1px solid #057A55;
       color: #10B981;
       padding: 2px 8px;
@@ -161,7 +256,7 @@
       font-size: 12px;
     }
 
-    /* 📱 置頂控制按鈕列 (全螢幕 / 旋轉 / 鏡像) - 瑞士手錶按把幾何風格 */
+    /* 📱 置頂控制按鈕列 (風格切換 / 全螢幕 / 旋轉 / 鏡像) */
     .floating-toolbar {
       display: flex;
       align-items: center;
@@ -169,12 +264,30 @@
       flex-shrink: 0;
     }
 
+    .theme-select {
+      background: var(--theme-surface-inner);
+      color: #E2E8F0;
+      border: 1px solid var(--theme-border-light);
+      padding: 3px 6px;
+      border-radius: var(--card-radius);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.15s ease;
+    }
+
+    .theme-select:hover, .theme-select:focus {
+      border-color: #94A3B8;
+      background: var(--theme-surface);
+    }
+
     .fab-btn {
-      background: var(--swiss-surface-inner);
+      background: var(--theme-surface-inner);
       color: #D1D5DB;
-      border: 1px solid var(--swiss-border-light);
+      border: 1px solid var(--theme-border-light);
       padding: 3px 8px;
-      border-radius: 2px;
+      border-radius: var(--card-radius);
       font-size: 11px;
       font-weight: 700;
       cursor: pointer;
@@ -193,7 +306,7 @@
     }
 
     .fab-btn.active {
-      background: var(--swiss-red);
+      background: #DC2626;
       border-color: #B91C1C;
       color: #FFFFFF;
     }
@@ -223,22 +336,22 @@
       min-width: 0;
     }
 
-    /* 大盤統計橫幅 - 瑞士精密儀表框 */
+    /* 大盤統計橫幅 */
     .summary-banner {
-      background: var(--swiss-surface);
-      border: 1px solid var(--swiss-border);
-      border-radius: 3px;
+      background: var(--theme-surface);
+      border: 1px solid var(--theme-border);
+      border-radius: var(--card-radius);
       overflow: hidden;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     }
 
     .banner-header {
-      background: #0E1017;
+      background: rgba(0, 0, 0, 0.25);
       padding: 5px 12px;
       font-size: 12px;
       font-weight: 700;
       color: #E5E7EB;
-      border-bottom: 1px solid var(--swiss-border);
+      border-bottom: 1px solid var(--theme-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -254,14 +367,14 @@
       grid-template-columns: repeat(3, 1fr);
       padding: 6px 10px;
       gap: 6px;
-      background: var(--swiss-surface);
+      background: var(--theme-surface);
     }
 
     .metric-box {
       text-align: center;
-      background: var(--swiss-surface-inner);
+      background: var(--theme-surface-inner);
       padding: 5px 8px;
-      border-radius: 2px;
+      border-radius: var(--card-radius);
       border: 1px solid rgba(255, 255, 255, 0.04);
       display: flex;
       flex-direction: column;
@@ -297,13 +410,13 @@
       letter-spacing: 0.02em;
     }
 
-    /* 大盤總進度條 - 瑞士工藝刻度感 */
+    /* 大盤總進度條 */
     .banner-progress-row {
       display: flex;
       align-items: center;
       padding: 4px 10px;
-      background: #0E1017;
-      border-top: 1px solid var(--swiss-border);
+      background: rgba(0, 0, 0, 0.25);
+      border-top: 1px solid var(--theme-border);
       gap: 8px;
     }
 
@@ -319,7 +432,7 @@
     .progress-track {
       flex: 1;
       height: 4px;
-      background: #1F2332;
+      background: rgba(0, 0, 0, 0.35);
       border-radius: 1px;
       overflow: hidden;
       position: relative;
@@ -327,14 +440,14 @@
 
     .progress-fill {
       height: 100%;
-      background: var(--swiss-blue);
+      background: var(--fill-default);
       border-radius: 1px;
       width: 0%;
       transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .progress-fill.amber {
-      background: var(--swiss-amber);
+      background: #F59E0B;
     }
 
     /* 卡片網格 */
@@ -347,13 +460,13 @@
     .grid-3 { grid-template-columns: repeat(3, 1fr); }
     .grid-7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
 
-    /* 單一站點與停車場卡片 - 瑞士精密白底黑字面盤 */
+    /* 單一站點與停車場卡片 - 白底黑字面盤 */
     .station-card {
       background: var(--card-white);
       border: 1px solid var(--card-border);
-      border-radius: 3px;
+      border-radius: var(--card-radius);
       overflow: hidden;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
       display: flex;
       flex-direction: column;
       min-width: 0;
@@ -371,7 +484,7 @@
       text-overflow: ellipsis;
     }
 
-    /* 瑞士國際色標 - 純粹、嚴謹、高識別度 */
+    /* 色標對應各線 */
     .bg-green  { background: var(--mil-green); }
     .bg-blue   { background: var(--mil-blue); }
     .bg-amber  { background: var(--mil-amber); }
@@ -399,7 +512,7 @@
       font-weight: 700;
       color: var(--text-label);
       margin-bottom: 2px;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.03em;
     }
 
     .card-col-num {
@@ -453,14 +566,14 @@
 
     .card-progress-fill {
       height: 100%;
-      background: var(--swiss-blue);
+      background: var(--fill-default);
       border-radius: 1px;
       width: 0%;
       transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .card-progress-fill.warning { background: #D97706 !important; }
-    .card-progress-fill.danger  { background: var(--swiss-red) !important; }
+    .card-progress-fill.warning { background: var(--warning-color) !important; }
+    .card-progress-fill.danger  { background: var(--danger-color) !important; }
 
     footer {
       text-align: center;
@@ -493,7 +606,6 @@
       header {
         padding: 3px 8px;
         gap: 8px;
-        border-radius: 2px;
       }
       .header-badge {
         font-size: 9px;
@@ -518,6 +630,10 @@
       }
       #currentTime {
         font-size: 11px;
+      }
+      .theme-select {
+        font-size: 10px;
+        padding: 1px 4px;
       }
       .fab-btn {
         font-size: 10px;
@@ -547,7 +663,6 @@
       }
       .metric-box {
         padding: 2px 4px;
-        border-radius: 2px;
       }
       .metric-label {
         font-size: 9px;
@@ -720,11 +835,18 @@
       </div>
       <div id="currentTime">--:--:--</div>
     </div>
-  <div class="floating-toolbar">
-    <button id="fabFullscreen" class="fab-btn" onclick="toggleFullscreen()">⛶ 全螢幕</button>
-    <button id="fabRotate" class="fab-btn" onclick="toggleRotate()">🔄 橫向</button>
-    <button id="fabFlip" class="fab-btn" onclick="toggleFlip()">🪞 鏡像</button>
-  </div>
+    <div class="floating-toolbar">
+      <select id="themeSelector" class="theme-select" onchange="applyTheme(this.value)">
+        <option value="jr">🇯🇵 JR 鐵道中樞風</option>
+        <option value="palantir">🛡️ Palantir 國防風</option>
+        <option value="spacex">🚀 SpaceX 航太風</option>
+        <option value="nordic">🌲 北歐交通 ITS 風</option>
+        <option value="swiss">🇨🇭 瑞士工藝風</option>
+      </select>
+      <button id="fabFullscreen" class="fab-btn" onclick="toggleFullscreen()">⛶ 全螢幕</button>
+      <button id="fabRotate" class="fab-btn" onclick="toggleRotate()">🔄 橫向</button>
+      <button id="fabFlip" class="fab-btn" onclick="toggleFlip()">🪞 鏡像</button>
+    </div>
   </header>
 
   <!-- ========================================== -->
@@ -1282,6 +1404,37 @@
       const btn = document.getElementById('fabRotate');
       if (btn) btn.classList.toggle('active', isRotated);
     }
+
+    // 🎨 五大國際頂尖戰情主題動態切換系統
+    function getThemeParam() {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('theme') || localStorage.getItem('bus_dashboard_theme') || 'jr';
+      } catch (e) {
+        return 'jr';
+      }
+    }
+
+    function applyTheme(themeName) {
+      const validThemes = ['jr', 'palantir', 'spacex', 'nordic', 'swiss'];
+      if (!validThemes.includes(themeName)) themeName = 'jr';
+      if (typeof document !== 'undefined' && document.body && document.body.classList) {
+        document.body.classList.remove('theme-jr', 'theme-palantir', 'theme-spacex', 'theme-nordic', 'theme-swiss');
+        document.body.classList.add('theme-' + themeName);
+      }
+      try {
+        if (typeof localStorage !== 'undefined' && localStorage.setItem) {
+          localStorage.setItem('bus_dashboard_theme', themeName);
+        }
+      } catch (e) {}
+      if (typeof document !== 'undefined' && document.getElementById) {
+        const sel = document.getElementById('themeSelector');
+        if (sel) sel.value = themeName;
+      }
+    }
+
+    // 頁面載入立即套用主題
+    applyTheme(getThemeParam());
   </script>
 </body>
 </html>
