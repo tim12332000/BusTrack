@@ -6,7 +6,7 @@
  * 🔧 本版核心升級：
  * 1. 【雙表單整合聯防】：
  *    - 表單 1：人員疏運（4大接駁站 + 3大步行門）
- *    - 表單 2：六大停車場車位回報（A、B、C、D、E、F 區，各 500 輛，共 3,000 席）
+ *    - 表單 2：七處停車場剩餘汽車位、機車位（每場以最新回報為準）
  *    - 兩套表單自動綁定在同一個試算表（分頁：表單回應 1、表單回應 2），互不干擾！
  * 2. 【防欄位漂移機制】：
  *    - 題目存在時不重複刪建，永久鎖定欄位結構！
@@ -28,6 +28,115 @@ function repairDashboard() {
 // 多個同類回應分頁無法唯一辨識時，在此填入目前使用的分頁名稱。
 const RESPONSE_SHEET_NAMES = { people: "", parking: "" };
 
+// 使用者提供的總容量；不代表目前剩餘車位。名稱前的 * 是正式標記。
+const PARKING_LOTS = [
+  { name: "五都日出", motorcycle: 168, car: 1008, tagColor: "#2563EB" },
+  { name: "新烏日", motorcycle: 352, car: 266, tagColor: "#059669" },
+  { name: "*嶺東科大", motorcycle: 800, car: 90, tagColor: "#D97706" },
+  { name: "*台中科大", motorcycle: 200, car: 0, tagColor: "#7C3AED" },
+  { name: "水湳轉運站", motorcycle: 1253, car: 614, tagColor: "#DB2777" },
+  { name: "*經貿六", motorcycle: 0, car: 563, tagColor: "#0D9488" },
+  { name: "*經貿八", motorcycle: 0, car: 482, tagColor: "#475569" }
+];
+const PARKING_FORM_TITLE = "「國防知性之旅-成功嶺營區開放」停車場剩餘車位回報";
+
+function findParkingFormFile() {
+  const found = [];
+  for (const title of [PARKING_FORM_TITLE, "「國防知性之旅-成功嶺營區開放」六大停車場車位回報"]) {
+    const files = DriveApp.getFilesByName(title);
+    while (files.hasNext()) found.push(files.next());
+  }
+  if (found.length > 1) throw new Error("找到多份停車場表單，請設定 PARKING_FORM_ID。");
+  return found[0] || null;
+}
+
+// 一次性升級入口：沿用原表單與網址，舊回應欄位保留於試算表。
+function upgradeParkingRemaining() {
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty("PARKING_FORM_ID");
+  let form = id ? FormApp.openById(id) : null;
+  if (!form) {
+    const file = findParkingFormFile();
+    if (!file) throw new Error("找不到原停車場表單，未建立新表單。請設定 PARKING_FORM_ID。");
+    form = FormApp.openById(file.getId());
+  }
+  if (form.getPublishedUrl() !== "https://docs.google.com/forms/d/e/1FAIpQLSdNP01CZkqh5EeCkfmzrwQpQcPCw0fmXZmkQ50FVbvJrxUIPA/viewform") {
+    throw new Error("停車場表單網址不符，停止升級以免修改其他表單。");
+  }
+  if (form.getDestinationId() !== TARGET_SPREADSHEET_ID) throw new Error("原表單未連結指定試算表，請先確認目的地。");
+  configureParkingRemainingForm(form);
+  props.setProperty("PARKING_FORM_ID", form.getId());
+  SpreadsheetApp.flush();
+  // Google Forms 更新回應標題可能稍有延遲；只重試讀取，不重建表單。
+  const ss = SpreadsheetApp.openById(TARGET_SPREADSHEET_ID);
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try { findResponseSource(ss, "parking"); break; }
+    catch (error) {
+      if (attempt === 4) throw new Error("表單已更新，回應標題尚未同步或來源不明。稍後執行 repairDashboard。" + error.message);
+      Utilities.sleep(1000);
+    }
+  }
+  repairDashboard();
+}
+
+function configureParkingRemainingForm(form) {
+  const fields = [
+    { title: "1. 停車場區域", match: /停車場區域/, type: FormApp.ItemType.MULTIPLE_CHOICE },
+    { title: "2. 目前剩餘汽車停車位", match: /目前剩餘汽車停車位/, type: FormApp.ItemType.TEXT },
+    { title: "3. 目前剩餘機車停車位", match: /目前剩餘機車停車位/, type: FormApp.ItemType.TEXT },
+    { title: "4. 備註", match: /備註/, type: FormApp.ItemType.TEXT }
+  ];
+  const original = form.getItems();
+  // 先檢查再修改，避免部分更新後才發現題目重複或型別不符。
+  const existing = fields.map(field => {
+    const matches = original.filter(item => field.match.test(item.getTitle()));
+    if (matches.length > 1 || (matches[0] && matches[0].getType() !== field.type)) {
+      throw new Error("停車場題目重複或型別不符：" + field.title);
+    }
+    return matches[0];
+  });
+  const validation = FormApp.createTextValidation()
+    .requireTextMatchesPattern("^[0-9]+$")
+    .setHelpText("請填目前剩餘格數（0 或正整數）；沒有剩餘車位請填 0。")
+    .build();
+  const keep = fields.map((field, index) => {
+    const item = existing[index]
+      ? (index === 0 ? existing[index].asMultipleChoiceItem() : existing[index].asTextItem())
+      : (index === 0 ? form.addMultipleChoiceItem() : form.addTextItem());
+    item.setTitle(field.title).setRequired(index !== 3);
+    if (index === 0) item.setChoiceValues(PARKING_LOTS.map(lot => lot.name));
+    if (index === 1 || index === 2) item.setValidation(validation);
+    return item;
+  });
+  // 不把舊「數量」改名成剩餘車位，防止舊增減數字被誤讀。
+  original.filter(item => !keep.some(k => k.getId() === item.getId()))
+    .forEach(item => form.deleteItem(item));
+  keep.forEach((item, index) => form.moveItem(item.getIndex(), index));
+  form.setTitle(PARKING_FORM_TITLE);
+  form.setDescription("請選擇停車場，直接填目前剩餘汽車與機車停車位，不填進場或離場。已停滿請填 0；*台中科大無汽車位、*經貿六與*經貿八無機車位，該欄填 0（看板以 — 顯示）。各場總容量（汽車／機車）：" + PARKING_LOTS.map(lot => `${lot.name} ${lot.car}／${lot.motorcycle}`).join("；") + "。總容量不代表即時空位。");
+}
+
+function parkingRemainingFormula(sheetName, columns, field, name, capacity) {
+  if (capacity === 0) return '="不提供"';
+  const area = `'${sheetName}'!${columns.area}2:${columns.area}`;
+  const value = `'${sheetName}'!${columns[field]}2:${columns[field]}`;
+  // 精確比對以保留名稱中的 *；不可當成萬用字元，也不可把舊 A～F 對應至新場地。
+  const latest = `XLOOKUP("${name}", ${area}, ARRAYFORMULA(IF(${value}="", "未回報", IFERROR(VALUE(${value}), "回報異常"))), "未回報", 0, -1)`;
+  return `=LET(latest,${latest},IF(ISNUMBER(latest),IF(AND(latest>=0,latest<=${capacity},latest=INT(latest)),latest,"回報異常"),latest))`;
+}
+
+function parkingTotalFormula(field) {
+  const refs = PARKING_LOTS.map((lot, i) => lot[field] > 0 ? `${responseColumnLetter(i * 4 + (field === "car" ? 0 : 2))}34` : null).filter(Boolean);
+  return `=IF(COUNT(${refs.join(",")})=${refs.length},SUM(${refs.join(",")}),"未完整回報")`;
+}
+
+function parkingReportedCondition(lot, index) {
+  const conditions = [];
+  if (lot.car > 0) conditions.push(`ISNUMBER(${responseColumnLetter(index * 4)}34)`);
+  if (lot.motorcycle > 0) conditions.push(`ISNUMBER(${responseColumnLetter(index * 4 + 2)}34)`);
+  return `AND(${conditions.join(",")})`;
+}
+
 function responseColumnLetter(index) {
   let result = "";
   for (let n = index + 1; n > 0; n = Math.floor((n - 1) / 26)) {
@@ -39,7 +148,7 @@ function responseColumnLetter(index) {
 function findResponseSource(ss, kind) {
   const patterns = kind === "people"
     ? { time: /^(時間戳記|時間標記|Timestamp)$/i, direction: /方向/, station: /站點.*門號/, bus: /車號/, quantity: /^(?:4[.、．]\s*)?人數$/ }
-    : { area: /停車場區域/, action: /回報項目|動作/, quantity: /車輛數量/ };
+    : { area: /停車場區域/, car: /目前剩餘汽車停車位/, motorcycle: /目前剩餘機車停車位/ };
   const candidates = [];
   ss.getSheets().forEach(sheet => {
     if (!sheet.getLastColumn()) return;
@@ -140,7 +249,7 @@ function createMultiStationBusSystem(dashboardOnly) {
   }
 
   // =========================================================================
-  // 2. 建立或維護【表單 2：六大停車場車位回報】(A~F 各 500 席，總共 3,000 席)
+  // 2. 建立或維護【表單 2：六區剩餘汽車、機車位回報】
   // =========================================================================
   const props = PropertiesService.getScriptProperties();
   let parkingFormId = props.getProperty("PARKING_FORM_ID");
@@ -154,9 +263,8 @@ function createMultiStationBusSystem(dashboardOnly) {
 
   if (!parkingForm) {
     // 檢查雲端是否已有同名表單
-    const formFiles = DriveApp.getFilesByName("「國防知性之旅-成功嶺營區開放」六大停車場車位回報");
-    if (formFiles.hasNext()) {
-      const file = formFiles.next();
+    const file = findParkingFormFile();
+    if (file) {
       parkingForm = FormApp.openById(file.getId());
       props.setProperty("PARKING_FORM_ID", file.getId());
     }
@@ -164,57 +272,14 @@ function createMultiStationBusSystem(dashboardOnly) {
 
   if (!parkingForm) {
     // 建立新停車場表單並綁定至試算表
-    parkingForm = FormApp.create("「國防知性之旅-成功嶺營區開放」六大停車場車位回報");
-    parkingForm.setDescription("現場交通哨專用：各停車場容量均為 500 輛。請於車流進出時即時回報車輛數。");
+    parkingForm = FormApp.create(PARKING_FORM_TITLE);
+    parkingForm.setDescription("現場交通哨專用：請回報各區目前剩餘汽車、機車停車位。");
     parkingForm.setDestination(FormApp.DestinationType.SPREADSHEET, TARGET_SPREADSHEET_ID);
     props.setProperty("PARKING_FORM_ID", parkingForm.getId());
   }
 
   if (parkingForm) {
-    parkingForm.setTitle("「國防知性之旅-成功嶺營區開放」六大停車場車位回報");
-    const items2 = parkingForm.getItems();
-    if (items2.length !== 4) {
-      for (let i = items2.length - 1; i >= 0; i--) {
-        parkingForm.deleteItem(items2[i]);
-      }
-
-      // 題目 1: 停車場區域
-      parkingForm.addMultipleChoiceItem()
-        .setTitle("1. 停車場區域")
-        .setChoiceValues([
-          "🅿️ A 區停車場 (上限 500 輛)",
-          "🅿️ B 區停車場 (上限 500 輛)",
-          "🅿️ C 區停車場 (上限 500 輛)",
-          "🅿️ D 區停車場 (上限 500 輛)",
-          "🅿️ E 區停車場 (上限 500 輛)",
-          "🅿️ F 區停車場 (上限 500 輛)"
-        ])
-        .setRequired(true);
-
-      // 題目 2: 回報項目 / 動作
-      parkingForm.addMultipleChoiceItem()
-        .setTitle("2. 回報項目 / 動作")
-        .setChoiceValues([
-          "🚗 汽車進場",
-          "🚙 汽車離場"
-        ])
-        .setRequired(true);
-
-      // 題目 3: 車輛數量
-      const carValidation = FormApp.createTextValidation()
-        .setHelpText("請輸入車輛數量（正整數）")
-        .requireNumberGreaterThanOrEqualTo(1)
-        .build();
-      parkingForm.addTextItem()
-        .setTitle("3. 車輛數量 (輛)")
-        .setValidation(carValidation)
-        .setRequired(true);
-
-      // 題目 4: 備註
-      parkingForm.addTextItem()
-        .setTitle("4. 備註")
-        .setRequired(false);
-    }
+    configureParkingRemainingForm(parkingForm);
   }
 
   }
@@ -225,15 +290,12 @@ function createMultiStationBusSystem(dashboardOnly) {
   const formSheetName = people.sheet.getName().replace(/'/g, "''");
   const parkingSheetName = parking.sheet.getName().replace(/'/g, "''");
   const personCols = people.columns;
-  const colAreaLetter = parking.columns.area;
-  const colActionLetter = parking.columns.action;
-  const colQtyLetter = parking.columns.quantity;
   let dashboardSheet = ss.getSheetByName("總即時戰情看板");
   if (!dashboardSheet) dashboardSheet = ss.insertSheet("總即時戰情看板");
   let detailSheet = ss.getSheetByName("各車即時明細");
   if (!detailSheet) detailSheet = ss.insertSheet("各車即時明細");
   if (dashboardSheet.getMaxRows() < 50) dashboardSheet.insertRowsAfter(dashboardSheet.getMaxRows(), 50 - dashboardSheet.getMaxRows());
-  if (dashboardSheet.getMaxColumns() < 24) dashboardSheet.insertColumnsAfter(dashboardSheet.getMaxColumns(), 24 - dashboardSheet.getMaxColumns());
+  if (dashboardSheet.getMaxColumns() < 28) dashboardSheet.insertColumnsAfter(dashboardSheet.getMaxColumns(), 28 - dashboardSheet.getMaxColumns());
   if (detailSheet.getMaxRows() < 52) detailSheet.insertRowsAfter(detailSheet.getMaxRows(), 52 - detailSheet.getMaxRows());
   if (detailSheet.getMaxColumns() < 20) detailSheet.insertColumnsAfter(detailSheet.getMaxColumns(), 20 - detailSheet.getMaxColumns());
 
@@ -285,7 +347,7 @@ function createMultiStationBusSystem(dashboardOnly) {
 
   dashboardSheet.setHiddenGridlines(true);
 
-  for (let c = 1; c <= 24; c++) {
+  for (let c = 1; c <= 28; c++) {
     dashboardSheet.setColumnWidth(c, 48);
   }
 
@@ -390,75 +452,60 @@ function createMultiStationBusSystem(dashboardOnly) {
   });
 
   // -------------------------------------------------------------------------
-  // 區塊三：🅿️ 六大停車場車位大盤 (第 26~29 列) - 總容量 3,000 席
+  // 區塊三：七處最新剩餘汽車與機車位 (第 26~29 列)
   // -------------------------------------------------------------------------
   dashboardSheet.getRange(26, 1, 1, 24).merge()
-    .setValue("🅿️ 汽車停車場車位即時監控 (總容量 3,000 席)")
+    .setValue("🅿️ 汽機車停車場剩餘車位")
     .setBackground(THEME_HEADER_BG).setFontColor("#FBBF24").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
 
-  dashboardSheet.getRange(27, 1, 1, 8).merge().setValue("👉 全區已停汽車").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  // A34(A區)+E34(B區)+I34(C區)+M34(D區)+Q34(E區)+U34(F區)
-  dashboardSheet.getRange(28, 1, 1, 8).merge().setFormula("=A34+E34+I34+M34+Q34+U34").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange(27, 1, 1, 8).merge().setValue("🚗 剩餘汽車位（總容量 3,023）").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
+  // 只加總有提供該車種的場地；未回報不可當成 0。
+  dashboardSheet.getRange(28, 1, 1, 8).merge().setFormula(parkingTotalFormula("car")).setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
 
-  dashboardSheet.getRange(27, 9, 1, 8).merge().setValue("👈 全區剩餘車位").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange(28, 9, 1, 8).merge().setFormula("=MAX(0, 3000-A28)").setBackground("#1E293B").setFontColor("#38BDF8").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange(27, 9, 1, 8).merge().setValue("🛵 剩餘機車位（總容量 2,773）").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
+  dashboardSheet.getRange(28, 9, 1, 8).merge().setFormula(parkingTotalFormula("motorcycle")).setBackground("#1E293B").setFontColor("#38BDF8").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
 
-  dashboardSheet.getRange(27, 17, 1, 8).merge().setValue("📊 全區車位佔用率").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange(28, 17, 1, 8).merge().setFormula(`=TEXT(A28/3000, "0.0%")`).setBackground("#1E293B").setFontColor("#FBBF24").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange(27, 17, 1, 8).merge().setValue("📋 已回報區域").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
+  dashboardSheet.getRange(28, 17, 1, 8).merge().setFormula(`=SUM(${PARKING_LOTS.map((lot, i) => `N(${parkingReportedCondition(lot, i)})`).join(",")})&"/7 處"`).setBackground("#1E293B").setFontColor("#FBBF24").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
 
-  dashboardSheet.getRange(29, 1, 1, 6).merge().setValue("全區車位使用率").setBackground(THEME_HEADER_BG).setFontColor("#94A3B8").setFontWeight("bold").setHorizontalAlignment("center");
-  dashboardSheet.getRange(29, 7, 1, 18).merge().setFormula(`=SPARKLINE(A28, {"charttype", "bar"; "max", 3000; "color1", "#F59E0B"})`).setBackground(THEME_HEADER_BG);
+  dashboardSheet.getRange(29, 1, 1, 24).merge().setValue("最新剩餘／總容量；0 表示已停滿，— 表示無該車種，未回報不列為 0。").setBackground(THEME_HEADER_BG).setFontColor("#94A3B8").setHorizontalAlignment("center");
   dashboardSheet.getRange(26, 1, 4, 24).setBorder(true, true, true, true, true, true, "#334155", SpreadsheetApp.BorderStyle.SOLID);
 
   // -------------------------------------------------------------------------
-  // 區塊四：六大停車場獨立卡片 (第 31~36 列) - 每區 500 席，共 24 欄 (每區 4 欄)
+  // 區塊四：七處汽車／機車剩餘車位 (第 31~36 列)
   // -------------------------------------------------------------------------
-  dashboardSheet.getRange(31, 1, 1, 24).merge()
-    .setValue("各區停車場即時車位 (每區容量 500 席)")
+  dashboardSheet.getRange(31, 1, 1, 28).merge()
+    .setValue("各停車場即時剩餘車位（7處）")
     .setBackground("#334155").setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("left");
 
-  const parkingLots = [
-    { name: "🅿️ A 區 (500席)", keyword: "*A*區*", startCol: 1, tagColor: "#2563EB" },
-    { name: "🅿️ B 區 (500席)", keyword: "*B*區*", startCol: 5, tagColor: "#059669" },
-    { name: "🅿️ C 區 (500席)", keyword: "*C*區*", startCol: 9, tagColor: "#D97706" },
-    { name: "🅿️ D 區 (500席)", keyword: "*D*區*", startCol: 13, tagColor: "#7C3AED" },
-    { name: "🅿️ E 區 (500席)", keyword: "*E*區*", startCol: 17, tagColor: "#DB2777" },
-    { name: "🅿️ F 區 (500席)", keyword: "*F*區*", startCol: 21, tagColor: "#0D9488" }
-  ];
-
-  parkingLots.forEach(lot => {
-    const col = lot.startCol;
+  PARKING_LOTS.forEach((lot, index) => {
+    const col = index * 4 + 1;
     // 標題 (Row 32)
     dashboardSheet.getRange(32, col, 1, 4).merge()
       .setValue(lot.name)
       .setBackground(lot.tagColor).setFontColor("#FFFFFF").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
 
     // 標籤 (Row 33)
-    dashboardSheet.getRange(33, col, 1, 2).merge().setValue("已停").setBackground("#F8FAFC").setFontColor("#64748B").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
-    dashboardSheet.getRange(33, col + 2, 1, 2).merge().setValue("剩餘").setBackground("#F8FAFC").setFontColor("#64748B").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
+    dashboardSheet.getRange(33, col, 1, 2).merge().setValue("剩餘汽車位").setBackground("#F8FAFC").setFontColor("#64748B").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
+    dashboardSheet.getRange(33, col + 2, 1, 2).merge().setValue("剩餘機車位").setBackground("#F8FAFC").setFontColor("#64748B").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
 
-    const colLetterPark = String.fromCharCode(64 + col);
-    const colLetterRemain = String.fromCharCode(64 + col + 2);
 
     // 數值 (Row 34)
     dashboardSheet.getRange(34, col, 1, 2).merge()
-      .setFormula(`=MAX(0, SUMIFS('${parkingSheetName}'!${colQtyLetter}:${colQtyLetter}, '${parkingSheetName}'!${colAreaLetter}:${colAreaLetter}, "${lot.keyword}", '${parkingSheetName}'!${colActionLetter}:${colActionLetter}, "*進*") - SUMIFS('${parkingSheetName}'!${colQtyLetter}:${colQtyLetter}, '${parkingSheetName}'!${colAreaLetter}:${colAreaLetter}, "${lot.keyword}", '${parkingSheetName}'!${colActionLetter}:${colActionLetter}, "*離*"))`)
+      .setFormula(parkingRemainingFormula(parkingSheetName, parking.columns, "car", lot.name, lot.car))
       .setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(22).setHorizontalAlignment("center");
 
     dashboardSheet.getRange(34, col + 2, 1, 2).merge()
-      .setFormula(`=MAX(0, 500 - ${colLetterPark}34)`)
+      .setFormula(parkingRemainingFormula(parkingSheetName, parking.columns, "motorcycle", lot.name, lot.motorcycle))
       .setBackground("#FFFFFF").setFontColor("#0284C7").setFontWeight("bold").setFontSize(22).setHorizontalAlignment("center");
 
-    // 佔用率與狀態 (Row 35)
+    // 回報狀態 (Row 35)
     dashboardSheet.getRange(35, col, 1, 4).merge()
-      .setFormula(`=TEXT(${colLetterPark}34/500, "0.0%") & "  ·  尚餘 " & ${colLetterRemain}34 & " 席"`)
+      .setFormula(`=IF(${parkingReportedCondition(lot, index)},"已回報","未完整回報")`)
       .setBackground("#F8FAFC").setFontColor("#0F172A").setFontWeight("bold").setFontSize(10).setHorizontalAlignment("center");
 
-    // 迷你進度條 (Row 36)
-    dashboardSheet.getRange(36, col, 1, 4).merge()
-      .setFormula(`=SPARKLINE(${colLetterPark}34, {"charttype", "bar"; "max", 500; "color1", "${THEME_CARD_BAR}"})`)
-      .setBackground("#F1F5F9");
-
+    dashboardSheet.getRange(36, col, 1, 4).merge().setValue(`總容量：汽車 ${lot.car || "—"}／機車 ${lot.motorcycle || "—"}`)
+      .setBackground("#F8FAFC").setFontColor("#64748B").setFontSize(10).setHorizontalAlignment("center");
     dashboardSheet.getRange(32, col, 5, 4).setBorder(true, true, true, true, true, true, "#CBD5E1", SpreadsheetApp.BorderStyle.SOLID);
   });
 
@@ -466,7 +513,7 @@ function createMultiStationBusSystem(dashboardOnly) {
   const valA = dashboardSheet.getRange("A34").getValue();
   const valC = dashboardSheet.getRange("I34").getValue();
   const valTotal = dashboardSheet.getRange("A28").getValue();
-  Logger.log(`📊【現場驗證結果】A區已停: ${valA} 輛 | C區已停: ${valC} 輛 | 全區已停: ${valTotal} 輛`);
+  Logger.log(`📊【現場驗證結果】五都日出剩餘汽車位: ${valA} 輛 | 嶺東科大剩餘汽車位: ${valC} 輛 | 全區剩餘汽車位: ${valTotal} 輛`);
 
   // 設定列高
   dashboardSheet.setRowHeight(1, 38);
