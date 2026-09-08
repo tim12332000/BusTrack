@@ -5,5 +5,10 @@
   "runtimeVersion": "V8",
   "executionApi": {
     "access": "MYSELF"
-  }
+  },
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/forms",
+    "https://www.googleapis.com/auth/drive.readonly"
+  ]
 }

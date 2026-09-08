@@ -6,20 +6,37 @@
 - Script ID：`1Pm6eAGUA9BLxx6ULDL8pCXLgXSwOpemoYKddNb_V7eYq-x-KtFUW-KTV`
 - API 部署 ID：`AKfycbzLVk6GC2xk0UaTXP3ObQqirZhqOY1NCNMHHYuzkJgM4YUHi8HdNRHNVRgYdPj0mOx3eQ`
 - 首次部署版本：1，2026-09-08。
+- 目前已驗證部署版本：2，2026-09-08。
+- 標準 Cloud 專案：`gen-lang-client-0465156039`，專案編號 `505010910759`；Apps Script API 已啟用。
+- clasp 具名登入：`bus`，使用此 Cloud 專案建立的 Desktop OAuth client。憑證與 refresh token 僅保存在本機，未提交 Git。
 - 已經由部署 API 讀回確認：`EXECUTION_API`，存取權 `MYSELF`。
 - 部署 manifest 保存於 `apps-script/appsscript.json`。工作副本為 `.omx/parking-upgrade/`，僅包含主程式與 manifest，不要將專案根目錄所有測試／歷史腳本一併上傳。
 
-## 尚未完成
+## 執行方式與驗證
 
-現有 clasp 登入使用 Google 共用的 OAuth client。直接使用部署 ID 呼叫 `scripts.run`，回傳 HTTP 403 `PERMISSION_DENIED`。這不是部署不存在；不得將部署建立成功宣稱為遠端執行成功。
+在 `.omx/parking-upgrade/` 工作副本執行：
 
-Google 官方要求腳本和 OAuth client 使用同一個標準 Cloud 專案。接續步驟：
+```powershell
+npx --yes @google/clasp --user bus run upgradeParkingRemaining
+```
 
-1. 在 Apps Script 專案設定確認目前綁定的 GCP 專案。若已有適合的標準專案，優先沿用。
-2. 在該 Cloud 專案啟用 Apps Script API，配置 Google Auth platform，建立 Desktop app OAuth client。
-3. 下載 client JSON 至工作區外的私人位置，不提交到 Git。
-4. 使用同一個 Cloud 專案的 client 登入；需涵蓋整份腳本的 Sheets、Forms、Drive 讀取權限，以及 clasp 管理權限。採用具名使用者（例如 `bus`）保留現有管理登入。
-5. 以新登入實際呼叫 `upgradeParkingRemaining`，檢查執行結果及表單與看板，再記錄成功。
+日常僅修公式時將函式名稱改為 `repairDashboard`。函式沒有回傳值時，成功輸出為 `null`；仍須核對表單／試算表，不能只憑 CLI exit code 判斷成功。
+
+本次已成功遠端執行 `upgradeParkingRemaining`。實際讀回確認：
+
+- 原表單網址保留，七處場地、剩餘汽車位、剩餘機車位題目存在。
+- 舊的回報動作、車輛增減數量題目已移除。
+- 總看板標記為七處版本，容量 3,023 汽車位／2,773 機車位。
+- 無該車種顯示「不提供」，其餘新制尚未回報；沒有讀到公式錯誤。
+- 未為驗證而向正式表單提交假資料；新制回報到看板的完整資料流程仍需實際回報驗證。
+
+manifest 明確列出 `spreadsheets`、`forms`、`drive.readonly` 三個執行 scopes。更改腳本使用的服務時，須同步檢查 manifest 與重新授權需求。
+
+## 重建連線時注意
+
+Google 官方要求腳本和 OAuth client 使用同一個標準 Cloud 專案。原本的 `default` 登入使用 Google 共用的 client，曾回傳 HTTP 403 `PERMISSION_DENIED`；遠端執行應使用 `--user bus`。
+
+重建登入時使用 `clasp --user bus login --creds <私人位置的client JSON> --use-project-scopes --include-clasp-scopes`。不要把 client JSON 或 `.clasprc.json` 提交至版本庫。
 
 Apps Script 與 Cloud 專案的連結、一般 Desktop OAuth client 建立，官方公開 API 未提供完整替代介面，需使用 Google 設定頁。`.clasp.json` 的 `projectId` 不會代替腳本的 Cloud 專案綁定。
 
