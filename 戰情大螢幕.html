@@ -9,21 +9,34 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-main: #0A0F1D;
-      --bg-gradient: radial-gradient(circle at 50% 0%, #131E33 0%, #0A0F1D 80%);
-      --card-bg: #111827;
-      --card-inner: #172033;
+      /* 國防軍規沉穩風 - 核心色盤 */
+      --tactical-bg: #080D1A;
+      --tactical-surface: #0E1626;
+      --tactical-surface-inner: #141E30;
+      --tactical-border: #1E293B;
+      --tactical-border-light: #2D3D54;
+      
       --text-white: #F8FAFC;
       --text-muted: #94A3B8;
-      --text-label: #64748B;
+      --text-label: #475569;
+      --text-dark: #0F172A;
+      
       --accent-blue: #38BDF8;
-      --primary-blue: #2563EB;
+      --primary-blue: #1D4ED8;
       --brand-green: #059669;
       --brand-amber: #D97706;
-      --border-color: #1F2937;
-      --progress-bg: #1F2937;
+      
       --card-white: #FFFFFF;
       --card-border: #CBD5E1;
+      --card-footer: #F8FAFC;
+      
+      /* 軍規識別色 - 沉穩、無刺眼飽和 */
+      --mil-green: #065F46;   /* 陸軍/翡翠綠 */
+      --mil-blue: #1E40AF;    /* 海空/指揮深藍 */
+      --mil-amber: #92400E;   /* 警衛/勤務深琥珀 */
+      --mil-purple: #581C87;  /* 特戰/深紫 */
+      --mil-teal: #0F766E;    /* 工兵/松石青 */
+      --mil-wine: #831843;    /* 憲兵/深洋紅 */
     }
 
     * {
@@ -35,59 +48,61 @@
     }
 
     body {
-      background: var(--bg-main) var(--bg-gradient);
+      background-color: var(--tactical-bg);
+      background-image: radial-gradient(rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+      background-size: 28px 28px;
       font-family: 'Noto Sans TC', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       color: var(--text-white);
-      padding: 10px 14px;
+      padding: 8px 12px;
       min-height: 100svh;
       width: 100%;
       margin: 0 auto;
       display: grid;
       grid-template-rows: auto repeat(3, 1fr) auto;
-      gap: 10px;
+      gap: 8px;
       overflow-x: hidden;
       font-feature-settings: "tnum";
       font-variant-numeric: tabular-nums;
     }
 
-    /* 頂部導航列 - 低調沉穩、清楚大方 */
+    /* 頂部導航列 - 國防指揮管制作戰儀表 */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #0F172A;
-      border: 1px solid #1E293B;
-      border-radius: 8px;
-      padding: 8px 14px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-      gap: 12px;
+      background: var(--tactical-surface);
+      border: 1px solid var(--tactical-border);
+      border-radius: 6px;
+      padding: 6px 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      gap: 10px;
     }
 
     .header-title {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       min-width: 0;
     }
 
     .header-badge {
-      background: #1E293B;
-      color: #E2E8F0;
-      border: 1px solid #334155;
+      background: #172554;
+      color: #93C5FD;
+      border: 1px solid #1E40AF;
       font-size: 11px;
-      font-weight: 700;
-      padding: 3px 8px;
+      font-weight: 800;
+      padding: 2px 8px;
       border-radius: 4px;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
       white-space: nowrap;
       flex-shrink: 0;
     }
 
     h1 {
-      font-size: clamp(14px, 1.3vw, 20px);
+      font-size: clamp(14px, 1.25vw, 19px);
       font-weight: 800;
       color: #F8FAFC;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -97,7 +112,7 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--text-muted);
       margin-left: auto;
@@ -108,28 +123,28 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.25);
+      background: rgba(6, 95, 70, 0.25);
+      border: 1px solid #059669;
       color: #34D399;
-      padding: 3px 8px;
-      border-radius: 16px;
-      font-size: 12px;
-      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
       white-space: nowrap;
     }
 
     .live-dot {
-      width: 7px;
-      height: 7px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
       background-color: #10B981;
       animation: pulse 1.8s infinite ease-in-out;
     }
 
     @keyframes pulse {
-      0% { opacity: 0.5; transform: scale(0.9); }
-      50% { opacity: 1; transform: scale(1.1); }
-      100% { opacity: 0.5; transform: scale(0.9); }
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
     }
 
     #currentTime {
@@ -137,29 +152,30 @@
       font-weight: 700;
       color: #94A3B8;
       letter-spacing: 0.5px;
+      font-size: 12px;
     }
 
     /* 📱 置頂控制按鈕列 (全螢幕 / 旋轉 / 鏡像) */
     .floating-toolbar {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       flex-shrink: 0;
     }
 
     .fab-btn {
-      background: #1E293B;
+      background: var(--tactical-surface-inner);
       color: #CBD5E1;
-      border: 1px solid #334155;
-      padding: 4px 10px;
-      border-radius: 6px;
+      border: 1px solid var(--tactical-border-light);
+      padding: 3px 8px;
+      border-radius: 4px;
       font-size: 11px;
       font-weight: 700;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      transition: background 0.15s ease, border-color 0.15s ease;
+      transition: all 0.15s ease;
       white-space: nowrap;
     }
 
@@ -196,29 +212,30 @@
     .section-container {
       display: grid;
       grid-template-rows: auto 1fr;
-      gap: 8px;
+      gap: 6px;
       min-width: 0;
     }
 
-    /* 大盤統計橫幅 - 低調清晰 */
+    /* 大盤統計橫幅 - 沉穩作戰彙整框 */
     .summary-banner {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
+      background: var(--tactical-surface);
+      border: 1px solid var(--tactical-border);
+      border-radius: 6px;
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
     }
 
     .banner-header {
-      background: #0B0F19;
-      padding: 6px 14px;
-      font-size: 13px;
+      background: #090D16;
+      padding: 5px 12px;
+      font-size: 12px;
       font-weight: 700;
-      color: #E2E8F0;
-      border-bottom: 1px solid var(--border-color);
+      color: #93C5FD;
+      border-bottom: 1px solid var(--tactical-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      letter-spacing: 0.3px;
     }
 
     .banner-header.amber {
@@ -228,16 +245,16 @@
     .banner-metrics {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      padding: 8px 12px;
-      gap: 8px;
-      background: var(--card-bg);
+      padding: 6px 10px;
+      gap: 6px;
+      background: var(--tactical-surface);
     }
 
     .metric-box {
       text-align: center;
-      background: var(--card-inner);
-      padding: 6px 8px;
-      border-radius: 6px;
+      background: var(--tactical-surface-inner);
+      padding: 5px 8px;
+      border-radius: 4px;
       border: 1px solid rgba(255, 255, 255, 0.04);
       display: flex;
       flex-direction: column;
@@ -248,12 +265,12 @@
       font-size: 11px;
       font-weight: 600;
       color: var(--text-muted);
-      margin-bottom: 2px;
+      margin-bottom: 1px;
       white-space: nowrap;
     }
 
     .metric-value {
-      font-size: clamp(20px, 2.6vh, 30px);
+      font-size: clamp(19px, 2.5vh, 28px);
       font-weight: 900;
       font-family: 'Inter', sans-serif;
       color: #FFFFFF;
@@ -267,33 +284,33 @@
 
     .metric-capacity {
       color: var(--text-muted);
-      font-size: 11px;
-      margin-top: 2px;
+      font-size: 10px;
+      margin-top: 1px;
     }
 
-    /* 大盤總進度條 */
+    /* 大盤總進度條 - 精準刻度感 */
     .banner-progress-row {
       display: flex;
       align-items: center;
-      padding: 5px 12px;
-      background: #0B0F19;
-      border-top: 1px solid var(--border-color);
-      gap: 10px;
+      padding: 4px 10px;
+      background: #090D16;
+      border-top: 1px solid var(--tactical-border);
+      gap: 8px;
     }
 
     .progress-label {
       font-size: 11px;
       font-weight: 600;
       color: var(--text-muted);
-      min-width: 55px;
+      min-width: 52px;
       white-space: nowrap;
     }
 
     .progress-track {
       flex: 1;
       height: 6px;
-      background: var(--progress-bg);
-      border-radius: 3px;
+      background: #1A2436;
+      border-radius: 2px;
       overflow: hidden;
       position: relative;
     }
@@ -301,7 +318,7 @@
     .progress-fill {
       height: 100%;
       background: var(--primary-blue);
-      border-radius: 3px;
+      border-radius: 2px;
       width: 0%;
       transition: width 0.5s ease;
     }
@@ -313,28 +330,28 @@
     /* 卡片網格 */
     .cards-grid {
       display: grid;
-      gap: 8px;
+      gap: 6px;
     }
 
     .grid-4 { grid-template-columns: repeat(4, 1fr); }
     .grid-3 { grid-template-columns: repeat(3, 1fr); }
     .grid-7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
 
-    /* 單一站點與停車場卡片 - 彩色標頭、白底數字、清楚高對比 */
+    /* 單一站點與停車場卡片 - 軍規沉穩標頭、高對比白底黑字 */
     .station-card {
       background: var(--card-white);
       border: 1px solid var(--card-border);
-      border-radius: 8px;
+      border-radius: 6px;
       overflow: hidden;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
       display: flex;
       flex-direction: column;
       min-width: 0;
     }
 
     .card-header {
-      padding: 6px 8px;
-      font-size: clamp(11px, 0.95vw, 14px);
+      padding: 5px 8px;
+      font-size: clamp(11px, 0.95vw, 13px);
       font-weight: 800;
       color: #FFFFFF;
       text-align: center;
@@ -344,13 +361,13 @@
       text-overflow: ellipsis;
     }
 
-    /* 沉穩成熟的業務辨識色 (非刺眼螢光) */
-    .bg-green  { background: #059669; }
-    .bg-blue   { background: #2563EB; }
-    .bg-amber  { background: #D97706; }
-    .bg-purple { background: #7C3AED; }
-    .bg-pink   { background: #DB2777; }
-    .bg-teal   { background: #0D9488; }
+    /* 軍規識別沉穩色調 (非刺眼原色) */
+    .bg-green  { background: var(--mil-green); }
+    .bg-blue   { background: var(--mil-blue); }
+    .bg-amber  { background: var(--mil-amber); }
+    .bg-purple { background: var(--mil-purple); }
+    .bg-pink   { background: var(--mil-wine); }
+    .bg-teal   { background: var(--mil-teal); }
 
     .card-body {
       display: grid;
@@ -372,19 +389,20 @@
       font-weight: 700;
       color: var(--text-label);
       margin-bottom: 2px;
+      letter-spacing: 0.5px;
     }
 
     .card-col-num {
-      font-size: clamp(20px, 2.8vh, 28px);
+      font-size: clamp(19px, 2.7vh, 27px);
       font-weight: 900;
       font-family: 'Inter', sans-serif;
-      color: #0F172A;
+      color: var(--text-dark);
       line-height: 1.15;
       white-space: nowrap;
     }
 
     .card-col-num.remain {
-      color: #0284C7;
+      color: #0369A1;
     }
 
     .card-col-num.unavailable {
@@ -399,43 +417,43 @@
     }
 
     .card-footer {
-      padding: 5px 8px;
-      background: #F8FAFC;
+      padding: 4px 8px;
+      background: var(--card-footer);
       border-top: 1px solid #E2E8F0;
     }
 
     .card-status-text {
       font-size: 11px;
       font-weight: 700;
-      color: #0F172A;
+      color: var(--text-dark);
       text-align: center;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
       white-space: nowrap;
     }
 
     .card-progress-track {
-      height: 5px;
+      height: 4px;
       background: #E2E8F0;
-      border-radius: 3px;
+      border-radius: 2px;
       overflow: hidden;
     }
 
     .card-progress-fill {
       height: 100%;
       background: var(--primary-blue);
-      border-radius: 3px;
+      border-radius: 2px;
       width: 0%;
       transition: width 0.5s ease;
     }
 
-    .card-progress-fill.warning { background: #F59E0B !important; }
-    .card-progress-fill.danger  { background: #EF4444 !important; }
+    .card-progress-fill.warning { background: #D97706 !important; }
+    .card-progress-fill.danger  { background: #DC2626 !important; }
 
     footer {
       text-align: center;
       font-size: 11px;
       color: #64748B;
-      padding: 4px 0;
+      padding: 3px 0;
     }
 
     /* ========================================================= */
@@ -446,7 +464,7 @@
         padding: max(4px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(4px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
         grid-template-columns: 56fr 44fr;
         grid-template-rows: auto auto auto auto;
-        gap: 6px;
+        gap: 5px;
         height: auto;
         min-height: 100svh;
         overflow-y: auto;
@@ -459,13 +477,13 @@
 
       /* 緊湊型頂部列 */
       header {
-        padding: 4px 8px;
+        padding: 3px 8px;
         gap: 8px;
-        border-radius: 6px;
+        border-radius: 4px;
       }
       .header-badge {
         font-size: 9px;
-        padding: 2px 5px;
+        padding: 1px 5px;
       }
       h1 {
         font-size: 12px;
@@ -476,7 +494,7 @@
         font-size: 11px;
       }
       .live-indicator {
-        padding: 2px 6px;
+        padding: 1px 6px;
         font-size: 10px;
         gap: 4px;
       }
@@ -489,7 +507,7 @@
       }
       .fab-btn {
         font-size: 10px;
-        padding: 3px 6px;
+        padding: 2px 6px;
         gap: 2px;
       }
 
@@ -500,10 +518,10 @@
 
       /* 緊湊型大盤橫幅 - 清楚不佔位 */
       .summary-banner {
-        border-radius: 6px;
+        border-radius: 4px;
       }
       .banner-header {
-        padding: 3px 8px;
+        padding: 2px 8px;
         font-size: 11px;
       }
       .banner-header > span:last-child {
@@ -515,7 +533,7 @@
       }
       .metric-box {
         padding: 2px 4px;
-        border-radius: 4px;
+        border-radius: 3px;
       }
       .metric-label {
         font-size: 9px;
@@ -523,7 +541,7 @@
         margin-bottom: 1px;
       }
       .metric-value {
-        font-size: 17px;
+        font-size: 16px;
         line-height: 1.1;
       }
       .metric-capacity {
@@ -547,10 +565,10 @@
         gap: 4px;
       }
       .station-card {
-        border-radius: 6px;
+        border-radius: 4px;
       }
       .card-header {
-        padding: 3px 2px;
+        padding: 2px 2px;
         font-size: 10px;
         line-height: 1.2;
         white-space: nowrap;
@@ -558,7 +576,7 @@
         text-overflow: ellipsis;
       }
       .card-body {
-        padding: 4px 2px;
+        padding: 3px 2px;
         gap: 2px;
       }
       .card-col-label {
@@ -567,7 +585,7 @@
         margin-bottom: 1px;
       }
       .card-col-num {
-        font-size: 17px;
+        font-size: 16px;
         line-height: 1.1;
       }
       .card-footer {
@@ -575,7 +593,7 @@
       }
       .card-status-text {
         font-size: 9px;
-        margin-bottom: 2px;
+        margin-bottom: 1px;
         line-height: 1.1;
       }
       .card-progress-track {
@@ -588,12 +606,12 @@
       }
       #parkingSection .card-header {
         font-size: 10px;
-        padding: 3px 1px;
+        padding: 2px 1px;
       }
       #parkingSection .card-body {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        padding: 3px 2px;
+        padding: 2px 2px;
         gap: 2px;
       }
       #parkingSection .card-col {
@@ -624,20 +642,20 @@
     /* 針對超薄高度螢幕 (Safari 網址列開啟，可視高度 < 350px) 保持順暢瀏覽 */
     @media (orientation: landscape) and (max-height: 350px) {
       body {
-        gap: 4px;
-        padding: 2px 6px;
+        gap: 3px;
+        padding: 2px 5px;
       }
       .section-container {
-        gap: 3px;
+        gap: 2px;
       }
       .card-col-num {
-        font-size: 15px;
+        font-size: 14px;
       }
       #parkingSection .card-col-num {
-        font-size: 13px;
+        font-size: 12px;
       }
       .metric-value {
-        font-size: 15px;
+        font-size: 14px;
       }
     }
 
@@ -646,7 +664,7 @@
       body {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
         padding: 8px 10px;
         min-height: 100svh;
       }
