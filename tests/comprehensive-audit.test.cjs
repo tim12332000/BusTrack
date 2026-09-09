@@ -57,7 +57,7 @@ test('3. CSS 樣式大括號對稱性與關鍵媒體查詢檢驗', () => {
   assert.equal(depth, 0, 'CSS 所有開括號與閉括號必須完全配對成雙，不可遺漏閉合');
 
   // 關鍵響應式媒體查詢
-  assert.ok(css.includes('@media (orientation: landscape) and (max-height: 520px)'), '必須包含手機橫向專屬媒體查詢');
+  assert.ok(css.includes('@media (max-width: 900px), (orientation: landscape) and (max-height: 520px)'), '緊湊排版必須涵蓋手機直向與低高度橫向');
   assert.ok(css.includes('@media (orientation: landscape) and (max-height: 350px)'), '必須包含超薄橫向媒體查詢');
   assert.ok(css.includes('@media (orientation: portrait) and (max-width: 900px)'), '必須包含手機直向媒體查詢');
   assert.ok(css.includes('overflow-y: auto'), '橫向模式必須具備縱向捲動保護');
