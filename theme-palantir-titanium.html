@@ -450,6 +450,11 @@
       background: #F59E0B;
     }
 
+    /* 🅿️ 停車場大盤指標欄位 (雙欄: 汽車剩餘 / 機車剩餘) */
+    #parkingSection .banner-metrics {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
     /* 🅿️ 停車場大盤總數雙進度條 (分開汽車與機車剩餘) */
     .parking-progress-dual {
       display: grid;
@@ -1123,7 +1128,7 @@
       <div class="banner-metrics">
         <div class="metric-box"><div class="metric-label">目前剩餘汽車位</div><div class="metric-value blue" id="parkTotalCars">未完整回報</div><div class="metric-capacity">總容量 3,023 位</div></div>
         <div class="metric-box"><div class="metric-label">目前剩餘機車位</div><div class="metric-value amber" id="parkTotalMotorcycles">未完整回報</div><div class="metric-capacity">總容量 2,773 位</div></div>
-        <div class="metric-box"><div class="metric-label">已回報停車場</div><div class="metric-value" id="parkReported">0/7 處</div></div>
+        <span id="parkReported" style="display:none;">0/7 處</span>
       </div>
       <div class="banner-progress-row parking-progress-dual">
         <div class="parking-progress-col">
