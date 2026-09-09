@@ -311,16 +311,6 @@
       color: #FFFFFF;
     }
 
-    /* 🔄 90度橫向旋轉模式 */
-    body.is-rotated {
-      transform: rotate(90deg);
-      transform-origin: top left;
-      position: absolute;
-      top: 0;
-      left: 100vw;
-      width: 100vh;
-      min-height: 100vw;
-    }
 
     /* 區塊容器 */
     .section-container {
@@ -991,7 +981,7 @@
         <option value="swiss">🇨🇭 瑞士工藝風</option>
       </select>
       <button id="fabFullscreen" class="fab-btn" onclick="toggleFullscreen()">⛶ 全螢幕</button>
-      <button id="fabRotate" class="fab-btn" onclick="toggleRotate()">🔄 橫向</button>
+      <button id="fabRefresh" class="fab-btn" onclick="forceRefresh()">↻ 強制刷新</button>
     </div>
   </header>
 
@@ -1667,11 +1657,38 @@
       if (btn) btn.classList.toggle('active', !!document.fullscreenElement);
     });
 
-    // 🔄 轉橫螢幕切換
-    function toggleRotate() {
-      const isRotated = document.body.classList.toggle('is-rotated');
-      const btn = document.getElementById('fabRotate');
-      if (btn) btn.classList.toggle('active', isRotated);
+    // 先清除 githack 快取，再重新載入看板與即時資料。
+    async function forceRefresh() {
+      const btn = document.getElementById('fabRefresh');
+      if (btn.disabled) return;
+      btn.disabled = true;
+      btn.textContent = '↻ 刷新中…';
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+      try {
+        const url = new URL(window.location.href);
+        if (url.hostname === 'raw.githack.com' || url.hostname === 'rawcdn.githack.com') {
+          const source = new URL(url);
+          source.search = '';
+          source.hash = '';
+          const response = await fetch('/purge?url=' + encodeURIComponent(source.href), {
+            method: 'DELETE', cache: 'no-store', signal: controller.signal
+          });
+          if (!response.ok) throw new Error('Cache purge failed');
+        }
+        if (url.protocol === 'file:') {
+          window.location.reload();
+        } else {
+          url.searchParams.set('_refresh', Date.now().toString());
+          window.location.replace(url.href);
+        }
+      } catch (error) {
+        document.getElementById('liveText').textContent = '刷新失敗，請重試';
+        btn.disabled = false;
+        btn.textContent = '↻ 強制刷新';
+      } finally {
+        clearTimeout(timeout);
+      }
     }
 
     // 🎨 五大國際頂尖戰情主題動態切換系統

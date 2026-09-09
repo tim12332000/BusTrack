@@ -66,7 +66,7 @@ test('3. CSS 樣式大括號對稱性與關鍵媒體查詢檢驗', () => {
 test('4. 前端所有業務 DOM ID 存在性檢驗 (不可漏掉任何一個)', () => {
   const requiredIds = [
     // 頂部
-    'liveBadge', 'liveText', 'currentTime', 'fabFullscreen', 'fabRotate',
+    'liveBadge', 'liveText', 'currentTime', 'fabFullscreen', 'fabRefresh',
     // 接駁車大盤
     'busTotalIn', 'busTotalOut', 'busTotalRate', 'busMainBar',
     // 4 大接駁站卡片
