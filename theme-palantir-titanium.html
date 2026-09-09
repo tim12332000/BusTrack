@@ -492,7 +492,8 @@
     .parking-progress-col {
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 4px;
+      margin-top: 6px;
       min-width: 0;
     }
 
@@ -549,8 +550,9 @@
       color: #F87171;
       border: 1px solid rgba(220, 38, 38, 0.5);
     }
-    .parking-progress-dual .progress-track {
-      height: 6px;
+    .parking-progress-col .progress-track {
+      flex: none;
+      height: 8px;
       border-radius: 3px;
     }
     .progress-mark {
@@ -1206,16 +1208,12 @@
         <span style="font-size: 12px; color: #94A3B8;" id="parkingNote">7 處停車場 · 以各場最新回報為準</span>
       </div>
       <div class="banner-metrics">
-        <div class="metric-box"><div class="metric-label">目前剩餘汽車位</div><div class="metric-value blue" id="parkTotalCars">未完整回報</div><div class="metric-capacity">總容量 3,023 位</div></div>
-        <div class="metric-box"><div class="metric-label">目前剩餘機車位</div><div class="metric-value amber" id="parkTotalMotorcycles">未完整回報</div><div class="metric-capacity">總容量 2,773 位</div></div>
-        <span id="parkReported" style="display:none;">0/7 處</span>
-      </div>
-      <div class="banner-progress-row parking-progress-dual">
-        <div class="parking-progress-col">
+        <div class="metric-box"><div class="metric-label">目前剩餘汽車位</div><div class="metric-value blue" id="parkTotalCars">未完整回報</div><div class="metric-capacity">總容量 3,023 位</div>
+          <div class="parking-progress-col">
           <div class="progress-sub-header">
             <div class="progress-sub-title">
               <span class="progress-label">🚗 汽車車位</span>
-              <span class="status-pill green" id="parkingCarsBadge">充足</span>
+              <span class="status-pill" id="parkingCarsBadge">待回報</span>
             </div>
             <span class="progress-pct" id="parkingCarsRateText">未完整回報</span>
           </div>
@@ -1230,12 +1228,13 @@
             <span>50%</span>
             <span>3,023 席 (空)</span>
           </div>
-        </div>
-        <div class="parking-progress-col">
+          </div></div>
+        <div class="metric-box"><div class="metric-label">目前剩餘機車位</div><div class="metric-value amber" id="parkTotalMotorcycles">未完整回報</div><div class="metric-capacity">總容量 2,773 位</div>
+          <div class="parking-progress-col">
           <div class="progress-sub-header">
             <div class="progress-sub-title">
               <span class="progress-label">🛵 機車車位</span>
-              <span class="status-pill green" id="parkingMotoBadge">充足</span>
+              <span class="status-pill" id="parkingMotoBadge">待回報</span>
             </div>
             <span class="progress-pct" id="parkingMotoRateText">未完整回報</span>
           </div>
@@ -1250,8 +1249,10 @@
             <span>50%</span>
             <span>2,773 席 (空)</span>
           </div>
-        </div>
+          </div></div>
+        <span id="parkReported" style="display:none;">0/7 處</span>
       </div>
+
     </div>
     <div class="cards-grid grid-7">
       <div class="station-card">
