@@ -450,6 +450,43 @@
       background: #F59E0B;
     }
 
+    /* 🅿️ 停車場大盤總數雙進度條 (分開汽車與機車剩餘) */
+    .parking-progress-dual {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 4px 10px;
+    }
+
+    .parking-progress-col {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+
+    .progress-sub-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      line-height: 1.2;
+    }
+
+    .progress-sub-header .progress-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+
+    .progress-sub-header .progress-pct {
+      font-size: 11px;
+      font-weight: 700;
+      color: #FFFFFF;
+      font-family: 'Inter', sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+
     /* 卡片網格 */
     .cards-grid {
       display: grid;
@@ -681,6 +718,14 @@
         padding: 2px 8px;
         gap: 6px;
       }
+      .parking-progress-dual {
+        gap: 6px;
+        padding: 2px 8px;
+      }
+      .progress-sub-header .progress-label,
+      .progress-sub-header .progress-pct {
+        font-size: 9px;
+      }
       .progress-label {
         font-size: 9px;
         min-width: 42px;
@@ -821,7 +866,7 @@
     }
   </style>
 </head>
-<body class="theme-nordic">
+<body class="theme-jr">
   <!-- 頂部資訊列 -->
   <header>
     <div class="header-title">
@@ -837,7 +882,7 @@
     </div>
     <div class="floating-toolbar">
       <select id="themeSelector" class="theme-select" onchange="applyTheme(this.value)">
-        <option value="jr">🇯🇵 JR 鐵道中樞風</option>
+        <option value="jr" selected>🇯🇵 JR 鐵道中樞風 (主版)</option>
         <option value="palantir">🛡️ Palantir 國防風</option>
         <option value="spacex">🚀 SpaceX 航太風</option>
         <option value="nordic">🌲 北歐交通 ITS 風</option>
@@ -1079,6 +1124,26 @@
         <div class="metric-box"><div class="metric-label">目前剩餘汽車位</div><div class="metric-value blue" id="parkTotalCars">未完整回報</div><div class="metric-capacity">總容量 3,023 位</div></div>
         <div class="metric-box"><div class="metric-label">目前剩餘機車位</div><div class="metric-value amber" id="parkTotalMotorcycles">未完整回報</div><div class="metric-capacity">總容量 2,773 位</div></div>
         <div class="metric-box"><div class="metric-label">已回報停車場</div><div class="metric-value" id="parkReported">0/7 處</div></div>
+      </div>
+      <div class="banner-progress-row parking-progress-dual">
+        <div class="parking-progress-col">
+          <div class="progress-sub-header">
+            <span class="progress-label">🚗 汽車剩餘</span>
+            <span class="progress-pct" id="parkingCarsRateText">未完整回報</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="parkingCarsBar"></div>
+          </div>
+        </div>
+        <div class="parking-progress-col">
+          <div class="progress-sub-header">
+            <span class="progress-label">🛵 機車剩餘</span>
+            <span class="progress-pct" id="parkingMotoRateText">未完整回報</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill amber" id="parkingMotoBar"></div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="cards-grid grid-7">
@@ -1336,6 +1401,52 @@
         document.getElementById('parkingNote').textContent = parkingReady
           ? '7 處停車場 · 以各場最新回報為準'
           : '7 處停車場資料等待更新';
+
+        // 🅿️ 下方停車場大盤總數進度條 (汽車總容量 3,023 / 機車總容量 2,773)
+        const totalCarsVal = carsComplete ? getRemaining(parkTotalRow, 0) : null;
+        const totalMotoVal = motorcyclesComplete ? getRemaining(parkTotalRow, 8) : null;
+
+        const carsBarEl = document.getElementById('parkingCarsBar');
+        const carsTextEl = document.getElementById('parkingCarsRateText');
+        if (carsBarEl && carsTextEl) {
+          if (totalCarsVal !== null) {
+            const carsPct = Math.min(100, Math.max(0, Math.round((totalCarsVal / 3023) * 1000) / 10));
+            carsBarEl.style.width = carsPct + "%";
+            carsTextEl.textContent = carsPct.toFixed(1) + "% 可用 (" + formatNumber(totalCarsVal) + "/3,023)";
+            if (carsPct <= 10) {
+              carsBarEl.className = 'progress-fill danger';
+            } else if (carsPct <= 30) {
+              carsBarEl.className = 'progress-fill warning';
+            } else {
+              carsBarEl.className = 'progress-fill';
+            }
+          } else {
+            carsBarEl.style.width = "0%";
+            carsTextEl.textContent = "未完整回報";
+            carsBarEl.className = 'progress-fill';
+          }
+        }
+
+        const motoBarEl = document.getElementById('parkingMotoBar');
+        const motoTextEl = document.getElementById('parkingMotoRateText');
+        if (motoBarEl && motoTextEl) {
+          if (totalMotoVal !== null) {
+            const motoPct = Math.min(100, Math.max(0, Math.round((totalMotoVal / 2773) * 1000) / 10));
+            motoBarEl.style.width = motoPct + "%";
+            motoTextEl.textContent = motoPct.toFixed(1) + "% 可用 (" + formatNumber(totalMotoVal) + "/2,773)";
+            if (motoPct <= 10) {
+              motoBarEl.className = 'progress-fill danger';
+            } else if (motoPct <= 30) {
+              motoBarEl.className = 'progress-fill warning';
+            } else {
+              motoBarEl.className = 'progress-fill amber';
+            }
+          } else {
+            motoBarEl.style.width = "0%";
+            motoTextEl.textContent = "未完整回報";
+            motoBarEl.className = 'progress-fill amber';
+          }
+        }
 
         document.getElementById('liveBadge').className = 'live-indicator';
         document.getElementById('liveText').textContent = '即時同步中 (3秒)';
