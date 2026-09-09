@@ -455,6 +455,32 @@
       grid-template-columns: repeat(2, 1fr);
     }
 
+    /* 🅿️ 七處停車場單站微型圖像化跑條 */
+    .parking-bar-track {
+      height: 3px;
+      background: #E2E8F0;
+      border-radius: 1.5px;
+      overflow: hidden;
+      margin: 2px auto;
+      width: 85%;
+    }
+    .parking-bar-fill {
+      height: 100%;
+      background: #0284C7;
+      border-radius: 1.5px;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+    .parking-bar-fill.amber {
+      background: #D97706;
+    }
+    .parking-bar-fill.warning {
+      background: #EAB308 !important;
+    }
+    .parking-bar-fill.danger {
+      background: #DC2626 !important;
+    }
+
     /* 🅿️ 停車場大盤總數雙進度條 (分開汽車與機車剩餘) */
     .parking-progress-dual {
       display: grid;
@@ -1155,50 +1181,50 @@
       <div class="station-card">
         <div class="card-header bg-blue">🅿️ 五都日出</div>
         <div class="card-body">
-          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park1Cars">未回報</div><div class="parking-capacity">容量 1,008</div></div>
-          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park1Motorcycles">未回報</div><div class="parking-capacity">容量 168</div></div>
+          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park1Cars">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill" id="lotCarBar1"></div></div><div class="parking-capacity">容量 1,008</div></div>
+          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park1Motorcycles">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill amber" id="lotMotoBar1"></div></div><div class="parking-capacity">容量 168</div></div>
         </div>
       </div>
       <div class="station-card">
         <div class="card-header bg-green">🅿️ 新烏日</div>
         <div class="card-body">
-          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park2Cars">未回報</div><div class="parking-capacity">容量 266</div></div>
-          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park2Motorcycles">未回報</div><div class="parking-capacity">容量 352</div></div>
+          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park2Cars">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill" id="lotCarBar2"></div></div><div class="parking-capacity">容量 266</div></div>
+          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park2Motorcycles">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill amber" id="lotMotoBar2"></div></div><div class="parking-capacity">容量 352</div></div>
         </div>
       </div>
       <div class="station-card">
         <div class="card-header bg-amber">🅿️ *嶺東科大</div>
         <div class="card-body">
-          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park3Cars">未回報</div><div class="parking-capacity">容量 90</div></div>
-          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park3Motorcycles">未回報</div><div class="parking-capacity">容量 800</div></div>
+          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park3Cars">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill" id="lotCarBar3"></div></div><div class="parking-capacity">容量 90</div></div>
+          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park3Motorcycles">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill amber" id="lotMotoBar3"></div></div><div class="parking-capacity">容量 800</div></div>
         </div>
       </div>
       <div class="station-card">
         <div class="card-header bg-purple">🅿️ *台中科大</div>
         <div class="card-body">
-          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain unavailable" id="park4Cars">—</div><div class="parking-capacity">不提供</div></div>
-          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park4Motorcycles">未回報</div><div class="parking-capacity">容量 200</div></div>
+          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain unavailable" id="park4Cars">—</div><div class="parking-bar-track"><div class="parking-bar-fill" id="lotCarBar4"></div></div><div class="parking-capacity">不提供</div></div>
+          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park4Motorcycles">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill amber" id="lotMotoBar4"></div></div><div class="parking-capacity">容量 200</div></div>
         </div>
       </div>
       <div class="station-card">
         <div class="card-header bg-teal">🅿️ 水湳轉運站</div>
         <div class="card-body">
-          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park5Cars">未回報</div><div class="parking-capacity">容量 614</div></div>
-          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park5Motorcycles">未回報</div><div class="parking-capacity">容量 1,253</div></div>
+          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park5Cars">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill" id="lotCarBar5"></div></div><div class="parking-capacity">容量 614</div></div>
+          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park5Motorcycles">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill amber" id="lotMotoBar5"></div></div><div class="parking-capacity">容量 1,253</div></div>
         </div>
       </div>
       <div class="station-card">
         <div class="card-header bg-pink">🅿️ *經貿六</div>
         <div class="card-body">
-          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park6Cars">未回報</div><div class="parking-capacity">容量 563</div></div>
-          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain unavailable" id="park6Motorcycles">—</div><div class="parking-capacity">不提供</div></div>
+          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park6Cars">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill" id="lotCarBar6"></div></div><div class="parking-capacity">容量 563</div></div>
+          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain unavailable" id="park6Motorcycles">—</div><div class="parking-bar-track"><div class="parking-bar-fill amber" id="lotMotoBar6"></div></div><div class="parking-capacity">不提供</div></div>
         </div>
       </div>
       <div class="station-card">
         <div class="card-header bg-blue">🅿️ *經貿八</div>
         <div class="card-body">
-          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park7Cars">未回報</div><div class="parking-capacity">容量 482</div></div>
-          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain unavailable" id="park7Motorcycles">—</div><div class="parking-capacity">不提供</div></div>
+          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park7Cars">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill" id="lotCarBar7"></div></div><div class="parking-capacity">容量 482</div></div>
+          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain unavailable" id="park7Motorcycles">—</div><div class="parking-bar-track"><div class="parking-bar-fill amber" id="lotMotoBar7"></div></div><div class="parking-capacity">不提供</div></div>
         </div>
       </div>
     </div>
@@ -1399,6 +1425,37 @@
           if (cars === null) carsComplete = false;
           if (motorcycles === null) motorcyclesComplete = false;
           if (parkingReady && cars !== null && motorcycles !== null) reported++;
+
+          // 🅿️ 單站圖像化剩餘跑條即時更新
+          const carBar = document.getElementById('lotCarBar' + (i + 1));
+          if (carBar) {
+            if (lot.cars === 0) {
+              carBar.style.width = '0%';
+              carBar.className = 'parking-bar-fill';
+            } else if (cars !== null) {
+              const pct = Math.min(100, Math.max(0, Math.round((cars / lot.cars) * 100)));
+              carBar.style.width = pct + '%';
+              carBar.className = pct <= 10 ? 'parking-bar-fill danger' : pct <= 30 ? 'parking-bar-fill warning' : 'parking-bar-fill';
+            } else {
+              carBar.style.width = '0%';
+              carBar.className = 'parking-bar-fill';
+            }
+          }
+
+          const motoBar = document.getElementById('lotMotoBar' + (i + 1));
+          if (motoBar) {
+            if (lot.motorcycles === 0) {
+              motoBar.style.width = '0%';
+              motoBar.className = 'parking-bar-fill';
+            } else if (motorcycles !== null) {
+              const pct = Math.min(100, Math.max(0, Math.round((motorcycles / lot.motorcycles) * 100)));
+              motoBar.style.width = pct + '%';
+              motoBar.className = pct <= 10 ? 'parking-bar-fill danger' : pct <= 30 ? 'parking-bar-fill warning' : 'parking-bar-fill amber';
+            } else {
+              motoBar.style.width = '0%';
+              motoBar.className = 'parking-bar-fill';
+            }
+          }
         });
         showRemaining('parkTotalCars', carsComplete ? getRemaining(parkTotalRow, 0) : null, '未完整回報');
         showRemaining('parkTotalMotorcycles', motorcyclesComplete ? getRemaining(parkTotalRow, 8) : null, '未完整回報');
