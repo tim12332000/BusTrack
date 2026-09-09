@@ -516,6 +516,60 @@
       color: #FFFFFF;
       font-family: 'Inter', sans-serif;
       font-variant-numeric: tabular-nums;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .progress-sub-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-pill {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 3px;
+      line-height: 1.2;
+      letter-spacing: 0.02em;
+      transition: all 0.3s ease;
+    }
+    .status-pill.green {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+    .status-pill.yellow {
+      background: rgba(245, 158, 11, 0.2);
+      color: #FBBF24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+    .status-pill.red {
+      background: rgba(220, 38, 38, 0.25);
+      color: #F87171;
+      border: 1px solid rgba(220, 38, 38, 0.5);
+    }
+    .parking-progress-dual .progress-track {
+      height: 6px;
+      border-radius: 3px;
+    }
+    .progress-mark {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(255, 255, 255, 0.18);
+      pointer-events: none;
+    }
+    .progress-scale {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: #64748B;
+      font-family: 'Inter', sans-serif;
+      line-height: 1.1;
+      padding: 0 1px;
+      user-select: none;
     }
 
     /* 卡片網格 */
@@ -1159,20 +1213,42 @@
       <div class="banner-progress-row parking-progress-dual">
         <div class="parking-progress-col">
           <div class="progress-sub-header">
-            <span class="progress-label">🚗 汽車剩餘</span>
+            <div class="progress-sub-title">
+              <span class="progress-label">🚗 汽車車位</span>
+              <span class="status-pill green" id="parkingCarsBadge">充足</span>
+            </div>
             <span class="progress-pct" id="parkingCarsRateText">未完整回報</span>
           </div>
           <div class="progress-track">
             <div class="progress-fill" id="parkingCarsBar"></div>
+            <div class="progress-mark" style="left: 25%;"></div>
+            <div class="progress-mark" style="left: 50%;"></div>
+            <div class="progress-mark" style="left: 75%;"></div>
+          </div>
+          <div class="progress-scale">
+            <span>0 (滿)</span>
+            <span>50%</span>
+            <span>3,023 席 (空)</span>
           </div>
         </div>
         <div class="parking-progress-col">
           <div class="progress-sub-header">
-            <span class="progress-label">🛵 機車剩餘</span>
+            <div class="progress-sub-title">
+              <span class="progress-label">🛵 機車車位</span>
+              <span class="status-pill green" id="parkingMotoBadge">充足</span>
+            </div>
             <span class="progress-pct" id="parkingMotoRateText">未完整回報</span>
           </div>
           <div class="progress-track">
             <div class="progress-fill amber" id="parkingMotoBar"></div>
+            <div class="progress-mark" style="left: 25%;"></div>
+            <div class="progress-mark" style="left: 50%;"></div>
+            <div class="progress-mark" style="left: 75%;"></div>
+          </div>
+          <div class="progress-scale">
+            <span>0 (滿)</span>
+            <span>50%</span>
+            <span>2,773 席 (空)</span>
           </div>
         </div>
       </div>
@@ -1474,18 +1550,24 @@
           if (totalCarsVal !== null) {
             const carsPct = Math.min(100, Math.max(0, Math.round((totalCarsVal / 3023) * 1000) / 10));
             carsBarEl.style.width = carsPct + "%";
-            carsTextEl.textContent = carsPct.toFixed(1) + "% 可用 (" + formatNumber(totalCarsVal) + "/3,023)";
+            carsTextEl.textContent = "剩餘 " + carsPct.toFixed(1) + "% (" + formatNumber(totalCarsVal) + " 席可用)";
+            const carsBadge = document.getElementById('parkingCarsBadge');
             if (carsPct <= 10) {
               carsBarEl.className = 'progress-fill danger';
+              if (carsBadge) { carsBadge.className = 'status-pill red'; carsBadge.textContent = carsPct === 0 ? '已客滿' : '告急'; }
             } else if (carsPct <= 30) {
               carsBarEl.className = 'progress-fill warning';
+              if (carsBadge) { carsBadge.className = 'status-pill yellow'; carsBadge.textContent = '吃緊'; }
             } else {
               carsBarEl.className = 'progress-fill';
+              if (carsBadge) { carsBadge.className = 'status-pill green'; carsBadge.textContent = '充足'; }
             }
           } else {
             carsBarEl.style.width = "0%";
             carsTextEl.textContent = "未完整回報";
             carsBarEl.className = 'progress-fill';
+            const carsBadge = document.getElementById('parkingCarsBadge');
+            if (carsBadge) { carsBadge.className = 'status-pill'; carsBadge.textContent = '待回報'; }
           }
         }
 
@@ -1495,18 +1577,24 @@
           if (totalMotoVal !== null) {
             const motoPct = Math.min(100, Math.max(0, Math.round((totalMotoVal / 2773) * 1000) / 10));
             motoBarEl.style.width = motoPct + "%";
-            motoTextEl.textContent = motoPct.toFixed(1) + "% 可用 (" + formatNumber(totalMotoVal) + "/2,773)";
+            motoTextEl.textContent = "剩餘 " + motoPct.toFixed(1) + "% (" + formatNumber(totalMotoVal) + " 席可用)";
+            const motoBadge = document.getElementById('parkingMotoBadge');
             if (motoPct <= 10) {
               motoBarEl.className = 'progress-fill danger';
+              if (motoBadge) { motoBadge.className = 'status-pill red'; motoBadge.textContent = motoPct === 0 ? '已客滿' : '告急'; }
             } else if (motoPct <= 30) {
               motoBarEl.className = 'progress-fill warning';
+              if (motoBadge) { motoBadge.className = 'status-pill yellow'; motoBadge.textContent = '吃緊'; }
             } else {
               motoBarEl.className = 'progress-fill amber';
+              if (motoBadge) { motoBadge.className = 'status-pill green'; motoBadge.textContent = '充足'; }
             }
           } else {
             motoBarEl.style.width = "0%";
             motoTextEl.textContent = "未完整回報";
             motoBarEl.className = 'progress-fill amber';
+            const motoBadge = document.getElementById('parkingMotoBadge');
+            if (motoBadge) { motoBadge.className = 'status-pill'; motoBadge.textContent = '待回報'; }
           }
         }
 
