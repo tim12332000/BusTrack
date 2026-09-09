@@ -23,6 +23,8 @@ with sync_playwright() as p:
           window.onGvizData({table:{rows}});
         }''')
         page.wait_for_timeout(550)
+        assert page.locator('h1').inner_text() == '「國防知性之旅-成功嶺營區開放」即時戰情中心'
+        assert page.locator('#fabFlip').count() == 0
         page.screenshot(path=str(root/'.omx'/f'fit-{width}x{height}.png'), full_page=True)
         result = page.evaluate('''() => {
           const outside=[...document.querySelectorAll('.station-card, header, .floating-toolbar, .summary-banner')].map(e=>{
