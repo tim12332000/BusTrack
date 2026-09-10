@@ -79,6 +79,13 @@ test('opening creates only the menu; cancelling performs no writes', () => {
   assert.deepEqual(p.calls, []);
 });
 
+test('menu initialization needs no spreadsheet access or authorization', () => {
+  const p = setup();
+  p.ctx.SpreadsheetApp.getActiveSpreadsheet = () => { throw new Error('spreadsheet access unavailable'); };
+  p.ctx.onOpen();
+  assert.deepEqual(p.calls, ['menu-runClearAllData']);
+});
+
 test('confirmed reset backs up first, clears both sources below headers, restores collection states', () => {
   const p = setup(); p.ctx.runClearAllData();
   assert.equal(p.alerts.at(-1).title, '清除完成');

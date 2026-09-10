@@ -4,11 +4,9 @@
  * 開啟試算表不會清除資料；必須按選單並確認。
  */
 function onOpen() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  if (ss && ss.getId() === TARGET_SPREADSHEET_ID) {
-    SpreadsheetApp.getUi().createMenu('運管中心')
-      .addItem('清除測試資料', 'runClearAllData').addToUi();
-  }
+  // 開啟時只建立介面；資料來源與權限檢查留在使用者點選之後。
+  SpreadsheetApp.getUi().createMenu('運管中心')
+    .addItem('清除測試資料', 'runClearAllData').addToUi();
 }
 
 function prepareTestDataReset_(ss) {
