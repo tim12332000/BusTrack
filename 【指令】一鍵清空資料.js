@@ -6,6 +6,7 @@
 function onOpen() {
   // 開啟時只建立介面；資料來源與權限檢查留在使用者點選之後。
   SpreadsheetApp.getUi().createMenu('運管中心')
+    .addItem('新增測試資料', 'runGenerateTestData')
     .addItem('清除測試資料', 'runClearAllData').addToUi();
 }
 

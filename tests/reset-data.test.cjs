@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const main = fs.readFileSync('【請複製這個】GoogleAppsScript完整終極版.js', 'utf8');
 const reset = fs.readFileSync('【指令】一鍵清空資料.js', 'utf8');
+const generate = fs.readFileSync('【指令】產生測試資料.js', 'utf8');
 const targetId = '1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w';
 const published = [
   'https://docs.google.com/forms/d/e/1FAIpQLSeCDaMu9LlQhgwJKdzr6uCw2VX44ni5eO1Dn6gRePX4ur3dKw/viewform',
@@ -13,8 +14,8 @@ const published = [
 function setup(options = {}) {
   const calls = [], alerts = [];
   const headers = [
-    ['Timestamp', '1. 方向', '2. 站點 / 門號', '3. 車號', '4. 人數'],
-    ['時間戳記', '1. 停車場區域', '2. 目前剩餘汽車停車位', '3. 目前剩餘機車停車位']
+    ['Timestamp', '1. 方向', '2. 站點 / 門號', '3. 車號', '4. 人數', '5. 備註'],
+    ['時間戳記', '1. 停車場區域', '2. 目前剩餘汽車停車位', '3. 目前剩餘機車停車位', options.missingNote ? '其他' : '4. 備註']
   ];
   const forms = published.map((url, i) => ({
     ids: ['response-' + i], accepting: i === 0,
@@ -31,7 +32,11 @@ function setup(options = {}) {
     }
   }));
   const sheets = headers.map((header, i) => ({
-    rows: 3, getSheetId: () => i + 10, getName: () => 'response-' + i,
+    rows: 3, added: [], getSheetId: () => i + 10, getName: () => 'response-' + i,
+    appendRow(row) {
+      if (options.appendFailure && i === 1) throw new Error('append failed');
+      this.added.push(row); this.rows++; calls.push('append-' + i);
+    },
     getFormUrl: () => 'edit-' + i, getLastColumn: () => header.length,
     getLastRow() { return this.rows; },
     getRange(row, column, count, columns) {
@@ -66,14 +71,14 @@ function setup(options = {}) {
     LockService: { getScriptLock: () => ({ tryLock: () => !options.busy, releaseLock: () => calls.push('unlock') }) },
     Utilities: { formatDate: () => 'test-time' }
   });
-  vm.runInContext(main + '\n' + reset, ctx);
+  vm.runInContext(main + '\n' + reset + '\n' + generate, ctx);
   return { ctx, ss, forms, sheets, calls, alerts };
 }
 
 test('opening creates only the menu; cancelling performs no writes', () => {
   const p = setup({ cancel: true });
   p.ctx.onOpen();
-  assert.deepEqual(p.calls, ['menu-runClearAllData']);
+  assert.deepEqual(p.calls, ['menu-runGenerateTestData', 'menu-runClearAllData']);
   p.calls.length = 0;
   p.ctx.runClearAllData();
   assert.deepEqual(p.calls, []);
@@ -83,7 +88,7 @@ test('menu initialization needs no spreadsheet access or authorization', () => {
   const p = setup();
   p.ctx.SpreadsheetApp.getActiveSpreadsheet = () => { throw new Error('spreadsheet access unavailable'); };
   p.ctx.onOpen();
-  assert.deepEqual(p.calls, ['menu-runClearAllData']);
+  assert.deepEqual(p.calls, ['menu-runGenerateTestData', 'menu-runClearAllData']);
 });
 
 test('confirmed reset backs up first, clears both sources below headers, restores collection states', () => {
@@ -124,4 +129,40 @@ test('private executor rejects missing confirmation snapshot', () => {
   const p = setup();
   assert.throws(() => p.ctx.clearConfirmedTestData_(p.ss), /重新按選單確認/);
   assert.deepEqual(p.calls, ['unlock']);
+});
+
+test('generation appends 14 people and 7 parking rows without deleting or overwriting existing data', () => {
+  const p = setup(); p.ctx.runGenerateTestData();
+  assert.equal(p.alerts.at(-1).title, '新增完成');
+  assert.deepEqual(p.sheets.map(s => s.added.length), [14, 7]);
+  assert.deepEqual(p.sheets.map(s => s.rows), [17, 10]);
+  assert.ok(!p.calls.some(c => /^(clear|delete|accept)-/.test(c)));
+  assert.ok(p.sheets.every(s => s.added.every(row => row.at(-1) === '測試資料')));
+  assert.ok(p.forms.every(f => f.ids.length === 1), 'native form responses remain unchanged');
+});
+
+test('generation cancellation, lock contention and bad second-sheet schema add nothing', () => {
+  for (const option of ['cancel', 'busy', 'wrongForm', 'missingNote']) {
+    const p = setup({ [option]: true }); p.ctx.runGenerateTestData();
+    assert.ok(p.sheets.every(s => s.added.length === 0), option);
+  }
+});
+
+test('generation reports partial additions honestly and releases the reset lock', () => {
+  const p = setup({ appendFailure: true }); p.ctx.runGenerateTestData();
+  assert.equal(p.alerts.at(-1).title, '新增未完成');
+  assert.match(p.alerts.at(-1).text, /已新增 14 筆/);
+  assert.equal(p.calls.at(-1), 'unlock');
+});
+
+test('parking test rows follow migrated headers and leave retired action/quantity columns empty', () => {
+  const p = setup();
+  const headers = ['Timestamp', '3. 車號', '1. 停車場區域', '2. 回報項目 / 動作', '3. 車輛數量 (輛)', '4. 備註', '2. 目前剩餘汽車停車位', '3. 目前剩餘機車停車位'];
+  const rows = p.ctx.buildTestDataRows_('parking', { area: 'C', car: 'G', motorcycle: 'H' }, headers, new Date());
+  assert.equal(rows.length, 7);
+  assert.deepEqual(Array.from(rows[0].slice(1)), ['', '五都日出', '', '', '測試資料', 650, 80]);
+  assert.equal(rows[3][6], 0);
+  assert.equal(rows[5][7], 0);
+  assert.equal(rows[6][7], 0);
+  assert.ok(rows.every(row => Number.isFinite(row[0].getTime())));
 });
