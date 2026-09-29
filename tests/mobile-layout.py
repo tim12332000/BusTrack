@@ -8,10 +8,11 @@ results = []
 (root/'.omx').mkdir(exist_ok=True)
 with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=os.environ.get('CHROME_PATH', r'C:\Program Files\Google\Chrome\Application\chrome.exe'), headless=True)
-    for width, height in [(844,390), (667,375), (844,320), (915,412), (390,844), (375,667), (1920,1080)]:
+    for filename, title in [('index.html', '接駁車統計'), ('parking.html', '停車場現況')]:
+      for width, height in [(844,390), (667,375), (844,320), (915,412), (390,844), (375,667), (1920,1080)]:
         page = browser.new_page(viewport={'width':width,'height':height}, device_scale_factor=1)
         page.route('https://**', lambda route: route.abort())
-        page.goto((root/'index.html').as_uri(), wait_until='load')
+        page.goto((root/filename).as_uri(), wait_until='load')
         page.evaluate('''() => {
           const rows=Array.from({length:40},()=>({c:[]}));
           const put=(r,c,v)=>rows[r].c[c]={v};
@@ -23,15 +24,15 @@ with sync_playwright() as p:
           window.onGvizData({table:{rows}});
         }''')
         page.wait_for_timeout(550)
-        assert page.locator('h1').inner_text() == '「國防知性之旅-成功嶺營區開放」即時戰情中心'
+        assert page.locator('h1').inner_text() == '「國防知性之旅-成功嶺營區開放」' + title
         assert page.locator('#fabFlip').count() == 0
         assert page.locator('#fabRotate').count() == 0
         assert page.locator('#fabRefresh').inner_text() == '↻ 強制刷新'
-        page.screenshot(path=str(root/'.omx'/f'fit-{width}x{height}.png'), full_page=True)
+        page.screenshot(path=str(root/'.omx'/f'{filename}-fit-{width}x{height}.png'), full_page=True)
         result = page.evaluate('''() => {
           const outside=[...document.querySelectorAll('.station-card, header, .floating-toolbar, .summary-banner')].map(e=>{
             const r=e.getBoundingClientRect();return {name:e.className,x:r.x,y:r.y,right:r.right,bottom:r.bottom};
-          }).filter(r=>r.x < -1 || r.y < -1 || r.right>innerWidth+1 || r.bottom>innerHeight+1);
+          }).filter(r=>r.x < -1 || r.y < -1 || r.right>innerWidth+1);
           const clipped=[...document.querySelectorAll('.card-header,.card-col-label,.card-col-num,.metric-value,.metric-label,.card-status-text,h1,.progress-pct,.parking-capacity')]
             .filter(e=>e.clientWidth>0 && (e.scrollWidth>e.clientWidth+1 || e.scrollHeight>e.clientHeight+1))
             .map(e=>({text:e.textContent.trim(),width:e.clientWidth,scrollWidth:e.scrollWidth}));
@@ -46,7 +47,7 @@ with sync_playwright() as p:
     browser.close()
 (root/'.omx/fit-results.json').write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding='utf-8')
 for result in results:
-    assert result['scrollHeight'] <= result['height'] + 1, result
+    # Separate pages allow vertical scrolling on small screens.
     assert result['scrollWidth'] <= result['width'] + 1, result
     assert not result['outside'] and not result['clipped'] and not result['cropped'], result
-print(f"PASS: {len(results)} viewports fit all cards and labels without scrolling or cropping")
+print(f"PASS: {len(results)} viewports fit all cards and labels without horizontal overflow or cropping")

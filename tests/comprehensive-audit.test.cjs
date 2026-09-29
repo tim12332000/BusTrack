@@ -8,6 +8,7 @@ const indexPath = path.join(__dirname, '../index.html');
 const screenPath = path.join(__dirname, '../戰情大螢幕.html');
 const indexHtml = fs.readFileSync(indexPath, 'utf8');
 const screenHtml = fs.readFileSync(screenPath, 'utf8');
+const parkingHtml = fs.readFileSync('parking.html', 'utf8');
 
 test('1. 雙入口檔案 (index.html 與 戰情大螢幕.html) 內容 100% 絕對一致', () => {
   assert.equal(indexHtml, screenHtml, '兩份 HTML 檔案內容必須完全相同');
@@ -94,13 +95,13 @@ test('4. 前端所有業務 DOM ID 存在性檢驗 (不可漏掉任何一個)', 
 
   for (const id of requiredIds) {
     const re = new RegExp(`id="${id}"`);
-    assert.ok(re.test(indexHtml), `DOM 中必須包含 id="${id}"`);
+    assert.ok(re.test(indexHtml + parkingHtml), `DOM 中必須包含 id="${id}"`);
   }
 });
 
-test('5. 模擬 JavaScript 全功能運作 (即時數據解析、數值格式化、邊界處理)', () => {
+for (const pageHtml of [indexHtml, parkingHtml]) test('5. 模擬 JavaScript 全功能運作 (即時數據解析、數值格式化、邊界處理)', () => {
   const dom = new Map();
-  for (const m of indexHtml.matchAll(/id="([^"]+)"[^>]*>([^<]*)/g)) {
+  for (const m of pageHtml.matchAll(/id="([^"]+)"[^>]*>([^<]*)/g)) {
     dom.set(m[1], {
       textContent: m[2],
       style: {},
@@ -116,7 +117,7 @@ test('5. 模擬 JavaScript 全功能運作 (即時數據解析、數值格式化
     });
   }
 
-  const scriptMatch = indexHtml.match(/<script>([\s\S]*?)<\/script>/);
+  const scriptMatch = pageHtml.match(/<script>([\s\S]*?)<\/script>/);
   assert.ok(scriptMatch, '必須存在 <script>');
   const scriptContent = scriptMatch[1];
 
@@ -195,14 +196,17 @@ test('5. 模擬 JavaScript 全功能運作 (即時數據解析、數值格式化
   fakeWindow.onGvizData({ status: 'ok', table: { rows: mockRows } });
 
   // 斷言更新後的 DOM 數值
+  if (pageHtml === indexHtml) {
   assert.equal(dom.get('busTotalIn').textContent, '4,500');
   assert.equal(dom.get('busTotalOut').textContent, '3,000');
   assert.equal(dom.get('busTotalRate').textContent, '66.7%');
   assert.equal(dom.get('bus1In').textContent, '1,000');
   assert.equal(dom.get('bus1Out').textContent, '800');
   assert.equal(dom.get('walkTotalIn').textContent, '1,500');
+  } else {
   assert.equal(dom.get('park1Cars').textContent, '100');
   assert.equal(dom.get('park4Cars').textContent, '—');
   assert.equal(dom.get('park6Motorcycles').textContent, '—');
   assert.equal(dom.get('parkReported').textContent, '7/7 處');
+  }
 });

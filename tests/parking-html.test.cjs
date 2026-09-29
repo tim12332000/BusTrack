@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
+const html = fs.readFileSync(path.join(__dirname, '../parking.html'), 'utf8');
 
 function page() {
   const nodes = new Map([...html.matchAll(/id="([^"]+)"[^>]*>([^<]*)/g)].map((m) => [m[1], {
@@ -32,7 +32,9 @@ function fixture({ legacy = false, missing = false, offset = 0 } = {}) {
 }
 
 test('both HTML entry points remain identical and parking has no occupancy controls', () => {
-  assert.equal(html, fs.readFileSync(path.join(__dirname, '../戰情大螢幕.html'), 'utf8'));
+  assert.equal(fs.readFileSync('index.html', 'utf8'), fs.readFileSync('戰情大螢幕.html', 'utf8'));
+  assert.ok(!html.includes('id="busTotalIn"'));
+  assert.ok(!fs.readFileSync('index.html', 'utf8').includes('id="parkingSection"'));
   assert.doesNotMatch(html, /id="park(?:TotalIn|TotalRate|MainBar|\d+(?:In|Remain|Bar|Status))"/);
 });
 
@@ -45,8 +47,6 @@ test('new schema preserves zero remaining cars, independent motorcycle counts an
   assert.equal(p.text('park4Cars'), '—');
   assert.equal(p.text('park7Cars'), '0');
   assert.equal(p.text('parkReported'), '7/7 處');
-  assert.equal(p.text('busTotalIn'), '14');
-  assert.equal(p.text('busTotalOut'), '6');
 });
 
 test('missing or invalid reports stay unknown and do not become zero or assumed capacity', () => {
@@ -66,7 +66,6 @@ test('legacy cloud data clears previous parking values and asks for migration', 
   assert.equal(p.text('park1Cars'), '未回報');
   assert.equal(p.text('parkTotalMotorcycles'), '未完整回報');
   assert.match(p.text('parkingNote'), /等待更新/);
-  assert.equal(p.text('busTotalIn'), '14');
 });
 
 test('capacity stays secondary and never initializes current remaining availability', () => {
