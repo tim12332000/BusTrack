@@ -62,17 +62,50 @@ function lingdongTotalFormula(sheetName, columns, direction) {
   return `=IF(${reports}=0,"未回報",LET(buses,FILTER(${range("bus")},${conditions}),counts,FILTER(${range("quantity")},${conditions}),SUM(MAP(UNIQUE(buses),LAMBDA(vehicle,XLOOKUP(vehicle,buses,counts,0,0,-1))))))`;
 }
 
-// 使用者提供的總容量；不代表目前剩餘車位。名稱前的 * 是正式標記。
+// 使用者提供的總容量；不代表目前剩餘車位。照片空白欄位代表未提供該車種。
 const PARKING_LOTS = [
-  { name: "五都日出", motorcycle: 168, car: 1008, tagColor: "#2563EB" },
-  { name: "新烏日", motorcycle: 352, car: 266, tagColor: "#059669" },
-  { name: "*嶺東科大", motorcycle: 800, car: 90, tagColor: "#D97706" },
-  { name: "*台中科大", motorcycle: 200, car: 0, tagColor: "#7C3AED" },
-  { name: "水湳轉運站", motorcycle: 1253, car: 614, tagColor: "#DB2777" },
-  { name: "*經貿六", motorcycle: 0, car: 563, tagColor: "#0D9488" },
-  { name: "*經貿八", motorcycle: 0, car: 482, tagColor: "#475569" }
+  { group: "4號門", name: "CITYPARKING春安站", motorcycle: 29, car: 81 },
+  { group: "4號門", name: "協弘停車場", motorcycle: 0, car: 59 },
+  { group: "4號門", name: "嶺東科大", motorcycle: 845, car: 0 },
+  { group: "新烏日站", name: "五都日出", motorcycle: 168, car: 1008 },
+  { group: "新烏日站", name: "嘟嘟房高鐵臺中站", motorcycle: 736, car: 1537 },
+  { group: "新烏日站", name: "城市車旅高鐵五路三站", motorcycle: 0, car: 184 },
+  { group: "新烏日站", name: "城市車旅烏日高鐵一站", motorcycle: 0, car: 390 },
+  { group: "新烏日站", name: "TIMES烏日高鐵五路第2P", motorcycle: 0, car: 92 },
+  { group: "新烏日站", name: "城市車旅-高鐵五路站", motorcycle: 0, car: 108 },
+  { group: "新烏日站", name: "烏日臻愛站", motorcycle: 191, car: 187 },
+  { group: "新烏日站", name: "城市車旅烏日高鐵二站P", motorcycle: 0, car: 518 },
+  { group: "新烏日站", name: "五都高鐵烏日二站P", motorcycle: 0, car: 101 },
+  { group: "新烏日站", name: "TIMES烏日高鐵五路P", motorcycle: 0, car: 63 },
+  { group: "新烏日站", name: "五都高鐵烏日一站P", motorcycle: 0, car: 75 },
+  { group: "新烏日站", name: "五都新幹線", motorcycle: 0, car: 325 },
+  { group: "新烏日站", name: "城市車旅烏日高鐵三站P", motorcycle: 0, car: 82 },
+  { group: "新烏日站", name: "大車河新烏日地下停車場", motorcycle: 352, car: 266 },
+  { group: "水湳轉運站", name: "水湳轉運站停車場", motorcycle: 1253, car: 614 },
+  { group: "水湳轉運站", name: "經貿6停車場", motorcycle: 318, car: 600 },
+  { group: "水湳轉運站", name: "經貿8停車場", motorcycle: 703, car: 580 },
+  { group: "水湳轉運站", name: "中央公園北側停車場", motorcycle: 0, car: 401 },
+  { group: "水湳轉運站", name: "臺中國際會展停車場", motorcycle: 712, car: 699 },
+  { group: "水湳轉運站", name: "綠美圖停車場", motorcycle: 386, car: 335 }
 ];
 const PARKING_FORM_TITLE = "「國防知性之旅-成功嶺營區開放」停車場剩餘車位回報";
+
+// 一次性更新：只改既有停車場表單的場地選項，不建立表單、不刪除歷史回應。
+function updateParkingLotChoices() {
+  const id = PropertiesService.getScriptProperties().getProperty("PARKING_FORM_ID");
+  if (!id) throw new Error("找不到既有停車場表單 ID，未修改表單。");
+  const form = FormApp.openById(id);
+  if (form.getPublishedUrl() !== "https://docs.google.com/forms/d/e/1FAIpQLSdNP01CZkqh5EeCkfmzrwQpQcPCw0fmXZmkQ50FVbvJrxUIPA/viewform" ||
+      form.getDestinationId() !== TARGET_SPREADSHEET_ID) {
+    throw new Error("停車場表單網址或目的試算表不符，未修改表單。");
+  }
+  const items = form.getItems().filter(item => /停車場區域/.test(item.getTitle()));
+  if (items.length !== 1 || items[0].getType() !== FormApp.ItemType.MULTIPLE_CHOICE) {
+    throw new Error("停車場區域題目缺少、重複或型別不符，未修改表單。");
+  }
+  items[0].asMultipleChoiceItem().setChoiceValues(PARKING_LOTS.map(lot => lot.name));
+  Logger.log("已更新既有停車場表單的 23 處場地選項，歷史回應保留。");
+}
 
 function findParkingFormFile() {
   const found = [];
@@ -169,6 +202,27 @@ function parkingReportedCondition(lot, index) {
   if (lot.car > 0) conditions.push(`ISNUMBER(${responseColumnLetter(index * 4)}34)`);
   if (lot.motorcycle > 0) conditions.push(`ISNUMBER(${responseColumnLetter(index * 4 + 2)}34)`);
   return `AND(${conditions.join(",")})`;
+}
+
+// 提供停車場獨立網址讀取的直式資料；資料由目前回應分頁中同名場地的最新回報取得。
+function rebuildParkingStatusSheet(ss, sheetName, columns) {
+  let statusSheet = ss.getSheetByName("停車場現況");
+  if (!statusSheet) statusSheet = ss.insertSheet("停車場現況");
+  const requiredRows = PARKING_LOTS.length + 1;
+  if (statusSheet.getMaxRows() < requiredRows) statusSheet.insertRowsAfter(statusSheet.getMaxRows(), requiredRows - statusSheet.getMaxRows());
+  if (statusSheet.getMaxColumns() < 6) statusSheet.insertColumnsAfter(statusSheet.getMaxColumns(), 6 - statusSheet.getMaxColumns());
+  statusSheet.getRange(1, 1, statusSheet.getMaxRows(), 6).clear();
+  statusSheet.getRange(1, 1, 1, 6).setValues([["區域", "停車場", "剩餘汽車位", "剩餘機車位", "汽車容量", "機車容量"]])
+    .setBackground("#1E293B").setFontColor("#FFFFFF").setFontWeight("bold");
+  PARKING_LOTS.forEach((lot, index) => {
+    const row = index + 2;
+    statusSheet.getRange(row, 1, 1, 2).setValues([[lot.group, lot.name]]);
+    statusSheet.getRange(row, 3).setFormula(parkingRemainingFormula(sheetName, columns, "car", lot.name, lot.car));
+    statusSheet.getRange(row, 4).setFormula(parkingRemainingFormula(sheetName, columns, "motorcycle", lot.name, lot.motorcycle));
+    statusSheet.getRange(row, 5, 1, 2).setValues([[lot.car || "", lot.motorcycle || ""]]);
+  });
+  if (statusSheet.setFrozenRows) statusSheet.setFrozenRows(1);
+  if (statusSheet.autoResizeColumns) statusSheet.autoResizeColumns(1, 6);
 }
 
 function responseColumnLetter(index) {
@@ -476,63 +530,8 @@ function createMultiStationBusSystem(dashboardOnly) {
     dashboardSheet.getRange(20, col, 5, 8).setBorder(true, true, true, true, true, true, "#CBD5E1", SpreadsheetApp.BorderStyle.SOLID);
   });
 
-  // -------------------------------------------------------------------------
-  // 區塊三：七處最新剩餘汽車與機車位 (第 26~29 列)
-  // -------------------------------------------------------------------------
-  dashboardSheet.getRange(26, 1, 1, 24).merge()
-    .setValue("🅿️ 汽機車停車場剩餘車位")
-    .setBackground(THEME_HEADER_BG).setFontColor("#FBBF24").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
-
-  dashboardSheet.getRange(27, 1, 1, 8).merge().setValue("🚗 剩餘汽車位（總容量 3,023）").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  // 只加總有提供該車種的場地；未回報不可當成 0。
-  dashboardSheet.getRange(28, 1, 1, 8).merge().setFormula(parkingTotalFormula("car")).setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
-
-  dashboardSheet.getRange(27, 9, 1, 8).merge().setValue("🛵 剩餘機車位（總容量 2,773）").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange(28, 9, 1, 8).merge().setFormula(parkingTotalFormula("motorcycle")).setBackground("#1E293B").setFontColor("#38BDF8").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
-
-  dashboardSheet.getRange(27, 17, 1, 8).merge().setValue("📋 已回報區域").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange(28, 17, 1, 8).merge().setFormula(`=SUM(${PARKING_LOTS.map((lot, i) => `N(${parkingReportedCondition(lot, i)})`).join(",")})&"/7 處"`).setBackground("#1E293B").setFontColor("#FBBF24").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
-
-  dashboardSheet.getRange(29, 1, 1, 24).merge().setValue("最新剩餘／總容量；0 表示已停滿，— 表示無該車種，未回報不列為 0。").setBackground(THEME_HEADER_BG).setFontColor("#94A3B8").setHorizontalAlignment("center");
-  dashboardSheet.getRange(26, 1, 4, 24).setBorder(true, true, true, true, true, true, "#334155", SpreadsheetApp.BorderStyle.SOLID);
-
-  // -------------------------------------------------------------------------
-  // 區塊四：七處汽車／機車剩餘車位 (第 31~36 列)
-  // -------------------------------------------------------------------------
-  dashboardSheet.getRange(31, 1, 1, 28).merge()
-    .setValue("各停車場即時剩餘車位（7處）")
-    .setBackground("#334155").setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("left");
-
-  PARKING_LOTS.forEach((lot, index) => {
-    const col = index * 4 + 1;
-    // 標題 (Row 32)
-    dashboardSheet.getRange(32, col, 1, 4).merge()
-      .setValue(lot.name)
-      .setBackground(lot.tagColor).setFontColor("#FFFFFF").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
-
-    // 標籤 (Row 33)
-    dashboardSheet.getRange(33, col, 1, 2).merge().setValue("剩餘汽車位").setBackground("#F8FAFC").setFontColor("#64748B").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
-    dashboardSheet.getRange(33, col + 2, 1, 2).merge().setValue("剩餘機車位").setBackground("#F8FAFC").setFontColor("#64748B").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("center");
-
-
-    // 數值 (Row 34)
-    dashboardSheet.getRange(34, col, 1, 2).merge()
-      .setFormula(parkingRemainingFormula(parkingSheetName, parking.columns, "car", lot.name, lot.car))
-      .setBackground("#FFFFFF").setFontColor("#0F172A").setFontWeight("bold").setFontSize(22).setHorizontalAlignment("center");
-
-    dashboardSheet.getRange(34, col + 2, 1, 2).merge()
-      .setFormula(parkingRemainingFormula(parkingSheetName, parking.columns, "motorcycle", lot.name, lot.motorcycle))
-      .setBackground("#FFFFFF").setFontColor("#0284C7").setFontWeight("bold").setFontSize(22).setHorizontalAlignment("center");
-
-    // 回報狀態 (Row 35)
-    dashboardSheet.getRange(35, col, 1, 4).merge()
-      .setFormula(`=IF(${parkingReportedCondition(lot, index)},"已回報","未完整回報")`)
-      .setBackground("#F8FAFC").setFontColor("#0F172A").setFontWeight("bold").setFontSize(10).setHorizontalAlignment("center");
-
-    dashboardSheet.getRange(36, col, 1, 4).merge().setValue(`總容量：汽車 ${lot.car || "—"}／機車 ${lot.motorcycle || "—"}`)
-      .setBackground("#F8FAFC").setFontColor("#64748B").setFontSize(10).setHorizontalAlignment("center");
-    dashboardSheet.getRange(32, col, 5, 4).setBorder(true, true, true, true, true, true, "#CBD5E1", SpreadsheetApp.BorderStyle.SOLID);
-  });
+  // 停車場改由獨立的「停車場現況」分頁供停車場網址讀取；不再受舊七場橫向欄位限制。
+  rebuildParkingStatusSheet(ss, parkingSheetName, parking.columns);
 
   // 在既有區塊後追加；前端依 A 欄標題辨識，下一列 A/B 為進場/離場。
   dashboardSheet.getRange(38, 1, 1, 2).setValues([["進場", "離場"]]);

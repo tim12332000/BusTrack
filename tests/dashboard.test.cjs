@@ -64,7 +64,8 @@ test('repair preserves response sheets, follows moved columns and escapes sheet 
   const dashboard = ss.getSheetByName('總即時戰情看板');
   const formulas = dashboard.writes.filter(w => w.method === 'setFormula').map(w => w.values[0]);
   assert.ok(formulas.some(f => f.includes("SUMIFS('People''s replies'!AA:AA")));
-  assert.ok(formulas.some(f => f.includes("'Form Responses 2'!D2:D") && f.includes('XLOOKUP')));
+  const parkingFormulas = ss.getSheetByName('停車場現況').writes.filter(w => w.method === 'setFormula').map(w => w.values[0]);
+  assert.ok(parkingFormulas.some(f => f.includes("'Form Responses 2'!D2:D") && f.includes('XLOOKUP')));
   assert.ok(!formulas.some(f => f.includes("SUMIFS('Form Responses 2'")));
 });
 
@@ -112,7 +113,9 @@ test('form migration is idempotent and does not reuse old quantity as remaining 
   assert.equal(items.length, 4);
   assert.equal(items[0], area); assert.equal(items[3], note);
   assert.ok(!items.includes(quantity));
-  assert.deepEqual(Array.from(items[0].choices), ['五都日出', '新烏日', '*嶺東科大', '*台中科大', '水湳轉運站', '*經貿六', '*經貿八']);
+  assert.equal(items[0].choices.length, 23);
+  assert.deepEqual(Array.from(items[0].choices.slice(0, 3)), ['CITYPARKING春安站', '協弘停車場', '嶺東科大']);
+  assert.deepEqual(Array.from(items[0].choices.slice(-3)), ['中央公園北側停車場', '臺中國際會展停車場', '綠美圖停車場']);
   for (const i of items.slice(1, 3)) {
     assert.equal(i.required, true);
     const re = new RegExp(i.validation);
@@ -121,28 +124,25 @@ test('form migration is idempotent and does not reuse old quantity as remaining 
   }
 });
 
-test('seven-site capacity totals and formulas exclude unsupported vehicle types', () => {
+test('photo parking capacity totals and formulas preserve unsupported vehicle types', () => {
   const { ctx, ss } = context([sheet('people', peopleHeaders), sheet('parking', parkingHeaders)]);
-  assert.equal(vm.runInContext('PARKING_LOTS.reduce((sum, lot) => sum + lot.car, 0)', ctx), 3023);
-  assert.equal(vm.runInContext('PARKING_LOTS.reduce((sum, lot) => sum + lot.motorcycle, 0)', ctx), 2773);
-  assert.equal(ctx.parkingRemainingFormula('parking', {}, 'car', '*台中科大', 0), '="不提供"');
-  assert.equal(ctx.parkingTotalFormula('car'), '=IF(COUNT(A34,E34,I34,Q34,U34,Y34)=6,SUM(A34,E34,I34,Q34,U34,Y34),"未完整回報")');
-  assert.equal(ctx.parkingTotalFormula('motorcycle'), '=IF(COUNT(C34,G34,K34,O34,S34)=5,SUM(C34,G34,K34,O34,S34),"未完整回報")');
+  assert.equal(vm.runInContext('PARKING_LOTS.length', ctx), 23);
+  assert.equal(vm.runInContext('PARKING_LOTS.reduce((sum, lot) => sum + lot.car, 0)', ctx), 8305);
+  assert.equal(vm.runInContext('PARKING_LOTS.reduce((sum, lot) => sum + lot.motorcycle, 0)', ctx), 5693);
+  assert.equal(ctx.parkingRemainingFormula('parking', {}, 'car', '嶺東科大', 0), '="不提供"');
   ctx.repairDashboard();
-  const dashboard = ss.getSheetByName('總即時戰情看板');
-  assert.equal(dashboard.getMaxColumns(), 28);
-  const seventhCar = dashboard.writes.find(w => w.method === 'setFormula' && w.args[0] === 34 && w.args[1] === 25);
-  assert.ok(seventhCar.values[0].includes('"*經貿八"'));
-  assert.ok(seventhCar.values[0].includes('latest<=482'));
-  const seventhMoto = dashboard.writes.find(w => w.method === 'setFormula' && w.args[0] === 34 && w.args[1] === 27);
-  assert.equal(seventhMoto.values[0], '="不提供"');
+  const status = ss.getSheetByName('停車場現況');
+  const formulas = status.writes.filter(w => w.method === 'setFormula').map(w => w.values[0]);
+  assert.equal(formulas.length, 46);
+  assert.ok(formulas.some(formula => formula.includes('"CITYPARKING春安站"') && formula.includes('latest<=81')));
+  assert.ok(formulas.some(formula => formula.includes('"綠美圖停車場"') && formula.includes('latest<=386')));
 });
 test('duplicate question columns are rejected instead of guessing', () => {
   const { ctx, ss } = context([sheet('people', [...peopleHeaders, '4. 人數'])]);
   assert.throws(() => ctx.findResponseSource(ss, 'people'), /無法唯一辨識/);
 });
 
-test('final shuttle points preserve existing cell positions and append Lingdong without changing parking', () => {
+test('final shuttle points preserve existing cell positions and create separate parking status', () => {
   const people = sheet('people', peopleHeaders);
   const parking = sheet('parking', parkingHeaders);
   const { ctx, ss } = context([people, parking]);
@@ -175,6 +175,8 @@ test('final shuttle points preserve existing cell positions and append Lingdong 
   }
   assert.equal(people.writes.length, 0);
   assert.equal(parking.writes.length, 0);
+  const status = ss.getSheetByName('停車場現況');
+  assert.ok(status);
   const details = JSON.stringify(ss.getSheetByName('各車即時明細').writes);
   assert.ok(details.includes('SEARCH(\\"新烏日\\"'));
 });

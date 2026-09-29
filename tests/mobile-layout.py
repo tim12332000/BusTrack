@@ -18,10 +18,14 @@ with sync_playwright() as p:
           const put=(r,c,v)=>rows[r].c[c]={v};
           put(0,0,12345);put(0,8,6789);
           put(36,0,'嶺東科大-寶文校區接駁統計');put(37,0,1500);put(37,1,700);
-          put(25,0,'🅿️ 汽機車停車場剩餘車位');
-          put(27,0,1805);put(27,8,1780);
-          put(30,0,'各停車場即時剩餘車位（7處）');
-          for(let i=0;i<7;i++){put(33,i*4,i===3?'不提供':200);put(33,i*4+2,i>=5?'不提供':100);}
+          if (document.getElementById('parkingGroups')) {
+            PARKING_LOTS.forEach((lot,i) => { put(i,0,lot.group);put(i,1,lot.name);put(i,2,lot.cars);put(i,3,lot.motorcycles); });
+          } else {
+            put(25,0,'🅿️ 汽機車停車場剩餘車位');
+            put(27,0,1805);put(27,8,1780);
+            put(30,0,'各停車場即時剩餘車位（7處）');
+            for(let i=0;i<7;i++){put(33,i*4,i===3?'不提供':200);put(33,i*4+2,i>=5?'不提供':100);}
+          }
           window.onGvizData({table:{rows}});
         }''')
         page.wait_for_timeout(550)
@@ -30,6 +34,10 @@ with sync_playwright() as p:
             assert page.locator('.station-card').count() == 7
             assert page.locator('#bus5In').inner_text() == '1,500'
             assert page.locator('#walk3In').count() == 0
+        else:
+            assert page.locator('#parkingGroups .station-card').count() == 23
+            assert page.locator('#parkTotalCars').inner_text() == '8,305'
+            assert page.locator('#parkTotalMotorcycles').inner_text() == '5,693'
         assert page.locator('#fabFlip').count() == 0
         assert page.locator('#fabRotate').count() == 0
         assert page.locator('#fabRefresh').inner_text() == '↻ 強制刷新'
