@@ -141,6 +141,109 @@ test('duplicate question columns are rejected instead of guessing', () => {
   const { ctx, ss } = context([sheet('people', [...peopleHeaders, '4. 人數'])]);
   assert.throws(() => ctx.findResponseSource(ss, 'people'), /無法唯一辨識/);
 });
+
+test('final shuttle points preserve existing cell positions and append Lingdong without changing parking', () => {
+  const people = sheet('people', peopleHeaders);
+  const parking = sheet('parking', parkingHeaders);
+  const { ctx, ss } = context([people, parking]);
+  ctx.repairDashboard();
+  const writes = ss.getSheetByName('總即時戰情看板').writes;
+  const formula = (row, col) => writes.find(w => w.method === 'setFormula' && w.args[0] === row && w.args[1] === col).values[0];
+  const value = (row, col) => writes.find(w => w.method === 'setValue' && w.args[0] === row && w.args[1] === col).values[0];
+  assert.equal(value(8, 7), '🚌 新烏日車站');
+  assert.equal(value(20, 1), '🚶 1號門');
+  assert.equal(value(20, 9), '🚶 3號門');
+  assert.ok(!JSON.stringify(writes).includes('4號門'));
+  assert.equal(value(39, 1), '嶺東科大-寶文校區接駁統計');
+  assert.equal(formula(4, 1), '=IF(ISNUMBER(A40),A10+G10+M10+S10+A40,"未完整回報")');
+  assert.equal(formula(4, 9), '=IF(ISNUMBER(B40),D10+J10+P10+V10+B40,"未完整回報")');
+  assert.ok(formula(4, 17).startsWith('=IF(AND(ISNUMBER(A4),ISNUMBER(I4)),IF('));
+  assert.ok(formula(5, 7).startsWith('=IF(AND(ISNUMBER(A4),ISNUMBER(I4)),IF('));
+  assert.equal(formula(16, 1), '=A22+I22');
+  assert.equal(formula(16, 9), '=E22+M22');
+  for (const [col, direction] of [[1, '進場'], [2, '離場']]) {
+    const total = formula(40, col);
+    assert.ok(total.includes('MAP(UNIQUE(buses),LAMBDA(vehicle,XLOOKUP(vehicle,buses,counts,0,0,-1)))'));
+    assert.ok(total.includes(`SEARCH("${direction}",'people'!B2:B)`));
+    assert.ok(total.includes('SEARCH("嶺東科大-寶文校區",\'people\'!C2:C)'));
+    assert.ok(total.includes("FILTER('people'!E2:E"));
+    assert.ok(total.includes("FILTER('people'!D2:D"));
+    assert.ok(total.startsWith('=IF(COUNTIFS('));
+    assert.ok(total.includes('=0,"未回報",LET('));
+    assert.ok(!total.includes('IFERROR'));
+    assert.ok(!total.includes('SUMIFS'));
+  }
+  assert.equal(people.writes.length, 0);
+  assert.equal(parking.writes.length, 0);
+  const details = JSON.stringify(ss.getSheetByName('各車即時明細').writes);
+  assert.ok(details.includes('SEARCH(\\"新烏日\\"'));
+});
+
+test('repair removes obsolete gate display before repainting without changing historical responses', () => {
+  const people = sheet('people', peopleHeaders);
+  const parking = sheet('parking', parkingHeaders);
+  const dashboard = sheet('總即時戰情看板');
+  const { ctx } = context([people, parking, dashboard]);
+  ctx.repairDashboard();
+  ctx.repairDashboard();
+  const clears = dashboard.writes.filter(w => w.method === 'clear');
+  assert.equal(clears.length, 2);
+  assert.ok(clears.every(w => w.args[0] === 1 && w.args[1] === 1 && w.args[2] >= 24 && w.args[3] >= 24));
+  assert.ok(!dashboard.writes.some(w => w.method === 'setValue' && String(w.values[0]).includes('4號門')));
+  assert.equal(people.writes.length, 0);
+  assert.equal(parking.writes.length, 0);
+});
+
+function peopleFormContext(overrides = {}) {
+  const { ctx } = context([]);
+  const updates = [];
+  const station = { getTitle: () => '2. 站點 / 門號', getType: () => 'choice',
+    asMultipleChoiceItem() { return this; }, setChoiceValues(values) { updates.push(Array.from(values)); } };
+  const form = {
+    getPublishedUrl: () => 'https://docs.google.com/forms/d/e/1FAIpQLSeCDaMu9LlQhgwJKdzr6uCw2VX44ni5eO1Dn6gRePX4ur3dKw/viewform',
+    getDestinationId: () => '1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w',
+    getItems: () => [{ getTitle: () => '1. 方向' }, station, { getTitle: () => '4. 人數' }],
+    ...overrides
+  };
+  ctx.FormApp = { ItemType: { MULTIPLE_CHOICE: 'choice' }, openById(id) { assert.equal(id, 'people-form'); return form; } };
+  ctx.DriveApp = { getFilesByName(title) {
+    assert.equal(title, '「國防知性之旅-成功嶺營區開放」人數回報');
+    let remaining = 1;
+    return { hasNext: () => remaining > 0, next() { remaining--; return { getId: () => 'people-form' }; } };
+  } };
+  return { ctx, updates, station };
+}
+
+test('station update changes only original people form choices and is safe to repeat', () => {
+  const { ctx, updates } = peopleFormContext();
+  ctx.updatePeopleStationChoices();
+  ctx.updatePeopleStationChoices();
+  assert.deepEqual(updates, Array(2).fill([
+    '🚌 成功車站', '🚌 新烏日車站', '🚌 水湳轉運站', '🚌 經貿六停車場',
+    '🚌 嶺東科大-寶文校區', '🚶 1號門', '🚶 3號門'
+  ]));
+});
+
+test('station update refuses wrong form, destination or ambiguous question without writing', () => {
+  for (const overrides of [
+    { getPublishedUrl: () => 'parking-form' },
+    { getDestinationId: () => 'other-sheet' },
+    { getItems: () => [] },
+    { getItems: () => [{ getTitle: () => '站點 / 門號', getType: () => 'text' }] },
+    { getItems: () => Array(2).fill({ getTitle: () => '站點 / 門號' }) }
+  ]) {
+    const { ctx, updates } = peopleFormContext(overrides);
+    assert.throws(() => ctx.updatePeopleStationChoices(), /停止更新|未修改表單/);
+    assert.deepEqual(updates, []);
+  }
+  for (const count of [0, 2]) {
+    const { ctx, updates } = peopleFormContext();
+    let remaining = count;
+    ctx.DriveApp = { getFilesByName: () => ({ hasNext: () => remaining > 0, next() { remaining--; return {}; } }) };
+    assert.throws(() => ctx.updatePeopleStationChoices(), /找不到唯一符合既有網址與目的試算表的人員表單/);
+    assert.deepEqual(updates, []);
+  }
+});
 test('both screen copies request dashboard by name and inline JavaScript parses', () => {
   for (const name of ['index.html', '戰情大螢幕.html']) {
     const html = fs.readFileSync(name, 'utf8');

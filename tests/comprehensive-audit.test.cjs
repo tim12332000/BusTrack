@@ -80,7 +80,7 @@ test('4. 前端所有業務 DOM ID 存在性檢驗 (不可漏掉任何一個)', 
     // 3 大步行門卡片
     'walk1In', 'walk1Out', 'walk1Status', 'walk1Bar',
     'walk2In', 'walk2Out', 'walk2Status', 'walk2Bar',
-    'walk3In', 'walk3Out', 'walk3Status', 'walk3Bar',
+    'bus5In', 'bus5Out', 'bus5Status', 'bus5Bar',
     // 停車場大盤
     'parkingSection', 'parkingNote', 'parkTotalCars', 'parkTotalMotorcycles', 'parkReported',
     // 7 處停車場卡片
@@ -184,6 +184,9 @@ for (const pageHtml of [indexHtml, parkingHtml]) test('5. 模擬 JavaScript 全�
   put(14, 8, 500); put(14, 12, 400);
   put(14, 16, 400); put(14, 20, 300);
 
+  put(38, 0, '嶺東科大-寶文校區接駁統計');
+  put(39, 0, 300); put(39, 1, 100);
+
   // 停車場
   put(25, 0, '🅿️ 汽機車停車場剩餘車位');
   put(27, 0, 1200); put(27, 8, 1500);
@@ -197,12 +200,12 @@ for (const pageHtml of [indexHtml, parkingHtml]) test('5. 模擬 JavaScript 全�
 
   // 斷言更新後的 DOM 數值
   if (pageHtml === indexHtml) {
-  assert.equal(dom.get('busTotalIn').textContent, '4,500');
-  assert.equal(dom.get('busTotalOut').textContent, '3,000');
-  assert.equal(dom.get('busTotalRate').textContent, '66.7%');
+  assert.equal(dom.get('busTotalIn').textContent, '4,800');
+  assert.equal(dom.get('busTotalOut').textContent, '3,100');
+  assert.equal(dom.get('busTotalRate').textContent, '64.6%');
   assert.equal(dom.get('bus1In').textContent, '1,000');
   assert.equal(dom.get('bus1Out').textContent, '800');
-  assert.equal(dom.get('walkTotalIn').textContent, '1,500');
+  assert.equal(dom.get('walkTotalIn').textContent, '1,100');
   } else {
   assert.equal(dom.get('park1Cars').textContent, '100');
   assert.equal(dom.get('park4Cars').textContent, '—');

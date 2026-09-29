@@ -17,6 +17,7 @@ with sync_playwright() as p:
           const rows=Array.from({length:40},()=>({c:[]}));
           const put=(r,c,v)=>rows[r].c[c]={v};
           put(0,0,12345);put(0,8,6789);
+          put(36,0,'嶺東科大-寶文校區接駁統計');put(37,0,1500);put(37,1,700);
           put(25,0,'🅿️ 汽機車停車場剩餘車位');
           put(27,0,1805);put(27,8,1780);
           put(30,0,'各停車場即時剩餘車位（7處）');
@@ -25,6 +26,10 @@ with sync_playwright() as p:
         }''')
         page.wait_for_timeout(550)
         assert page.locator('h1').inner_text() == '「國防知性之旅-成功嶺營區開放」' + title
+        if filename == 'index.html':
+            assert page.locator('.station-card').count() == 7
+            assert page.locator('#bus5In').inner_text() == '1,500'
+            assert page.locator('#walk3In').count() == 0
         assert page.locator('#fabFlip').count() == 0
         assert page.locator('#fabRotate').count() == 0
         assert page.locator('#fabRefresh').inner_text() == '↻ 強制刷新'

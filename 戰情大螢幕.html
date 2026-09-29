@@ -966,6 +966,15 @@
       .section-container { min-height: 280px; }
       #parkingSection .cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
+    .grid-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @media (max-width: 900px) {
+      .grid-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .grid-5 .card-header { white-space: normal; overflow: visible; min-height: 32px; }
+    }
+    @media (max-width: 600px) {
+      .grid-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
   </style>
 </head>
 <body class="theme-jr">
@@ -1003,7 +1012,7 @@
     <div class="summary-banner">
       <div class="banner-header">
         <span>🚌 接駁車疏運概況</span>
-        <span style="font-size: 12px; color: #64748B;">4大接駁站 / 130輛專車</span>
+        <span style="font-size: 12px; color: #64748B;">5 個接駁站</span>
       </div>
       <div class="banner-metrics">
         <div class="metric-box">
@@ -1027,11 +1036,11 @@
       </div>
     </div>
 
-    <!-- 4 大接駁車站卡片 -->
-    <div class="cards-grid grid-4">
+    <!-- 5 個接駁車站卡片 -->
+    <div class="cards-grid grid-5">
       <!-- 成功車站 -->
       <div class="station-card">
-        <div class="card-header bg-green">🚌 成功車站 (20輛)</div>
+        <div class="card-header bg-green">🚌 成功車站</div>
         <div class="card-body">
           <div class="card-col">
             <div class="card-col-label">進場</div>
@@ -1050,9 +1059,9 @@
         </div>
       </div>
 
-      <!-- 新烏日台鐵站 -->
+      <!-- 新烏日車站 -->
       <div class="station-card">
-        <div class="card-header bg-blue">🚌 新烏日台鐵站 (50輛)</div>
+        <div class="card-header bg-blue">🚌 新烏日車站</div>
         <div class="card-body">
           <div class="card-col">
             <div class="card-col-label">進場</div>
@@ -1071,9 +1080,30 @@
         </div>
       </div>
 
+      <!-- 水湳轉運站 -->
+      <div class="station-card">
+        <div class="card-header bg-amber">🚌 水湳轉運站</div>
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">進場</div>
+            <div class="card-col-num" id="bus4In">0</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">離場</div>
+            <div class="card-col-num" id="bus4Out">0</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="bus4Status">0.0% · 尚餘 0 人</div>
+          <div class="card-progress-track">
+            <div class="card-progress-fill" id="bus4Bar"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- 經貿六停車場 -->
       <div class="station-card">
-        <div class="card-header bg-amber">🚌 經貿六停車場 (40輛)</div>
+        <div class="card-header bg-amber">🚌 經貿六停車場</div>
         <div class="card-body">
           <div class="card-col">
             <div class="card-col-label">進場</div>
@@ -1092,23 +1122,23 @@
         </div>
       </div>
 
-      <!-- 水湳轉運站 -->
+      <!-- 嶺東科大-寶文校區 -->
       <div class="station-card">
-        <div class="card-header bg-amber">🚌 水湳轉運站 (20輛)</div>
+        <div class="card-header bg-purple">🚌 嶺東科大-寶文校區</div>
         <div class="card-body">
           <div class="card-col">
             <div class="card-col-label">進場</div>
-            <div class="card-col-num" id="bus4In">0</div>
+            <div class="card-col-num" id="bus5In">未回報</div>
           </div>
           <div class="card-col">
             <div class="card-col-label">離場</div>
-            <div class="card-col-num" id="bus4Out">0</div>
+            <div class="card-col-num" id="bus5Out">未回報</div>
           </div>
         </div>
         <div class="card-footer">
-          <div class="card-status-text" id="bus4Status">0.0% · 尚餘 0 人</div>
+          <div class="card-status-text" id="bus5Status">等待回報</div>
           <div class="card-progress-track">
-            <div class="card-progress-fill" id="bus4Bar"></div>
+            <div class="card-progress-fill" id="bus5Bar"></div>
           </div>
         </div>
       </div>
@@ -1122,7 +1152,7 @@
     <div class="summary-banner">
       <div class="banner-header">
         <span>🚶 步行通道疏運概況</span>
-        <span style="font-size: 12px; color: #64748B;">3大人員管制門</span>
+        <span style="font-size: 12px; color: #64748B;">1號門、3號門</span>
       </div>
       <div class="banner-metrics">
         <div class="metric-box">
@@ -1146,8 +1176,8 @@
       </div>
     </div>
 
-    <!-- 3 大步行門卡片 -->
-    <div class="cards-grid grid-3">
+    <!-- 2 個步行門卡片 -->
+    <div class="cards-grid grid-2">
       <!-- 1號門 -->
       <div class="station-card">
         <div class="card-header bg-green">🚶 1號門</div>
@@ -1190,26 +1220,6 @@
         </div>
       </div>
 
-      <!-- 4號門 -->
-      <div class="station-card">
-        <div class="card-header bg-amber">🚶 4號門</div>
-        <div class="card-body">
-          <div class="card-col">
-            <div class="card-col-label">進場</div>
-            <div class="card-col-num" id="walk3In">0</div>
-          </div>
-          <div class="card-col">
-            <div class="card-col-label">離場</div>
-            <div class="card-col-num" id="walk3Out">0</div>
-          </div>
-        </div>
-        <div class="card-footer">
-          <div class="card-status-text" id="walk3Status">0.0% · 尚餘 0 人</div>
-          <div class="card-progress-track">
-            <div class="card-progress-fill" id="walk3Bar"></div>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -1303,6 +1313,7 @@
         };
 
         // 🔍 動態語意定位：動態尋找各區塊數據所在列，100% 防止 Google Sheets 空行過濾造成的列號位移！
+        let lingdongRow = null;
         let busStationsRow = 5;
         let walkTotalRow = 9;
         let walkStationsRow = 14;
@@ -1312,6 +1323,7 @@
         rows.forEach((r, idx) => {
           if (!r || !r.c || !r.c[0]) return;
           const text = String(r.c[0].v || r.c[0].f || '');
+          if (text === '嶺東科大-寶文校區接駁統計') lingdongRow = idx + 1;
           if (text.includes('接駁車站即時數據') && rows[idx + 3]) {
             busStationsRow = idx + 3;
           } else if (text.includes('步行通道疏運概況') && rows[idx + 2]) {
@@ -1338,15 +1350,25 @@
         const b4In = getVal(busStationsRow, 18);
         const b4Out = getVal(busStationsRow, 21);
 
-        // 接駁車大盤 (Row 0)
-        const busTotalIn = getVal(0, 0) || (b1In + b2In + b3In + b4In);
-        const busTotalOut = getVal(0, 8) || (b1Out + b2Out + b3Out + b4Out);
+        const getLingdong = column => {
+          const raw = lingdongRow === null ? null : rows[lingdongRow]?.c?.[column]?.v;
+          if (raw === null || raw === undefined || String(raw).trim() === '') return null;
+          const value = Number(String(raw).replace(/,/g, ''));
+          return Number.isSafeInteger(value) && value >= 0 ? value : null;
+        };
+        const b5In = getLingdong(0);
+        const b5Out = getLingdong(1);
+        const busComplete = b5In !== null && b5Out !== null;
+
+        // 僅加總本頁定案站點；舊版大盤不含新增站點。
+        const busTotalIn = b1In + b2In + b3In + b4In + (b5In ?? 0);
+        const busTotalOut = b1Out + b2Out + b3Out + b4Out + (b5Out ?? 0);
         const busRate = calcRate(busTotalIn, busTotalOut);
 
-        document.getElementById('busTotalIn').textContent = formatNumber(busTotalIn);
-        document.getElementById('busTotalOut').textContent = formatNumber(busTotalOut);
-        document.getElementById('busTotalRate').textContent = busRate.pctText;
-        document.getElementById('busMainBar').style.width = busRate.pctNum + "%";
+        document.getElementById('busTotalIn').textContent = b5In === null ? '未完整回報' : formatNumber(busTotalIn);
+        document.getElementById('busTotalOut').textContent = b5Out === null ? '未完整回報' : formatNumber(busTotalOut);
+        document.getElementById('busTotalRate').textContent = busComplete ? busRate.pctText : '未完整回報';
+        document.getElementById('busMainBar').style.width = (busComplete ? busRate.pctNum : 0) + "%";
 
         const updateStationCard = (prefix, inVal, outVal) => {
           document.getElementById(`${prefix}In`).textContent = formatNumber(inVal);
@@ -1360,6 +1382,14 @@
         updateStationCard('bus2', b2In, b2Out);
         updateStationCard('bus3', b3In, b3Out);
         updateStationCard('bus4', b4In, b4Out);
+        if (busComplete) {
+          updateStationCard('bus5', b5In, b5Out);
+        } else {
+          document.getElementById('bus5In').textContent = b5In === null ? '未回報' : formatNumber(b5In);
+          document.getElementById('bus5Out').textContent = b5Out === null ? '未回報' : formatNumber(b5Out);
+          document.getElementById('bus5Status').textContent = '等待完整回報';
+          document.getElementById('bus5Bar').style.width = '0%';
+        }
 
         // ==========================================
         // 2. 步行通道數據 (動態定位：walkStationsRow & walkTotalRow)
@@ -1368,12 +1398,10 @@
         const w1Out = getVal(walkStationsRow, 4);
         const w2In = getVal(walkStationsRow, 8);
         const w2Out = getVal(walkStationsRow, 12);
-        const w3In = getVal(walkStationsRow, 16);
-        const w3Out = getVal(walkStationsRow, 20);
 
         // 步行大盤
-        const walkTotalIn = getVal(walkTotalRow, 0) || (w1In + w2In + w3In);
-        const walkTotalOut = getVal(walkTotalRow, 8) || (w1Out + w2Out + w3Out);
+        const walkTotalIn = w1In + w2In;
+        const walkTotalOut = w1Out + w2Out;
         const walkRate = calcRate(walkTotalIn, walkTotalOut);
 
         document.getElementById('walkTotalIn').textContent = formatNumber(walkTotalIn);
@@ -1383,7 +1411,6 @@
 
         updateStationCard('walk1', w1In, w1Out);
         updateStationCard('walk2', w2In, w2Out);
-        updateStationCard('walk3', w3In, w3Out);
         }
 
         // ==========================================

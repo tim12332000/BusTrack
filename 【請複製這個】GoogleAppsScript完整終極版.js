@@ -5,7 +5,7 @@
  * 
  * 🔧 本版核心升級：
  * 1. 【雙表單整合聯防】：
- *    - 表單 1：人員疏運（4大接駁站 + 3大步行門）
+ *    - 表單 1：人員疏運（5大接駁站 + 2大步行門）
  *    - 表單 2：七處停車場剩餘汽車位、機車位（每場以最新回報為準）
  *    - 兩套表單自動綁定在同一個試算表（分頁：表單回應 1、表單回應 2），互不干擾！
  * 2. 【防欄位漂移機制】：
@@ -27,6 +27,40 @@ function repairDashboard() {
 
 // 多個同類回應分頁無法唯一辨識時，在此填入目前使用的分頁名稱。
 const RESPONSE_SHEET_NAMES = { people: "", parking: "" };
+
+const PEOPLE_STATION_CHOICES = [
+  "🚌 成功車站", "🚌 新烏日車站", "🚌 水湳轉運站", "🚌 經貿六停車場",
+  "🚌 嶺東科大-寶文校區", "🚶 1號門", "🚶 3號門"
+];
+
+// 一次性更新：只改原人員表單的站點選項，不重建題目、不動歷史回應或停車表單。
+function updatePeopleStationChoices() {
+  const files = DriveApp.getFilesByName("「國防知性之旅-成功嶺營區開放」人數回報");
+  const candidates = [];
+  while (files.hasNext()) {
+    const file = files.next();
+    if (!file || typeof file.getId !== "function") continue;
+    const form = FormApp.openById(file.getId());
+    if (form.getPublishedUrl() === "https://docs.google.com/forms/d/e/1FAIpQLSeCDaMu9LlQhgwJKdzr6uCw2VX44ni5eO1Dn6gRePX4ur3dKw/viewform" &&
+        form.getDestinationId() === TARGET_SPREADSHEET_ID) candidates.push(form);
+  }
+  if (candidates.length !== 1) throw new Error("找不到唯一符合既有網址與目的試算表的人員表單，未修改表單。");
+  const form = candidates[0];
+  const items = form.getItems().filter(item => /站點.*門號/.test(item.getTitle()));
+  if (items.length !== 1 || items[0].getType() !== FormApp.ItemType.MULTIPLE_CHOICE) {
+    throw new Error("站點題目缺少、重複或型別不符，未修改表單。");
+  }
+  items[0].asMultipleChoiceItem().setChoiceValues(PEOPLE_STATION_CHOICES);
+  Logger.log("已更新原人員表單的七個站點選項，其他題目及歷史回應保留。");
+}
+
+// 沿用每車、每方向最後一列累計值；車號取自實際回報，不預設新站車輛數。
+function lingdongTotalFormula(sheetName, columns, direction) {
+  const range = key => `'${sheetName}'!${columns[key]}2:${columns[key]}`;
+  const conditions = `ISNUMBER(SEARCH("嶺東科大-寶文校區",${range("station")})),ISNUMBER(SEARCH("${direction}",${range("direction")})),${range("bus")}<>"",${range("bus")}<>"🚶 步行通道"`;
+  const reports = `COUNTIFS(${range("station")},"*嶺東科大-寶文校區*",${range("direction")},"*${direction}*",${range("bus")},"<>",${range("bus")},"<>🚶 步行通道")`;
+  return `=IF(${reports}=0,"未回報",LET(buses,FILTER(${range("bus")},${conditions}),counts,FILTER(${range("quantity")},${conditions}),SUM(MAP(UNIQUE(buses),LAMBDA(vehicle,XLOOKUP(vehicle,buses,counts,0,0,-1))))))`;
+}
 
 // 使用者提供的總容量；不代表目前剩餘車位。名稱前的 * 是正式標記。
 const PARKING_LOTS = [
@@ -210,15 +244,7 @@ function createMultiStationBusSystem(dashboardOnly) {
       // 題目 2: 站點 / 門號
       form1.addMultipleChoiceItem()
         .setTitle("2. 站點 / 門號")
-        .setChoiceValues([
-          "🚌 成功車站",
-          "🚌 新烏日台鐵站",
-          "🚌 經貿六停車場",
-          "🚌 水湳轉運站",
-          "🚶 1號門",
-          "🚶 3號門",
-          "🚶 4號門"
-        ])
+        .setChoiceValues(PEOPLE_STATION_CHOICES)
         .setRequired(true);
 
       // 題目 3: 車號
@@ -304,7 +330,7 @@ function createMultiStationBusSystem(dashboardOnly) {
   // =========================================================================
   const stations = [
     { name: "🚌 成功車站", formKeyword: "成功車站", startCol: 1, busCount: 20 },
-    { name: "🚌 新烏日台鐵站", formKeyword: "新烏日", startCol: 6, busCount: 50 },
+    { name: "🚌 新烏日車站", formKeyword: "新烏日", startCol: 6, busCount: 50 },
     { name: "🚌 經貿六停車場", formKeyword: "經貿六", startCol: 11, busCount: 40 },
     { name: "🚌 水湳轉運站", formKeyword: "水湳", startCol: 16, busCount: 20 }
   ];
@@ -369,16 +395,16 @@ function createMultiStationBusSystem(dashboardOnly) {
     .setBackground(THEME_HEADER_BG).setFontColor("#93C5FD").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
 
   dashboardSheet.getRange(3, 1, 1, 8).merge().setValue("👉 進場總人數").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange(4, 1, 1, 8).merge().setFormula("=A10+G10+M10+S10").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange(4, 1, 1, 8).merge().setFormula('=IF(ISNUMBER(A40),A10+G10+M10+S10+A40,"未完整回報")').setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
 
   dashboardSheet.getRange(3, 9, 1, 8).merge().setValue("👈 離場總人數").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange(4, 9, 1, 8).merge().setFormula("=D10+J10+P10+V10").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange(4, 9, 1, 8).merge().setFormula('=IF(ISNUMBER(B40),D10+J10+P10+V10+B40,"未完整回報")').setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
 
   dashboardSheet.getRange(3, 17, 1, 8).merge().setValue("📈 離場完成率").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange(4, 17, 1, 8).merge().setFormula(`=IF(A4>0, TEXT(I4/A4, "0.0%"), "0.0%")`).setBackground("#1E293B").setFontColor("#34D399").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange(4, 17, 1, 8).merge().setFormula(`=IF(AND(ISNUMBER(A4),ISNUMBER(I4)),IF(A4>0,TEXT(I4/A4,"0.0%"),"0.0%"),"未完整回報")`).setBackground("#1E293B").setFontColor("#34D399").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
 
   dashboardSheet.getRange(5, 1, 1, 6).merge().setValue("離場進度").setBackground(THEME_HEADER_BG).setFontColor("#94A3B8").setFontWeight("bold").setHorizontalAlignment("center");
-  dashboardSheet.getRange(5, 7, 1, 18).merge().setFormula(`=IF(A4>0, SPARKLINE(I4, {"charttype", "bar"; "max", A4; "color1", "${THEME_TOP_BAR}"}), "")`).setBackground(THEME_HEADER_BG);
+  dashboardSheet.getRange(5, 7, 1, 18).merge().setFormula(`=IF(AND(ISNUMBER(A4),ISNUMBER(I4)),IF(A4>0,SPARKLINE(I4,{"charttype","bar";"max",A4;"color1","${THEME_TOP_BAR}"}),""),"未完整回報")`).setBackground(THEME_HEADER_BG);
   dashboardSheet.getRange(2, 1, 4, 24).setBorder(true, true, true, true, true, true, "#334155", SpreadsheetApp.BorderStyle.SOLID);
 
   // 4 大接駁車站 (第 7~12 列)
@@ -388,7 +414,7 @@ function createMultiStationBusSystem(dashboardOnly) {
 
   const busStations = [
     { name: "🚌 成功車站", startCol: 1, detailInCol: "B", detailOutCol: "D", detailEndRow: 22, tagColor: "#059669" },
-    { name: "🚌 新烏日台鐵站", startCol: 7, detailInCol: "G", detailOutCol: "I", detailEndRow: 52, tagColor: "#2563EB" },
+    { name: "🚌 新烏日車站", startCol: 7, detailInCol: "G", detailOutCol: "I", detailEndRow: 52, tagColor: "#2563EB" },
     { name: "🚌 經貿六停車場", startCol: 13, detailInCol: "L", detailOutCol: "N", detailEndRow: 42, tagColor: "#D97706" },
     { name: "🚌 水湳轉運站", startCol: 19, detailInCol: "Q", detailOutCol: "S", detailEndRow: 22, tagColor: "#D97706" }
   ];
@@ -414,10 +440,10 @@ function createMultiStationBusSystem(dashboardOnly) {
   // -------------------------------------------------------------------------
   dashboardSheet.getRange(14, 1, 1, 24).merge().setValue("🚶 步行通道疏運概況").setBackground(THEME_HEADER_BG).setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
   dashboardSheet.getRange(15, 1, 1, 8).merge().setValue("👉 進場總人數").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange(16, 1, 1, 8).merge().setFormula("=A22+I22+Q22").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange(16, 1, 1, 8).merge().setFormula("=A22+I22").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
 
   dashboardSheet.getRange(15, 9, 1, 8).merge().setValue("👈 離場總人數").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange(16, 9, 1, 8).merge().setFormula("=E22+M22+U22").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange(16, 9, 1, 8).merge().setFormula("=E22+M22").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
 
   dashboardSheet.getRange(15, 17, 1, 8).merge().setValue("📈 離場完成率").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
   dashboardSheet.getRange(16, 17, 1, 8).merge().setFormula(`=IF(A16>0, TEXT(I16/A16, "0.0%"), "0.0%")`).setBackground("#1E293B").setFontColor("#34D399").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
@@ -426,13 +452,12 @@ function createMultiStationBusSystem(dashboardOnly) {
   dashboardSheet.getRange(17, 7, 1, 18).merge().setFormula(`=IF(A16>0, SPARKLINE(I16, {"charttype", "bar"; "max", A16; "color1", "${THEME_TOP_BAR}"}), "")`).setBackground(THEME_HEADER_BG);
   dashboardSheet.getRange(14, 1, 4, 24).setBorder(true, true, true, true, true, true, "#334155", SpreadsheetApp.BorderStyle.SOLID);
 
-  // 3 大步行門 (第 19~24 列)
+  // 2 大步行門 (第 19~24 列；原 4 號門歷史回應保留於來源分頁)
   dashboardSheet.getRange(19, 1, 1, 24).merge().setValue("步行通道即時數據").setBackground("#334155").setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("left");
 
   const walkGates = [
     { name: "🚶 1號門", keyword: "1號門", startCol: 1, tagColor: "#059669" },
-    { name: "🚶 3號門", keyword: "3號門", startCol: 9, tagColor: "#2563EB" },
-    { name: "🚶 4號門", keyword: "4號門", startCol: 17, tagColor: "#D97706" }
+    { name: "🚶 3號門", keyword: "3號門", startCol: 9, tagColor: "#2563EB" }
   ];
 
   walkGates.forEach(wg => {
@@ -508,6 +533,12 @@ function createMultiStationBusSystem(dashboardOnly) {
       .setBackground("#F8FAFC").setFontColor("#64748B").setFontSize(10).setHorizontalAlignment("center");
     dashboardSheet.getRange(32, col, 5, 4).setBorder(true, true, true, true, true, true, "#CBD5E1", SpreadsheetApp.BorderStyle.SOLID);
   });
+
+  // 在既有區塊後追加；前端依 A 欄標題辨識，下一列 A/B 為進場/離場。
+  dashboardSheet.getRange(38, 1, 1, 2).setValues([["進場", "離場"]]);
+  dashboardSheet.getRange(39, 1).setValue("嶺東科大-寶文校區接駁統計");
+  dashboardSheet.getRange(40, 1).setFormula(lingdongTotalFormula(formSheetName, personCols, "進場"));
+  dashboardSheet.getRange(40, 2).setFormula(lingdongTotalFormula(formSheetName, personCols, "離場"));
 
   SpreadsheetApp.flush();
   const valA = dashboardSheet.getRange("A34").getValue();
