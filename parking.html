@@ -1007,6 +1007,23 @@
       }
       #parkingSection .summary-banner { position: static; margin-bottom: 8px; }
     }
+    /* 所有手機尺寸均採用正常文件捲動，確保 23 處場地可滑至最後一張卡。 */
+    @media (max-width: 900px) {
+      html, body {
+        height: auto !important;
+        min-height: 100dvh;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+      }
+      body { display: block; }
+      #parkingSection {
+        display: block;
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+      }
+      #parkingSection .summary-banner { position: static; margin-bottom: 8px; }
+    }
   </style>
 </head>
 <body class="theme-jr">

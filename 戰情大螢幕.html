@@ -1015,6 +1015,24 @@
       #overallNote.overall-pending { font-size: 0 !important; }
       #overallNote.overall-pending::after { content: '嶺東待回報'; font-size: 9px; }
     }
+    /* 所有手機尺寸均採用正常文件捲動，避免舊格線高度遮住最後一張卡。 */
+    @media (max-width: 900px) {
+      html, body {
+        height: auto !important;
+        min-height: 100dvh;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+      }
+      body { display: block; }
+      .section-container, .horizontal-section {
+        display: block;
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+        margin-bottom: 10px;
+      }
+      .summary-banner { margin-bottom: 6px; }
+    }
   </style>
 </head>
 <body class="theme-jr">
