@@ -41,6 +41,11 @@ with sync_playwright() as p:
         assert page.locator('#fabFlip').count() == 0
         assert page.locator('#fabRotate').count() == 0
         assert page.locator('#fabRefresh').inner_text() == '↻ 強制刷新'
+        if width > height:
+            assert page.evaluate('document.scrollingElement.scrollHeight >= innerHeight')
+            page.locator('.station-card').last.scroll_into_view_if_needed()
+            assert page.locator('.station-card').last.evaluate('(e) => { const r = e.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }')
+            page.evaluate('window.scrollTo(0, 0)')
         page.screenshot(path=str(root/'.omx'/f'{filename}-fit-{width}x{height}.png'), full_page=True)
         result = page.evaluate('''() => {
           const outside=[...document.querySelectorAll('.station-card, header, .floating-toolbar, .summary-banner')].map(e=>{

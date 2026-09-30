@@ -991,6 +991,22 @@
       #parkingGroups { min-width: 0; }
       #parkingGroups .cards-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
+    /* 手機橫向時取消固定列高，讓 23 處停車場可完整向下捲動。 */
+    @media (orientation: landscape) and (max-height: 520px) {
+      html, body {
+        height: auto !important;
+        min-height: 100svh;
+        overflow-y: auto !important;
+      }
+      body { display: block; }
+      #parkingSection {
+        display: block;
+        height: auto;
+        min-height: 0;
+        overflow: visible;
+      }
+      #parkingSection .summary-banner { position: static; margin-bottom: 8px; }
+    }
   </style>
 </head>
 <body class="theme-jr">
