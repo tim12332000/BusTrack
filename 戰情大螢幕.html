@@ -691,219 +691,6 @@
       letter-spacing: 0.03em;
     }
 
-    /* ========================================================= */
-    /* 📱 手機緊湊排版 (Landscape & Max-Height: 520px)   */
-    /* ========================================================= */
-    @media (max-width: 900px), (orientation: landscape) and (max-height: 520px) {
-      body {
-        padding: max(4px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) max(4px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
-        grid-template-columns: 56fr 44fr;
-        grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr);
-        height: 100svh;
-        gap: 5px;
-        min-height: 100svh;
-        overflow-y: auto;
-        overflow-x: hidden;
-      }
-
-      header, #parkingSection, footer {
-        grid-column: 1 / -1;
-      }
-
-      /* 緊湊型頂部列 */
-      header {
-        padding: 3px 8px;
-        gap: 8px;
-      }
-      .header-badge {
-        font-size: 9px;
-        padding: 1px 5px;
-      }
-      h1 {
-        font-size: 12px;
-        letter-spacing: 0;
-      }
-      .header-status {
-        gap: 6px;
-        font-size: 11px;
-      }
-      .live-indicator {
-        padding: 1px 6px;
-        font-size: 10px;
-        gap: 4px;
-      }
-      .live-dot {
-        width: 5px;
-        height: 5px;
-      }
-      #currentTime {
-        font-size: 11px;
-      }
-      .theme-select {
-        font-size: 10px;
-        padding: 1px 4px;
-      }
-      .fab-btn {
-        font-size: 10px;
-        padding: 2px 6px;
-        gap: 2px;
-      }
-
-      /* 區塊容器 */
-      .section-container {
-        gap: 4px;
-      }
-
-      /* 緊湊型大盤橫幅 */
-      .summary-banner {
-        border-radius: 2px;
-      }
-      .banner-header {
-        padding: 2px 8px;
-        font-size: 11px;
-      }
-      .banner-header > span:last-child {
-        font-size: 9px !important;
-      }
-      .banner-metrics {
-        padding: 3px 6px;
-        gap: 4px;
-      }
-      .metric-box {
-        padding: 2px 4px;
-      }
-      .metric-label {
-        font-size: 9px;
-        line-height: 1.1;
-        margin-bottom: 1px;
-      }
-      .metric-value {
-        font-size: 16px;
-        line-height: 1.1;
-      }
-      .metric-capacity {
-        font-size: 9px;
-        line-height: 1;
-      }
-      .banner-progress-row {
-        padding: 2px 8px;
-        gap: 6px;
-      }
-      .parking-progress-dual {
-        gap: 6px;
-        padding: 2px 8px;
-      }
-      .progress-sub-header .progress-label,
-      .progress-sub-header .progress-pct {
-        font-size: 9px;
-      }
-      .progress-label {
-        font-size: 9px;
-        min-width: 42px;
-      }
-      .progress-track {
-        height: 3px;
-      }
-
-      /* 卡片網格與卡身 */
-      .cards-grid {
-        gap: 4px;
-      }
-      .station-card {
-        border-radius: 2px;
-      }
-      .card-header {
-        padding: 2px 2px;
-        font-size: 10px;
-        line-height: 1.2;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-      .card-body {
-        padding: 3px 2px;
-        gap: 2px;
-      }
-      .card-col-label {
-        font-size: 9px;
-        line-height: 1.1;
-        margin-bottom: 1px;
-      }
-      .card-col-num {
-        font-size: 16px;
-        line-height: 1.1;
-      }
-      .card-footer {
-        padding: 2px 4px;
-      }
-      .card-status-text {
-        font-size: 9px;
-        margin-bottom: 1px;
-        line-height: 1.1;
-      }
-      .card-progress-track {
-        height: 3px;
-      }
-
-      /* 🅿️ 停車場 7 處卡片專屬優化：乾淨對齊、無重疊 */
-      #parkingSection .cards-grid {
-        gap: 4px;
-      }
-      #parkingSection .card-header {
-        font-size: 10px;
-        padding: 2px 1px;
-      }
-      #parkingSection .card-body {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        padding: 2px 2px;
-        gap: 2px;
-      }
-      #parkingSection .card-col {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-      #parkingSection .card-col-label {
-        font-size: 9px;
-      }
-      #parkingSection .card-col-num {
-        font-size: 14px;
-        line-height: 1.15;
-      }
-      #parkingSection .parking-capacity {
-        font-size: 9px;
-        line-height: 1;
-        margin-top: 1px;
-      }
-
-      footer {
-        font-size: 9px;
-        padding: 2px 0;
-      }
-    }
-
-    /* 針對超薄高度螢幕 (Safari 網址列開啟，可視高度 < 350px) 保持順暢瀏覽 */
-    @media (orientation: landscape) and (max-height: 350px) {
-      body {
-        gap: 3px;
-        padding: 2px 5px;
-      }
-      .section-container {
-        gap: 2px;
-      }
-      .card-col-num {
-        font-size: 14px;
-      }
-      #parkingSection .card-col-num {
-        font-size: 12px;
-      }
-      .metric-value {
-        font-size: 14px;
-      }
-    }
-
     #liveText:empty { display: none; }
     .live-indicator:has(#liveText:empty) {
       padding: 0;
@@ -911,66 +698,23 @@
       border: 0;
     }
 
-    @media (max-width: 900px), (orientation: landscape) and (max-height: 520px) {
-      header { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; }
-      h1 { white-space: normal; overflow: visible; line-height: 1.2; }
-      .header-title { gap: 5px; }
-      .section-container { min-height: 0; grid-template-rows: auto minmax(0, 1fr); }
-      .banner-progress-row { display: none; }
-      .card-header { white-space: normal; text-overflow: clip; min-height: 28px; display: grid; align-items: center; }
-      #parkingSection .card-header { min-height: 18px; }
-      #parkingSection .metric-box {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        align-items: center;
-        column-gap: 6px;
-      }
-      #parkingSection .metric-value { text-align: left; }
-      .parking-progress-col { grid-column: 1 / -1; margin-top: 2px; gap: 2px; }
-      .parking-progress-col .progress-label, .progress-scale { display: none; }
-      .parking-progress-col .progress-track { height: 6px; }
-      .progress-sub-header { flex-wrap: wrap; gap: 2px; }
-      .theme-select { max-width: 145px; }
-    }
-
-    @media (orientation: portrait) and (max-width: 900px) {
-      body {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr) auto;
-        gap: 4px;
-        padding: max(4px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) max(4px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
-      }
-      header { grid-template-columns: minmax(0, 1fr) auto; gap: 4px; }
-      .header-title { grid-column: 1 / -1; }
-      .header-status { grid-column: 2; grid-row: 2; margin-left: auto; }
-      .floating-toolbar { grid-column: 1; grid-row: 2; width: auto; }
-      .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-      #parkingSection .cards-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-      #parkingSection .metric-box { grid-template-columns: 1fr auto; }
-      #parkingSection .metric-capacity { grid-column: 1 / -1; text-align: left; }
-      #parkingSection .metric-value { text-align: right; }
-      #parkingNote { display: none; }
-      #parkingSection .card-col { min-width: 0; }
-      #parkingSection .parking-capacity { white-space: normal; max-width: 100%; text-align: center; }
-      .progress-sub-header .progress-pct { font-size: 9px; }
-      .card-col-num { font-size: 14px; }
-      .theme-select { max-width: 135px; }
-    }
-
     /* ===== 獨立看板排版設定 ===== */
     html, body {
+      height: 100%;
       min-height: 100svh;
       width: 100%;
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
       overflow-x: hidden;
     }
     body {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      height: auto;
+      gap: 6px;
+      padding: 6px 10px;
+      box-sizing: border-box;
       overflow-y: auto;
-      padding: 8px 12px;
-      padding-bottom: max(16px, env(safe-area-inset-bottom));
     }
     .page-link {
       text-decoration: none;
@@ -980,37 +724,141 @@
     .section-container {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
       min-height: 0;
-      height: auto;
-      overflow: visible;
     }
     .overall-summary {
-      margin-bottom: 2px;
+      margin-bottom: 0;
     }
     .summary-banner {
-      margin-bottom: 2px;
+      margin-bottom: 0;
     }
 
     /* 網格系統：預設大螢幕（接駁車 5 站、步行門 2 站） */
     .grid-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
-    /* 平板與手機橫向 (width <= 1100px 且橫向，或寬度 <= 960px) */
+    /* 🖥️ 大螢幕 / 電視戰情看板 (高度 >= 580px 且 寬度 >= 900px)：滿屏無捲動、零多餘留白 */
+    @media (min-height: 580px) and (min-width: 900px) {
+      body {
+        height: 100vh;
+        overflow: hidden; /* 滿屏呈現，不需要任何滑動 */
+        padding: 8px 12px;
+        gap: 8px;
+      }
+      header {
+        flex: 0 0 auto;
+      }
+      .overall-summary {
+        flex: 0 0 auto;
+      }
+      .section-container {
+        flex: 1 1 0;
+        min-height: 0;
+        gap: 6px;
+      }
+      .section-container .summary-banner {
+        flex: 0 0 auto;
+      }
+      .section-container .cards-grid {
+        flex: 1 1 0;
+        min-height: 0;
+        display: grid;
+        gap: 6px;
+      }
+      .station-card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .station-card .card-header {
+        flex: 0 0 auto;
+        padding: 6px 8px;
+        font-size: clamp(12px, 1vw, 15px);
+      }
+      .station-card .card-body {
+        flex: 1 1 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        padding: 8px 10px;
+      }
+      .station-card .card-col {
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      }
+      .station-card .card-col-label {
+        font-size: clamp(11px, 0.9vw, 13px);
+        margin-bottom: 4px;
+      }
+      .station-card .card-col-num {
+        font-size: clamp(24px, 3.2vh, 36px);
+        line-height: 1.35;
+      }
+      .station-card .card-footer {
+        flex: 0 0 auto;
+        padding: 4px 8px;
+      }
+    }
+
+    /* 📱 平板與手機橫向 (width <= 1100px 且橫向，或寬度 <= 960px) */
     @media (max-width: 1100px) and (orientation: landscape), (max-width: 960px) {
       .grid-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .grid-5 .card-header { white-space: normal; overflow: visible; min-height: 32px; }
+      .grid-5 .card-header { white-space: normal; overflow: visible; min-height: 30px; }
       .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
-    /* 手機直向窄螢幕 (width <= 600px) */
+    /* 📱 手機直向窄螢幕 (width <= 600px) */
     @media (max-width: 600px) {
+      body {
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+      }
       header { flex-direction: column; align-items: flex-start; gap: 6px; }
       .header-right { width: 100%; justify-content: flex-end; }
       .floating-toolbar { flex-wrap: wrap; }
       .grid-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       #overallNote { font-size: 11px; }
+    }
+    /* 橫向小螢幕：統計單行、五站同列，卡片使用剩餘高度。 */
+    @media (orientation: landscape) and (max-height: 579px) {
+      html { height: 100%; min-height: 0; }
+      body { height: 100dvh; min-height: 0; padding: 4px 8px; gap: 4px; }
+      header { flex: none; padding: 3px 6px; gap: 6px; }
+      .header-badge { display: none; }
+      h1 { font-size: 11px; white-space: normal; line-height: 1.15; }
+      .header-status { gap: 4px; }
+      #currentTime { font-size: 10px; }
+      .floating-toolbar { gap: 4px; }
+      .fab-btn, .theme-select { font-size: 10px; padding: 2px 5px; }
+      .theme-select { appearance: none; max-width: 145px; }
+      .overall-summary, .summary-banner { flex: none; display: grid; grid-template-columns: 130px minmax(0, 1fr); align-items: center; }
+      .banner-header { flex-direction: column; align-items: flex-start; border: 0; padding: 2px 5px; font-size: 10px; line-height: 13px; }
+      .banner-header > span:last-child { font-size: 9px !important; }
+      .section-container .banner-header > span:last-child { display: none; }
+      .banner-metrics { padding: 2px; gap: 4px; }
+      .metric-box { flex-direction: row; align-items: center; gap: 4px; padding: 2px 3px; }
+      .metric-label { font-size: 9px; margin: 0; }
+      .metric-value { font-size: 18px; line-height: 21px; }
+      .banner-progress-row { display: none; }
+      #overallNote.overall-pending { font-size: 0 !important; }
+      #overallNote.overall-pending::after { content: '嶺東待回報 · 已加總其餘'; font-size: 9px; }
+      .section-container { flex: 1 1 0; min-height: 0; gap: 4px; }
+      .cards-grid { flex: 1 1 0; min-height: 0; gap: 4px; }
+      .grid-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .card-header, .grid-5 .card-header { flex: none; min-height: 24px; padding: 2px; font-size: 10px; white-space: normal; line-height: 12px; display: grid; align-items: center; }
+      .card-body { padding: 2px; gap: 3px; }
+      .card-col { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+      .card-col-label { font-size: 9px; line-height: 11px; margin: 0; }
+      .card-col-num { font-size: clamp(17px, 5dvh, 23px); line-height: 1.2; }
+      .card-footer { flex: none; padding: 2px 3px; }
+      .card-status-text { font-size: 9px; line-height: 11px; margin-bottom: 1px; }
     }
   </style>
 </head>
