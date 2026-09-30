@@ -1039,7 +1039,7 @@
   <section class="summary-banner overall-summary" aria-label="步行與接駁合計人流">
     <div class="banner-header">
       <span>👥 全場人流總覽</span>
-      <span style="font-size: 12px; color: #64748B;">步行＋接駁車</span>
+      <span style="font-size: 12px; color: #64748B;" id="overallNote">步行＋接駁車</span>
     </div>
     <div class="banner-metrics">
       <div class="metric-box">
@@ -1465,12 +1465,15 @@
         updateStationCard('walk2', w2In, w2Out);
 
         // 最上方全場總覽：接駁車與步行門的入、離場人數合計。
-        const overallIn = busComplete ? busTotalIn + walkTotalIn : null;
-        const overallOut = busComplete ? busTotalOut + walkTotalOut : null;
-        const overallRate = overallIn === null ? null : calcRate(overallIn, overallOut);
-        document.getElementById('overallTotalIn').textContent = overallIn === null ? '未完整回報' : formatNumber(overallIn);
-        document.getElementById('overallTotalOut').textContent = overallOut === null ? '未完整回報' : formatNumber(overallOut);
-        document.getElementById('overallTotalRate').textContent = overallRate === null ? '未完整回報' : overallRate.pctText;
+        const overallIn = busTotalIn + walkTotalIn;
+        const overallOut = busTotalOut + walkTotalOut;
+        const overallRate = calcRate(overallIn, overallOut);
+        document.getElementById('overallTotalIn').textContent = formatNumber(overallIn);
+        document.getElementById('overallTotalOut').textContent = formatNumber(overallOut);
+        document.getElementById('overallTotalRate').textContent = overallRate.pctText;
+        document.getElementById('overallNote').textContent = busComplete
+          ? '步行＋接駁車'
+          : '步行＋接駁車 · 嶺東待回報，已加總其餘回報';
         }
 
         // ==========================================

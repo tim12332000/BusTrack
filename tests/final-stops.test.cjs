@@ -44,7 +44,8 @@ test('absent or invalid new-stop data stays unknown; real zero counts', () => {
     p.update(fixture(value, value));
     assert.equal(p.text('bus5In'), '未回報');
     assert.equal(p.text('busTotalIn'), '未完整回報');
-    assert.equal(p.text('overallTotalIn'), '未完整回報');
+    assert.equal(p.text('overallTotalIn'), '340');
+    assert.equal(p.text('overallTotalOut'), '90');
   }
   p.update(fixture(0, 0));
   assert.equal(p.text('bus5In'), '0');
