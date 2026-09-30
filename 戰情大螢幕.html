@@ -975,6 +975,18 @@
     @media (max-width: 600px) {
       .grid-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
+    @media (min-width: 1000px) {
+      .horizontal-section {
+        grid-template-columns: minmax(280px, 30%) minmax(0, 70%);
+        grid-template-rows: 1fr;
+        align-items: stretch;
+      }
+      .horizontal-section .summary-banner { height: 100%; }
+      .horizontal-section .cards-grid { align-content: stretch; }
+      .horizontal-section .station-card { min-height: 0; }
+      #shuttleSection .grid-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      #gateSection .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
   </style>
 </head>
 <body class="theme-jr">
@@ -1008,7 +1020,7 @@
   <!-- ========================================== -->
   <!-- 🚌 段落一：接駁車疏運概況 -->
   <!-- ========================================== -->
-  <div class="section-container">
+  <div class="section-container horizontal-section" id="shuttleSection">
     <div class="summary-banner">
       <div class="banner-header">
         <span>🚌 接駁車疏運概況</span>
@@ -1148,7 +1160,7 @@
   <!-- ========================================== -->
   <!-- 🚶 段落二：步行通道疏運概況 -->
   <!-- ========================================== -->
-  <div class="section-container">
+  <div class="section-container horizontal-section" id="gateSection">
     <div class="summary-banner">
       <div class="banner-header">
         <span>🚶 步行通道疏運概況</span>

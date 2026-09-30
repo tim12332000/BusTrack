@@ -976,6 +976,21 @@
     #parkingGroups .card-header { min-height: 47px; white-space: normal; display: grid; place-items: center; text-align: center; }
     @media (max-width: 900px) { #parkingGroups .cards-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
     @media (max-width: 600px) { #parkingGroups .cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 1000px) {
+      #parkingSection {
+        display: grid;
+        grid-template-columns: minmax(280px, 30%) minmax(0, 70%);
+        grid-template-rows: 1fr;
+        gap: 14px;
+        align-items: start;
+      }
+      #parkingSection .summary-banner {
+        position: sticky;
+        top: 10px;
+      }
+      #parkingGroups { min-width: 0; }
+      #parkingGroups .cards-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
   </style>
 </head>
 <body class="theme-jr">
