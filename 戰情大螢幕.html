@@ -1033,6 +1033,21 @@
       }
       .summary-banner { margin-bottom: 6px; }
     }
+    /* iPhone Safari 橫向：由根文件捲動並保留底部安全區，避免工具列覆蓋最後一列。 */
+    @supports (-webkit-touch-callout: none) {
+      @media (orientation: landscape) and (max-width: 900px) {
+        html {
+          overflow-y: scroll !important;
+          -webkit-overflow-scrolling: touch;
+        }
+        body {
+          position: static !important;
+          min-height: auto !important;
+          padding-bottom: calc(16px + env(safe-area-inset-bottom));
+          -webkit-overflow-scrolling: touch;
+        }
+      }
+    }
   </style>
 </head>
 <body class="theme-jr">
