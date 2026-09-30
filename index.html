@@ -957,113 +957,60 @@
       .theme-select { max-width: 135px; }
     }
 
-    /* Independent display URLs; retain the existing data feed and calculations. */
-    body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-auto-rows: auto; align-content: start; height: auto; min-height: 100svh; }
-    .section-container { min-height: 250px; }
-    .overall-summary { margin-bottom: 8px; }
-    .page-link { text-decoration: none; display: inline-flex; align-items: center; }
-    @media (max-width: 600px) {
-      .floating-toolbar { flex-wrap: wrap; }
-      .section-container { min-height: 280px; }
-      #parkingSection .cards-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    /* ===== 獨立看板排版設定 ===== */
+    html, body {
+      min-height: 100svh;
+      width: 100%;
+      overflow-x: hidden;
     }
+    body {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      height: auto;
+      overflow-y: auto;
+      padding: 8px 12px;
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+    .page-link {
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+    .section-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 0;
+      height: auto;
+      overflow: visible;
+    }
+    .overall-summary {
+      margin-bottom: 2px;
+    }
+    .summary-banner {
+      margin-bottom: 2px;
+    }
+
+    /* 網格系統：預設大螢幕（接駁車 5 站、步行門 2 站） */
     .grid-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    @media (max-width: 900px) {
+
+    /* 平板與手機橫向 (width <= 1100px 且橫向，或寬度 <= 960px) */
+    @media (max-width: 1100px) and (orientation: landscape), (max-width: 960px) {
       .grid-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .grid-5 .card-header { white-space: normal; overflow: visible; min-height: 32px; }
-    }
-    @media (max-width: 600px) {
-      .grid-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-    @media (min-width: 1000px) {
-      .horizontal-section {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-rows: auto auto;
-        align-items: start;
-      }
-      .horizontal-section .summary-banner {
-        height: auto;
-        align-self: auto;
-      }
-      #shuttleSection .grid-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-      #gateSection .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-    /* 手機橫向時讓內容依自然高度排列；不可用固定視窗列高裁切下方卡片。 */
-    @media (orientation: landscape) and (max-height: 520px) {
-      html, body {
-        height: auto !important;
-        min-height: 100svh;
-        overflow-y: auto !important;
-      }
-      body { display: block; }
-      .section-container, .horizontal-section {
-        display: block;
-        height: auto;
-        min-height: 0;
-        overflow: visible;
-        margin-bottom: 10px;
-      }
-      .summary-banner { margin-bottom: 6px; }
-    }
-    @media (max-width: 600px) {
-      #shuttleSection, #gateSection {
-        min-height: 0;
-        grid-template-rows: auto auto;
-      }
-      #shuttleSection .station-card, #gateSection .station-card { min-height: 0; }
-      #overallNote.overall-pending { font-size: 0 !important; }
-      #overallNote.overall-pending::after { content: '嶺東待回報'; font-size: 9px; }
-    }
-    /* 所有手機尺寸均採用正常文件捲動，避免舊格線高度遮住最後一張卡。 */
-    @media (max-width: 900px) {
-      html, body {
-        height: auto !important;
-        min-height: 100dvh;
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-      }
-      body { display: block; }
-      .section-container, .horizontal-section {
-        display: block;
-        height: auto;
-        min-height: 0;
-        overflow: visible;
-        margin-bottom: 10px;
-      }
-      .summary-banner { margin-bottom: 6px; }
-    }
-    /* iPhone Safari 橫向：由根文件捲動並保留底部安全區，避免工具列覆蓋最後一列。 */
-    @supports (-webkit-touch-callout: none) {
-      @media (orientation: landscape) and (max-width: 900px) {
-        html {
-          overflow-y: scroll !important;
-          -webkit-overflow-scrolling: touch;
-        }
-        body {
-          position: static !important;
-          min-height: auto !important;
-          padding-bottom: calc(16px + env(safe-area-inset-bottom));
-          -webkit-overflow-scrolling: touch;
-        }
-      }
-    }
-    /* 17 Pro／Pro Max 橫向可視寬度可超過 900px，仍須維持手機三欄與垂直捲動。 */
-    @media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) {
-      html, body {
-        width: 100%;
-        max-width: 100%;
-        overflow-x: hidden !important;
-        overflow-y: auto !important;
-      }
-      .grid-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      #shuttleSection, #gateSection {
-        display: block;
-        min-height: 0;
-        height: auto;
-        overflow: visible;
-      }
+    }
+
+    /* 手機直向窄螢幕 (width <= 600px) */
+    @media (max-width: 600px) {
+      header { flex-direction: column; align-items: flex-start; gap: 6px; }
+      .header-right { width: 100%; justify-content: flex-end; }
+      .floating-toolbar { flex-wrap: wrap; }
+      .grid-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #overallNote { font-size: 11px; }
     }
   </style>
 </head>
