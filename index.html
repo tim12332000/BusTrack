@@ -1048,7 +1048,7 @@
         }
       }
     }
-    /* 橫向看板：五站同列、統計縮為單行，讓兩個門區在第一屏內。 */
+    /* 17 Pro／Pro Max 橫向可視寬度可超過 900px，仍須維持手機三欄與垂直捲動。 */
     @media (orientation: landscape) and (max-height: 520px) and (max-width: 1100px) {
       html, body {
         width: 100%;
@@ -1056,50 +1056,14 @@
         overflow-x: hidden !important;
         overflow-y: auto !important;
       }
-      #shuttleSection .grid-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      .grid-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       #shuttleSection, #gateSection {
         display: block;
         min-height: 0;
         height: auto;
         overflow: visible;
-        margin: 0 0 4px;
       }
-      html { min-height: 0; }
-      body { min-height: 0 !important; padding: 4px max(8px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left)); }
-      header { margin-bottom: 4px; }
-      .summary-banner { margin: 0 0 4px; }
-      .banner-header { padding: 2px 6px; line-height: 14px; }
-      .banner-metrics { padding: 3px 5px; }
-      .metric-box { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px 7px; padding: 2px 4px; }
-      .metric-label { margin: 0; font-size: 10px; }
-      .metric-value { font-size: 18px; line-height: 20px; }
-      .card-header, .grid-5 .card-header { min-height: 26px; padding: 2px 3px; font-size: 10px; white-space: normal; overflow: visible; }
-      .card-body { flex: none; padding: 3px 2px; }
-      .card-col-num { font-size: 18px; line-height: 20px; }
-      .card-col-label { font-size: 10px; line-height: 12px; }
-      .card-footer { padding: 2px 4px; }
-      #shuttleSection .summary-banner, #gateSection .summary-banner { display: grid; grid-template-columns: 135px minmax(0, 1fr); align-items: center; }
-      #shuttleSection .banner-header, #gateSection .banner-header { border: 0; }
-      #shuttleSection .banner-header > span:last-child, #gateSection .banner-header > span:last-child { display: none; }
-      #shuttleSection .banner-metrics, #gateSection .banner-metrics { padding: 2px; }
-      #shuttleSection .metric-label, #gateSection .metric-label { font-size: 9px; }
-      .station-card .card-header { min-height: 24px; }
-      .card-body { padding-top: 2px; padding-bottom: 2px; }
-      .card-status-text { line-height: 10px; }
-      .overall-summary { display: grid; grid-template-columns: 135px minmax(0, 1fr); align-items: center; }
-      .overall-summary .banner-header { flex-direction: column; align-items: flex-start; border: 0; gap: 0; }
-      .overall-summary .banner-metrics { padding: 2px; }
-      .card-col { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; column-gap: 3px; }
-      .card-col-label { margin-bottom: 0; }
-      header, .summary-banner { margin-bottom: 2px; }
-      #shuttleSection, #gateSection { margin-bottom: 2px; }
-      .header-badge { display: none; }
-      h1 { font-size: 11px; }
-      .card-col-num { font-size: 17px; line-height: 18px; }
-      .card-footer { padding-top: 1px; padding-bottom: 1px; }
-      #overallNote.overall-pending { font-size: 0 !important; }
-      #overallNote.overall-pending::after { content: '嶺東待回報 · 已加總其餘'; font-size: 9px; }
     }
   </style>
 </head>
