@@ -1006,6 +1006,15 @@
       }
       .summary-banner { margin-bottom: 6px; }
     }
+    @media (max-width: 600px) {
+      #shuttleSection, #gateSection {
+        min-height: 0;
+        grid-template-rows: auto auto;
+      }
+      #shuttleSection .station-card, #gateSection .station-card { min-height: 0; }
+      #overallNote.overall-pending { font-size: 0 !important; }
+      #overallNote.overall-pending::after { content: '嶺東待回報'; font-size: 9px; }
+    }
   </style>
 </head>
 <body class="theme-jr">
@@ -1471,9 +1480,9 @@
         document.getElementById('overallTotalIn').textContent = formatNumber(overallIn);
         document.getElementById('overallTotalOut').textContent = formatNumber(overallOut);
         document.getElementById('overallTotalRate').textContent = overallRate.pctText;
-        document.getElementById('overallNote').textContent = busComplete
-          ? '步行＋接駁車'
-          : '步行＋接駁車 · 嶺東待回報，已加總其餘回報';
+        const overallNote = document.getElementById('overallNote');
+        overallNote.textContent = busComplete ? '步行＋接駁車' : '步行＋接駁車 · 嶺東待回報，已加總其餘回報';
+        overallNote.classList.toggle('overall-pending', !busComplete);
         }
 
         // ==========================================

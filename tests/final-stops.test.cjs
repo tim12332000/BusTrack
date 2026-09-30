@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const html = fs.readFileSync('index.html', 'utf8');
 function page() {
-  const nodes = new Map([...html.matchAll(/id="([^"]+)"[^>]*>([^<]*)/g)].map(m => [m[1], { textContent: m[2], style: {}, remove() {} }]));
+  const nodes = new Map([...html.matchAll(/id="([^"]+)"[^>]*>([^<]*)/g)].map(m => [m[1], { textContent: m[2], style: {}, classList: { toggle() {} }, remove() {} }]));
   const ctx = { window: {}, document: { getElementById: id => nodes.get(id), createElement: () => ({}), head: { appendChild() {} }, addEventListener() {} }, setInterval() {}, console };
   vm.runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1], ctx);
   return { text: id => nodes.get(id).textContent, update: rows => ctx.window.onGvizData({ table: { rows } }) };
