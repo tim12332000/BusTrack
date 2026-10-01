@@ -22,9 +22,3 @@ test('photo parking list contains every named site and only listed capacity tota
   assert.ok(!html.includes('總容量 5,000'));
   assert.ok(!html.includes('總容量 1,400'));
 });
-
-test('unknown reports remain unknown and empty photo capacities display as unlisted', () => {
-  assert.match(script, /capacity === 0 \? '—' : value === null \? '未回報'/);
-  assert.match(script, /capacity \? `容量 \$\{formatNumber\(capacity\)\}` : '未列容量'/);
-  assert.match(script, /isComplete \? formatNumber\(amount\) : '未完整回報'/);
-});

@@ -1040,6 +1040,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="parking-table.css">
 </head>
 <body class="theme-jr">
   <!-- 頂部資訊列 -->
@@ -1069,112 +1070,14 @@
     </div>
   </header>
 
-  <div class="section-container" id="parkingSection">
-    <div class="summary-banner">
-      <div class="banner-header amber">
-        <span>🅿️ 汽機車停車場剩餘車位</span>
-        <span style="font-size: 12px; color: #94A3B8;" id="parkingNote">23 處停車場 · 以各場最新回報為準</span>
-      </div>
-      <div class="banner-metrics">
-          <div class="metric-box"><div class="metric-label">目前剩餘汽車位</div><div class="metric-value blue" id="parkTotalCars">未完整回報</div><div class="metric-capacity">已列總容量 8,305 位</div>
-          <div class="parking-progress-col">
-          <div class="progress-sub-header">
-            <div class="progress-sub-title">
-              <span class="progress-label">🚗 汽車車位</span>
-              <span class="status-pill" id="parkingCarsBadge">待回報</span>
-            </div>
-            <span class="progress-pct" id="parkingCarsRateText">未完整回報</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill" id="parkingCarsBar"></div>
-            <div class="progress-mark" style="left: 25%;"></div>
-            <div class="progress-mark" style="left: 50%;"></div>
-            <div class="progress-mark" style="left: 75%;"></div>
-          </div>
-          <div class="progress-scale">
-            <span>0 (滿)</span>
-            <span>50%</span>
-            <span>8,305 席 (空)</span>
-          </div>
-          </div></div>
-        <div class="metric-box"><div class="metric-label">目前剩餘機車位</div><div class="metric-value amber" id="parkTotalMotorcycles">未完整回報</div><div class="metric-capacity">已列總容量 5,693 位</div>
-          <div class="parking-progress-col">
-          <div class="progress-sub-header">
-            <div class="progress-sub-title">
-              <span class="progress-label">🛵 機車車位</span>
-              <span class="status-pill" id="parkingMotoBadge">待回報</span>
-            </div>
-            <span class="progress-pct" id="parkingMotoRateText">未完整回報</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill amber" id="parkingMotoBar"></div>
-            <div class="progress-mark" style="left: 25%;"></div>
-            <div class="progress-mark" style="left: 50%;"></div>
-            <div class="progress-mark" style="left: 75%;"></div>
-          </div>
-          <div class="progress-scale">
-            <span>0 (滿)</span>
-            <span>50%</span>
-            <span>5,693 席 (空)</span>
-          </div>
-          </div></div>
-        <span id="parkReported" style="display:none;">0/23 處</span>
-      </div>
-
+  <main id="parkingSection">
+    <div class="parking-overview">
+      <span>23 處停車場 · 已列總容量：汽車 8,305／機車 5,693</span>
+      <span id="parkingNote" role="status">等待回報</span>
     </div>
-      <div class="cards-grid grid-7" aria-hidden="true">
-      <div class="station-card">
-        <div class="card-header bg-blue">🅿️ 五都日出</div>
-        <div class="card-body">
-          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park1Cars">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill" id="lotCarBar1"></div></div><div class="parking-capacity">容量 1,008</div></div>
-          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park1Motorcycles">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill amber" id="lotMotoBar1"></div></div><div class="parking-capacity">容量 168</div></div>
-        </div>
-      </div>
-      <div class="station-card">
-        <div class="card-header bg-green">🅿️ 新烏日</div>
-        <div class="card-body">
-          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park2Cars">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill" id="lotCarBar2"></div></div><div class="parking-capacity">容量 266</div></div>
-          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park2Motorcycles">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill amber" id="lotMotoBar2"></div></div><div class="parking-capacity">容量 352</div></div>
-        </div>
-      </div>
-      <div class="station-card">
-        <div class="card-header bg-amber">🅿️ *嶺東科大</div>
-        <div class="card-body">
-          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park3Cars">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill" id="lotCarBar3"></div></div><div class="parking-capacity">容量 90</div></div>
-          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park3Motorcycles">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill amber" id="lotMotoBar3"></div></div><div class="parking-capacity">容量 800</div></div>
-        </div>
-      </div>
-      <div class="station-card">
-        <div class="card-header bg-purple">🅿️ *台中科大</div>
-        <div class="card-body">
-          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain unavailable" id="park4Cars">—</div><div class="parking-bar-track"><div class="parking-bar-fill" id="lotCarBar4"></div></div><div class="parking-capacity">不提供</div></div>
-          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park4Motorcycles">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill amber" id="lotMotoBar4"></div></div><div class="parking-capacity">容量 200</div></div>
-        </div>
-      </div>
-      <div class="station-card">
-        <div class="card-header bg-teal">🅿️ 水湳轉運站</div>
-        <div class="card-body">
-          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park5Cars">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill" id="lotCarBar5"></div></div><div class="parking-capacity">容量 614</div></div>
-          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain" id="park5Motorcycles">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill amber" id="lotMotoBar5"></div></div><div class="parking-capacity">容量 1,253</div></div>
-        </div>
-      </div>
-      <div class="station-card">
-        <div class="card-header bg-pink">🅿️ *經貿六</div>
-        <div class="card-body">
-          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park6Cars">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill" id="lotCarBar6"></div></div><div class="parking-capacity">容量 563</div></div>
-          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain unavailable" id="park6Motorcycles">—</div><div class="parking-bar-track"><div class="parking-bar-fill amber" id="lotMotoBar6"></div></div><div class="parking-capacity">不提供</div></div>
-        </div>
-      </div>
-      <div class="station-card">
-        <div class="card-header bg-blue">🅿️ *經貿八</div>
-        <div class="card-body">
-          <div class="card-col"><div class="card-col-label">汽車</div><div class="card-col-num remain" id="park7Cars">未回報</div><div class="parking-bar-track"><div class="parking-bar-fill" id="lotCarBar7"></div></div><div class="parking-capacity">容量 482</div></div>
-          <div class="card-col"><div class="card-col-label">機車</div><div class="card-col-num remain unavailable" id="park7Motorcycles">—</div><div class="parking-bar-track"><div class="parking-bar-fill amber" id="lotMotoBar7"></div></div><div class="parking-capacity">不提供</div></div>
-        </div>
-      </div>
-    </div>
-    <div id="parkingGroups" aria-live="polite"></div>
-  </div>
+    <div id="parkingGroups"></div>
+    <p class="parking-legend">明細為「剩餘／容量」；— 表示未列該車種容量，未報不代表 0。</p>
+  </main>
 
 
 
@@ -1227,62 +1130,82 @@
       const rowsByName = new Map();
       (data.table.rows || []).forEach(row => {
         const cells = row.c || [];
-        const name = cells[1] && cells[1].v;
-        if (typeof name === 'string') rowsByName.set(name, cells);
+        if (typeof cells[1]?.v === 'string') rowsByName.set(cells[1].v, cells);
       });
-      const asCount = value => {
-        if (value === null || value === undefined || String(value).trim() === '') return null;
-        const number = Number(String(value).replace(/,/g, ''));
-        return Number.isSafeInteger(number) && number >= 0 ? number : null;
+      const read = (lot, type) => {
+        const raw = rowsByName.get(lot.name)?.[type === 'cars' ? 2 : 3]?.v;
+        if (!lot[type] || raw === null || raw === undefined || String(raw).trim() === '') return null;
+        const count = Number(String(raw).replace(/,/g, ''));
+        return Number.isSafeInteger(count) && count >= 0 && count <= lot[type] ? count : null;
       };
-      const capacityTotal = type => PARKING_LOTS.reduce((sum, lot) => sum + lot[type], 0);
-      const read = (lot, column, capacity) => capacity === 0 ? null : asCount(rowsByName.get(lot.name)?.[column]?.v);
-      const complete = type => PARKING_LOTS.every(lot => lot[type] === 0 || read(lot, type === 'cars' ? 2 : 3, lot[type]) !== null);
-      const total = type => PARKING_LOTS.reduce((sum, lot) => sum + (read(lot, type === 'cars' ? 2 : 3, lot[type]) || 0), 0);
-      const reported = PARKING_LOTS.filter(lot =>
-        (lot.cars === 0 || read(lot, 2, lot.cars) !== null) && (lot.motorcycles === 0 || read(lot, 3, lot.motorcycles) !== null)
-      ).length;
-      const updateSummary = (type, ids) => {
-        const isComplete = complete(type), amount = total(type), capacity = capacityTotal(type);
-        const value = document.getElementById(ids.value), bar = document.getElementById(ids.bar), text = document.getElementById(ids.text), badge = document.getElementById(ids.badge);
-        value.textContent = isComplete ? formatNumber(amount) : '未完整回報';
-        if (!isComplete) { bar.style.width = '0%'; text.textContent = '未完整回報'; badge.className = 'status-pill'; badge.textContent = '待回報'; return; }
-        const pct = Math.min(100, Math.round(amount / capacity * 1000) / 10);
-        bar.style.width = pct + '%'; text.textContent = `剩餘 ${pct.toFixed(1)}% (${formatNumber(amount)} 席可用)`;
-        badge.className = pct <= 10 ? 'status-pill red' : pct <= 30 ? 'status-pill yellow' : 'status-pill green';
-        badge.textContent = pct === 0 ? '已客滿' : pct <= 10 ? '告急' : pct <= 30 ? '吃緊' : '充足';
+      const node = (tag, className, text) => {
+        const element = document.createElement(tag);
+        if (className) element.className = className;
+        if (text !== undefined) element.textContent = text;
+        return element;
       };
-      updateSummary('cars', { value: 'parkTotalCars', bar: 'parkingCarsBar', text: 'parkingCarsRateText', badge: 'parkingCarsBadge' });
-      updateSummary('motorcycles', { value: 'parkTotalMotorcycles', bar: 'parkingMotoBar', text: 'parkingMotoRateText', badge: 'parkingMotoBadge' });
-      document.getElementById('parkReported').textContent = `${reported}/23 處`;
-      document.getElementById('parkingNote').textContent = `23 處停車場 · 已完整回報 ${reported} 處`;
+      const reported = PARKING_LOTS.filter(lot => ['cars', 'motorcycles'].every(type => !lot[type] || read(lot, type) !== null)).length;
+      document.getElementById('parkingNote').textContent = '已完整回報 ' + reported + '／23 處';
       const host = document.getElementById('parkingGroups');
       host.replaceChildren();
-      [...new Set(PARKING_LOTS.map(lot => lot.group))].forEach((group, groupIndex) => {
+      [...new Set(PARKING_LOTS.map(lot => lot.group))].forEach((group, index) => {
         const lots = PARKING_LOTS.filter(lot => lot.group === group);
-        const title = document.createElement('h2'); title.className = 'parking-group-title';
-        title.textContent = group;
-        const groupCars = lots.reduce((sum, lot) => sum + lot.cars, 0), groupMotos = lots.reduce((sum, lot) => sum + lot.motorcycles, 0);
-        const detail = document.createElement('span'); detail.textContent = `${lots.length} 處 · 汽車容量 ${formatNumber(groupCars)} · 機車容量 ${formatNumber(groupMotos)}`;
-        title.appendChild(detail); host.appendChild(title);
-        const grid = document.createElement('div'); grid.className = 'cards-grid';
-        lots.forEach((lot, lotIndex) => {
-          const card = document.createElement('article'); card.className = 'station-card';
-          const header = document.createElement('div'); header.className = `card-header ${['bg-blue', 'bg-green', 'bg-amber', 'bg-purple'][groupIndex % 4]}`; header.textContent = `🅿️ ${lot.name}`; card.appendChild(header);
-          const body = document.createElement('div'); body.className = 'card-body';
-          [["汽車", "cars", 2], ["機車", "motorcycles", 3]].forEach(([label, type, column]) => {
-            const capacity = lot[type], value = read(lot, column, capacity), columnNode = document.createElement('div'); columnNode.className = 'card-col';
-            const labelNode = document.createElement('div'); labelNode.className = 'card-col-label'; labelNode.textContent = label;
-            const numberNode = document.createElement('div'); numberNode.className = 'card-col-num remain'; numberNode.textContent = capacity === 0 ? '—' : value === null ? '未回報' : formatNumber(value);
-            const track = document.createElement('div'); track.className = 'parking-bar-track'; const fill = document.createElement('div'); fill.className = `parking-bar-fill${type === 'motorcycles' ? ' amber' : ''}`;
-            if (capacity && value !== null) fill.style.width = `${Math.min(100, Math.round(value / capacity * 100))}%`;
-            track.appendChild(fill);
-            const note = document.createElement('div'); note.className = 'parking-capacity'; note.textContent = capacity ? `容量 ${formatNumber(capacity)}` : '未列容量';
-            columnNode.append(labelNode, numberNode, track, note); body.appendChild(columnNode);
-          });
-          card.appendChild(body); grid.appendChild(card);
+        const area = node('section', 'parking-area' + (lots.length > 7 ? ' wide' : ''));
+        area.style.setProperty('--area-color', ['#0284c7', '#15803d', '#d97706'][index]);
+        const summary = node('div', 'area-summary');
+        const title = node('h2', '', group);
+        title.appendChild(node('small', '', lots.length + ' 處'));
+        summary.appendChild(title);
+        const capacities = node('div', 'area-capacities');
+        ['cars', 'motorcycles'].forEach((type, vehicle) => {
+          const capacity = lots.reduce((sum, lot) => sum + lot[type], 0);
+          const complete = lots.every(lot => !lot[type] || read(lot, type) !== null);
+          const remaining = lots.reduce((sum, lot) => sum + (read(lot, type) ?? 0), 0);
+          const metric = node('div', 'area-capacity');
+          metric.dataset.vehicle = type;
+          metric.append(node('span', 'label', (vehicle ? '機車' : '汽車') + '總容量'),
+            node('strong', 'area-total', formatNumber(capacity)),
+            node('span', 'remaining', complete ? '剩餘 ' + formatNumber(remaining) : '剩餘未完整回報'));
+          capacities.appendChild(metric);
         });
-        host.appendChild(grid);
+        summary.appendChild(capacities);
+        area.appendChild(summary);
+        const tables = node('div', 'area-tables');
+        const chunks = lots.length > 7 ? [lots.slice(0, 7), lots.slice(7)] : [lots];
+        chunks.forEach((chunk, part) => {
+          const table = node('table', 'lot-table');
+          table.setAttribute('aria-label', group + '停車場明細' + (chunks.length > 1 ? ' ' + (part + 1) : ''));
+          const columns = node('colgroup');
+          columns.append(node('col'), node('col'), node('col'));
+          const head = node('thead'), headRow = node('tr');
+          ['停車場', '汽車', '機車'].forEach(label => {
+            const cell = node('th', '', label); cell.scope = 'col'; headRow.appendChild(cell);
+          });
+          head.appendChild(headRow);
+          const body = node('tbody');
+          chunk.forEach(lot => {
+            const row = node('tr', 'lot-row');
+            const name = node('th', 'lot-name', lot.name); name.scope = 'row';
+            row.appendChild(name);
+            ['cars', 'motorcycles'].forEach(type => {
+              const cell = node('td');
+              const value = read(lot, type), capacity = lot[type];
+              if (!capacity) {
+                cell.textContent = '—'; cell.title = '未列容量';
+              } else {
+                cell.append(node('span', value === null ? 'unknown' : 'available', value === null ? '未報' : String(value)),
+                  node('span', 'capacity', '/' + capacity));
+                cell.title = (value === null ? '未回報' : '剩餘 ' + value) + '，容量 ' + capacity;
+              }
+              row.appendChild(cell);
+            });
+            body.appendChild(row);
+          });
+          table.append(columns, head, body);
+          tables.appendChild(table);
+        });
+        area.appendChild(tables);
+        host.appendChild(area);
       });
     }
 
@@ -1298,243 +1221,17 @@
 
     // 🏆 JSONP 回呼函式：100% 繞過任何瀏覽器 CORS / file 協議限制！
     window.onGvizData = function(data) {
+      if (!data || data.status === 'error' || !Array.isArray(data.table?.rows)) {
+        document.getElementById('liveText').textContent = '讀取失敗，顯示上次資料';
+        return;
+      }
       try {
-        if (!data || data.status === 'error' || !data.table || !data.table.rows) {
-          document.getElementById('liveText').textContent = '讀取失敗，請確認看板分頁與共用權限';
-          return;
-        }
-        const rows = data.table.rows;
-        if (document.getElementById('parkingGroups')) {
-          updateParkingStatusPage(data);
-          document.getElementById('liveBadge').className = 'live-indicator';
-          document.getElementById('liveText').textContent = '';
-          return;
-        }
-
-        const getVal = (r, c) => {
-          try {
-            if (!rows[r] || !rows[r].c || !rows[r].c[c]) return 0;
-            const cell = rows[r].c[c];
-            if (typeof cell.v === 'number') return cell.v;
-            const parsed = parseFloat(cell.v || cell.f || 0);
-            return isNaN(parsed) ? 0 : parsed;
-          } catch(e) { return 0; }
-        };
-
-        // 🔍 動態語意定位：動態尋找各區塊數據所在列，100% 防止 Google Sheets 空行過濾造成的列號位移！
-        let busStationsRow = 5;
-        let walkTotalRow = 9;
-        let walkStationsRow = 14;
-        let parkTotalRow = null;
-        let parkLotsRow = null;
-
-        rows.forEach((r, idx) => {
-          if (!r || !r.c || !r.c[0]) return;
-          const text = String(r.c[0].v || r.c[0].f || '');
-          if (text.includes('接駁車站即時數據') && rows[idx + 3]) {
-            busStationsRow = idx + 3;
-          } else if (text.includes('步行通道疏運概況') && rows[idx + 2]) {
-            walkTotalRow = idx + 2;
-          } else if (text.includes('步行通道即時數據') && rows[idx + 3]) {
-            walkStationsRow = idx + 3;
-          } else if (text.includes('汽機車停車場剩餘車位') && rows[idx + 2]) {
-            parkTotalRow = idx + 2;
-          } else if (text.includes('各停車場即時剩餘車位（7處）') && rows[idx + 3]) {
-            parkLotsRow = idx + 3;
-          }
-        });
-
-        // ==========================================
-        // 1. 接駁車站點數據 (動態定位：busStationsRow)
-        // ==========================================
-        if (document.getElementById('busTotalIn')) {
-        const b1In = getVal(busStationsRow, 0);
-        const b1Out = getVal(busStationsRow, 3);
-        const b2In = getVal(busStationsRow, 6);
-        const b2Out = getVal(busStationsRow, 9);
-        const b3In = getVal(busStationsRow, 12);
-        const b3Out = getVal(busStationsRow, 15);
-        const b4In = getVal(busStationsRow, 18);
-        const b4Out = getVal(busStationsRow, 21);
-
-        // 接駁車大盤 (Row 0)
-        const busTotalIn = getVal(0, 0) || (b1In + b2In + b3In + b4In);
-        const busTotalOut = getVal(0, 8) || (b1Out + b2Out + b3Out + b4Out);
-        const busRate = calcRate(busTotalIn, busTotalOut);
-
-        document.getElementById('busTotalIn').textContent = formatNumber(busTotalIn);
-        document.getElementById('busTotalOut').textContent = formatNumber(busTotalOut);
-        document.getElementById('busTotalRate').textContent = busRate.pctText;
-        document.getElementById('busMainBar').style.width = busRate.pctNum + "%";
-
-        const updateStationCard = (prefix, inVal, outVal) => {
-          document.getElementById(`${prefix}In`).textContent = formatNumber(inVal);
-          document.getElementById(`${prefix}Out`).textContent = formatNumber(outVal);
-          const r = calcRate(inVal, outVal);
-          document.getElementById(`${prefix}Status`).textContent = `${r.pctText} · 餘${formatNumber(r.remain)}人`;
-          document.getElementById(`${prefix}Bar`).style.width = r.pctNum + "%";
-        };
-
-        updateStationCard('bus1', b1In, b1Out);
-        updateStationCard('bus2', b2In, b2Out);
-        updateStationCard('bus3', b3In, b3Out);
-        updateStationCard('bus4', b4In, b4Out);
-
-        // ==========================================
-        // 2. 步行通道數據 (動態定位：walkStationsRow & walkTotalRow)
-        // ==========================================
-        const w1In = getVal(walkStationsRow, 0);
-        const w1Out = getVal(walkStationsRow, 4);
-        const w2In = getVal(walkStationsRow, 8);
-        const w2Out = getVal(walkStationsRow, 12);
-        const w3In = getVal(walkStationsRow, 16);
-        const w3Out = getVal(walkStationsRow, 20);
-
-        // 步行大盤
-        const walkTotalIn = getVal(walkTotalRow, 0) || (w1In + w2In + w3In);
-        const walkTotalOut = getVal(walkTotalRow, 8) || (w1Out + w2Out + w3Out);
-        const walkRate = calcRate(walkTotalIn, walkTotalOut);
-
-        document.getElementById('walkTotalIn').textContent = formatNumber(walkTotalIn);
-        document.getElementById('walkTotalOut').textContent = formatNumber(walkTotalOut);
-        document.getElementById('walkTotalRate').textContent = walkRate.pctText;
-        document.getElementById('walkMainBar').style.width = walkRate.pctNum + "%";
-
-        updateStationCard('walk1', w1In, w1Out);
-        updateStationCard('walk2', w2In, w2Out);
-        updateStationCard('walk3', w3In, w3Out);
-        }
-
-        // ==========================================
-        // 3. 六大停車場數據 (動態定位：parkTotalRow, parkLotsRow)
-        // ==========================================
-        // 舊版已停數不可解讀成剩餘數；須同時找到新版標題。
-        if (document.getElementById('parkingSection')) {
-        const parkingReady = parkTotalRow !== null && parkLotsRow !== null;
-        const getRemaining = (r, c) => {
-          const cell = rows[r]?.c?.[c];
-          const raw = cell?.v ?? cell?.f;
-          if (raw === null || raw === undefined || String(raw).trim() === '') return null;
-          const value = Number(String(raw).replace(/,/g, ''));
-          return Number.isSafeInteger(value) && value >= 0 ? value : null;
-        };
-        const showRemaining = (id, value, missing) => {
-          document.getElementById(id).textContent = value === null ? missing : formatNumber(value);
-        };
-        let reported = 0;
-        let carsComplete = parkingReady;
-        let motorcyclesComplete = parkingReady;
-        PARKING_LOTS.forEach((lot, i) => {
-          const cars = lot.cars === 0 ? 0 : parkingReady ? getRemaining(parkLotsRow, i * 4) : null;
-          const motorcycles = lot.motorcycles === 0 ? 0 : parkingReady ? getRemaining(parkLotsRow, i * 4 + 2) : null;
-          if (lot.cars > 0) showRemaining('park' + (i + 1) + 'Cars', cars, '未回報');
-          if (lot.motorcycles > 0) showRemaining('park' + (i + 1) + 'Motorcycles', motorcycles, '未回報');
-          if (cars === null) carsComplete = false;
-          if (motorcycles === null) motorcyclesComplete = false;
-          if (parkingReady && cars !== null && motorcycles !== null) reported++;
-
-          // 🅿️ 單站圖像化剩餘跑條即時更新
-          const carBar = document.getElementById('lotCarBar' + (i + 1));
-          if (carBar) {
-            if (lot.cars === 0) {
-              carBar.style.width = '0%';
-              carBar.className = 'parking-bar-fill';
-            } else if (cars !== null) {
-              const pct = Math.min(100, Math.max(0, Math.round((cars / lot.cars) * 100)));
-              carBar.style.width = pct + '%';
-              carBar.className = pct <= 10 ? 'parking-bar-fill danger' : pct <= 30 ? 'parking-bar-fill warning' : 'parking-bar-fill';
-            } else {
-              carBar.style.width = '0%';
-              carBar.className = 'parking-bar-fill';
-            }
-          }
-
-          const motoBar = document.getElementById('lotMotoBar' + (i + 1));
-          if (motoBar) {
-            if (lot.motorcycles === 0) {
-              motoBar.style.width = '0%';
-              motoBar.className = 'parking-bar-fill';
-            } else if (motorcycles !== null) {
-              const pct = Math.min(100, Math.max(0, Math.round((motorcycles / lot.motorcycles) * 100)));
-              motoBar.style.width = pct + '%';
-              motoBar.className = pct <= 10 ? 'parking-bar-fill danger' : pct <= 30 ? 'parking-bar-fill warning' : 'parking-bar-fill amber';
-            } else {
-              motoBar.style.width = '0%';
-              motoBar.className = 'parking-bar-fill';
-            }
-          }
-        });
-        showRemaining('parkTotalCars', carsComplete ? getRemaining(parkTotalRow, 0) : null, '未完整回報');
-        showRemaining('parkTotalMotorcycles', motorcyclesComplete ? getRemaining(parkTotalRow, 8) : null, '未完整回報');
-        document.getElementById('parkReported').textContent = reported + '/7 處';
-        document.getElementById('parkingNote').textContent = parkingReady
-          ? '7 處停車場 · 以各場最新回報為準'
-          : '7 處停車場資料等待更新';
-
-        // 🅿️ 下方停車場大盤總數進度條 (汽車總容量 3,023 / 機車總容量 2,773)
-        const totalCarsVal = carsComplete ? getRemaining(parkTotalRow, 0) : null;
-        const totalMotoVal = motorcyclesComplete ? getRemaining(parkTotalRow, 8) : null;
-
-        const carsBarEl = document.getElementById('parkingCarsBar');
-        const carsTextEl = document.getElementById('parkingCarsRateText');
-        if (carsBarEl && carsTextEl) {
-          if (totalCarsVal !== null) {
-            const carsPct = Math.min(100, Math.max(0, Math.round((totalCarsVal / 3023) * 1000) / 10));
-            carsBarEl.style.width = carsPct + "%";
-            carsTextEl.textContent = "剩餘 " + carsPct.toFixed(1) + "% (" + formatNumber(totalCarsVal) + " 席可用)";
-            const carsBadge = document.getElementById('parkingCarsBadge');
-            if (carsPct <= 10) {
-              carsBarEl.className = 'progress-fill danger';
-              if (carsBadge) { carsBadge.className = 'status-pill red'; carsBadge.textContent = carsPct === 0 ? '已客滿' : '告急'; }
-            } else if (carsPct <= 30) {
-              carsBarEl.className = 'progress-fill warning';
-              if (carsBadge) { carsBadge.className = 'status-pill yellow'; carsBadge.textContent = '吃緊'; }
-            } else {
-              carsBarEl.className = 'progress-fill';
-              if (carsBadge) { carsBadge.className = 'status-pill green'; carsBadge.textContent = '充足'; }
-            }
-          } else {
-            carsBarEl.style.width = "0%";
-            carsTextEl.textContent = "未完整回報";
-            carsBarEl.className = 'progress-fill';
-            const carsBadge = document.getElementById('parkingCarsBadge');
-            if (carsBadge) { carsBadge.className = 'status-pill'; carsBadge.textContent = '待回報'; }
-          }
-        }
-
-        const motoBarEl = document.getElementById('parkingMotoBar');
-        const motoTextEl = document.getElementById('parkingMotoRateText');
-        if (motoBarEl && motoTextEl) {
-          if (totalMotoVal !== null) {
-            const motoPct = Math.min(100, Math.max(0, Math.round((totalMotoVal / 2773) * 1000) / 10));
-            motoBarEl.style.width = motoPct + "%";
-            motoTextEl.textContent = "剩餘 " + motoPct.toFixed(1) + "% (" + formatNumber(totalMotoVal) + " 席可用)";
-            const motoBadge = document.getElementById('parkingMotoBadge');
-            if (motoPct <= 10) {
-              motoBarEl.className = 'progress-fill danger';
-              if (motoBadge) { motoBadge.className = 'status-pill red'; motoBadge.textContent = motoPct === 0 ? '已客滿' : '告急'; }
-            } else if (motoPct <= 30) {
-              motoBarEl.className = 'progress-fill warning';
-              if (motoBadge) { motoBadge.className = 'status-pill yellow'; motoBadge.textContent = '吃緊'; }
-            } else {
-              motoBarEl.className = 'progress-fill amber';
-              if (motoBadge) { motoBadge.className = 'status-pill green'; motoBadge.textContent = '充足'; }
-            }
-          } else {
-            motoBarEl.style.width = "0%";
-            motoTextEl.textContent = "未完整回報";
-            motoBarEl.className = 'progress-fill amber';
-            const motoBadge = document.getElementById('parkingMotoBadge');
-            if (motoBadge) { motoBadge.className = 'status-pill'; motoBadge.textContent = '待回報'; }
-          }
-        }
-
-        }
+        updateParkingStatusPage(data);
         document.getElementById('liveBadge').className = 'live-indicator';
         document.getElementById('liveText').textContent = '';
-      } catch (err) {
-        document.getElementById('liveText').textContent = '更新失敗，正在重試...';
-        console.warn("更新異常:", err);
+      } catch (error) {
+        document.getElementById('liveText').textContent = '更新失敗，正在重試';
+        console.warn('停車場更新失敗', error);
       }
     };
 
@@ -1555,6 +1252,7 @@
     }
 
     // 立即載入並每 3 秒自動請求
+    updateParkingStatusPage({ table: { rows: [] } });
     requestGvizData();
     setInterval(requestGvizData, 3000);
 

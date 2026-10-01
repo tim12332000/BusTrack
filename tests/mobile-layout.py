@@ -35,15 +35,15 @@ with sync_playwright() as p:
             assert page.locator('#bus5In').inner_text() == '1,500'
             assert page.locator('#walk3In').count() == 0
         else:
-            assert page.locator('#parkingGroups .station-card').count() == 23
-            assert page.locator('#parkTotalCars').inner_text() == '8,305'
-            assert page.locator('#parkTotalMotorcycles').inner_text() == '5,693'
+            assert page.locator('.lot-row').count() == 23
+            assert page.locator('.area-total').all_inner_texts() == ['140','874','4,936','1,447','3,229','3,372']
         assert page.locator('#fabFlip').count() == 0
         assert page.locator('#fabRotate').count() == 0
         assert page.locator('#fabRefresh').inner_text() == '↻ 強制刷新'
         if page.evaluate('document.scrollingElement.scrollHeight > innerHeight'):
-            page.locator('.station-card').last.scroll_into_view_if_needed()
-            assert page.locator('.station-card').last.evaluate('(e) => { const r = e.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }')
+            last = page.locator('.station-card' if filename == 'index.html' else '.lot-row').last
+            last.scroll_into_view_if_needed()
+            assert last.evaluate('(e) => { const r = e.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }')
             page.evaluate('window.scrollTo(0, 0)')
         page.screenshot(path=str(root/'.omx'/f'{filename}-fit-{width}x{height}.png'), full_page=True)
         result = page.evaluate('''() => {
