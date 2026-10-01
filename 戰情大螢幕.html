@@ -595,10 +595,28 @@
     /* 色標對應各線 */
     .bg-green  { background: var(--mil-green); }
     .bg-blue   { background: var(--mil-blue); }
+    .bg-orange { background: #C2410C; }
     .bg-amber  { background: var(--mil-amber); }
     .bg-purple { background: var(--mil-purple); }
-    .bg-pink   { background: var(--mil-wine); }
+    .bg-pink   { background: #F9A8D4; color: #831843; }
+    .bg-red    { background: #DC2626; }
     .bg-teal   { background: var(--mil-teal); }
+
+    .station-photo {
+      display: block;
+      width: 100%;
+      height: clamp(72px, 12vh, 140px);
+      min-height: 0;
+      flex: 0 1 auto;
+      object-fit: cover;
+      object-position: center;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+
+    @media (orientation: landscape) and (max-height: 579px) {
+      .station-photo { height: clamp(24px, 9dvh, 48px); }
+    }
 
     .card-body {
       display: grid;
@@ -946,7 +964,8 @@
     <div class="cards-grid grid-5">
       <!-- 成功車站 -->
       <div class="station-card">
-        <div class="card-header bg-green">🚌 成功車站</div>
+        <div class="card-header bg-green">🚌 成功車站（綠線）</div>
+        <img class="station-photo" src="assets/stations/chenggong.jpg" alt="成功車站（綠線）" width="640" height="240" decoding="async">
         <div class="card-body">
           <div class="card-col">
             <div class="card-col-label">進場</div>
@@ -967,7 +986,8 @@
 
       <!-- 新烏日車站 -->
       <div class="station-card">
-        <div class="card-header bg-blue">🚌 新烏日車站</div>
+        <div class="card-header bg-blue">🚌 新烏日車站（藍線）</div>
+        <img class="station-photo" src="assets/stations/xinwuri.jpg" alt="新烏日車站（藍線）" width="640" height="240" decoding="async">
         <div class="card-body">
           <div class="card-col">
             <div class="card-col-label">進場</div>
@@ -988,7 +1008,8 @@
 
       <!-- 水湳轉運站 -->
       <div class="station-card">
-        <div class="card-header bg-amber">🚌 水湳轉運站</div>
+        <div class="card-header bg-orange">🚌 水湳轉運站（橘線）</div>
+        <img class="station-photo" src="assets/stations/shuinan.jpg" alt="水湳轉運站（橘線）" width="640" height="240" decoding="async">
         <div class="card-body">
           <div class="card-col">
             <div class="card-col-label">進場</div>
@@ -1009,7 +1030,8 @@
 
       <!-- 經貿六停車場 -->
       <div class="station-card">
-        <div class="card-header bg-amber">🚌 經貿六停車場</div>
+        <div class="card-header bg-orange">🚌 經貿六停車場（橘線）</div>
+        <img class="station-photo" src="assets/stations/jingmao6.jpg" alt="經貿六停車場（橘線）" width="640" height="240" decoding="async">
         <div class="card-body">
           <div class="card-col">
             <div class="card-col-label">進場</div>
@@ -1030,7 +1052,8 @@
 
       <!-- 嶺東科大-寶文校區 -->
       <div class="station-card">
-        <div class="card-header bg-purple">🚌 嶺東科大-寶文校區</div>
+        <div class="card-header bg-pink">🚌 嶺東科大-寶文校區（粉線）</div>
+        <img class="station-photo" src="assets/stations/lingdong.jpg" alt="嶺東科大-寶文校區（粉線）" width="640" height="240" decoding="async">
         <div class="card-body">
           <div class="card-col">
             <div class="card-col-label">進場</div>
@@ -1086,7 +1109,7 @@
     <div class="cards-grid grid-2">
       <!-- 1號門 -->
       <div class="station-card">
-        <div class="card-header bg-green">🚶 1號門</div>
+        <div class="card-header bg-red">🚶 1號門（紅線）</div>
         <div class="card-body">
           <div class="card-col">
             <div class="card-col-label">進場</div>
@@ -1107,7 +1130,7 @@
 
       <!-- 3號門 -->
       <div class="station-card">
-        <div class="card-header bg-blue">🚶 3號門</div>
+        <div class="card-header bg-red">🚶 3號門（紅線）</div>
         <div class="card-body">
           <div class="card-col">
             <div class="card-col-label">進場</div>

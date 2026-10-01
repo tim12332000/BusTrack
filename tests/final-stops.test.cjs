@@ -24,7 +24,7 @@ function fixture(inbound, outbound, offset = 0) {
 }
 test('exact final seven names appear in the requested order', () => {
   const names = [...html.matchAll(/class="card-header [^"]+">[^ ]+ ([^<]+)<\/div>/g)].map(m => m[1]);
-  assert.deepEqual(names, ['成功車站', '新烏日車站', '水湳轉運站', '經貿六停車場', '嶺東科大-寶文校區', '1號門', '3號門']);
+  assert.deepEqual(names, ['成功車站（綠線）', '新烏日車站（藍線）', '水湳轉運站（橘線）', '經貿六停車場（橘線）', '嶺東科大-寶文校區（粉線）', '1號門（紅線）', '3號門（紅線）']);
   assert.doesNotMatch(html, /id="walk3|130輛/);
 });
 test('new stop is located semantically, included once, and gate 4 excluded', () => {
