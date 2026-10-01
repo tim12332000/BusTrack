@@ -51,7 +51,17 @@ function setup(options = {}) {
     }
   }));
   const untouched = { getLastColumn: () => 0 };
+  // 「停車場現況」分頁：B 欄名稱、E/F 欄容量，內容取自主程式場地名單。
+  const lots = () => vm.runInContext('PARKING_LOTS', ctx);
+  const status = {
+    getLastRow: () => lots().length + 1,
+    getRange: (row, column, count, columns) => {
+      assert.deepEqual([row, column, count, columns], [2, 2, lots().length, 5]);
+      return { getValues: () => lots().map(lot => [lot.name, '未回報', '未回報', lot.car || '', lot.motorcycle || '']) };
+    }
+  };
   const ss = {
+    getSheetByName: name => name === '停車場現況' && !options.noStatus ? status : null,
     getId: () => options.wrongSheet ? 'backup-copy' : targetId,
     getSheets: () => [untouched, ...sheets],
     copy() { calls.push('backup'); if (options.backupFailure) throw new Error('backup failed'); return { getUrl: () => 'backup-url' }; }
@@ -131,18 +141,18 @@ test('private executor rejects missing confirmation snapshot', () => {
   assert.deepEqual(p.calls, ['unlock']);
 });
 
-test('generation appends 14 people and 7 parking rows without deleting or overwriting existing data', () => {
+test('generation appends 14 people and 23 parking rows without deleting or overwriting existing data', () => {
   const p = setup(); p.ctx.runGenerateTestData();
   assert.equal(p.alerts.at(-1).title, '新增完成');
-  assert.deepEqual(p.sheets.map(s => s.added.length), [14, 7]);
-  assert.deepEqual(p.sheets.map(s => s.rows), [17, 10]);
+  assert.deepEqual(p.sheets.map(s => s.added.length), [14, 23]);
+  assert.deepEqual(p.sheets.map(s => s.rows), [17, 26]);
   assert.ok(!p.calls.some(c => /^(clear|delete|accept)-/.test(c)));
   assert.ok(p.sheets.every(s => s.added.every(row => row.at(-1) === '測試資料')));
   assert.ok(p.forms.every(f => f.ids.length === 1), 'native form responses remain unchanged');
 });
 
 test('generation cancellation, lock contention and bad second-sheet schema add nothing', () => {
-  for (const option of ['cancel', 'busy', 'wrongForm', 'missingNote']) {
+  for (const option of ['cancel', 'busy', 'wrongForm', 'missingNote', 'noStatus']) {
     const p = setup({ [option]: true }); p.ctx.runGenerateTestData();
     assert.ok(p.sheets.every(s => s.added.length === 0), option);
   }
@@ -158,11 +168,18 @@ test('generation reports partial additions honestly and releases the reset lock'
 test('parking test rows follow migrated headers and leave retired action/quantity columns empty', () => {
   const p = setup();
   const headers = ['Timestamp', '3. 車號', '1. 停車場區域', '2. 回報項目 / 動作', '3. 車輛數量 (輛)', '4. 備註', '2. 目前剩餘汽車停車位', '3. 目前剩餘機車停車位'];
-  const rows = p.ctx.buildTestDataRows_('parking', { area: 'C', car: 'G', motorcycle: 'H' }, headers, new Date());
-  assert.equal(rows.length, 7);
-  assert.deepEqual(Array.from(rows[0].slice(1)), ['', '五都日出', '', '', '測試資料', 650, 80]);
-  assert.equal(rows[3][6], 0);
-  assert.equal(rows[5][7], 0);
-  assert.equal(rows[6][7], 0);
+  const lots = vm.runInContext('PARKING_LOTS', p.ctx);
+  const rows = p.ctx.buildTestDataRows_('parking', { area: 'C', car: 'G', motorcycle: 'H' }, headers, new Date(), p.ctx.readParkingLots_(p.ss));
+  assert.equal(rows.length, 23);
+  assert.deepEqual(Array.from(rows[0].slice(1)), ['', 'CITYPARKING春安站', '', '', '測試資料', 53, 1]);
+  // 名稱必須和主程式場地名單一致，「停車場現況」才比對得到；剩餘不可超過容量，無此車種填 0。
+  assert.deepEqual(rows.map(row => row[2]), lots.map(lot => lot.name));
+  rows.forEach((row, i) => {
+    assert.ok(Number.isInteger(row[6]) && row[6] >= 0 && row[6] <= lots[i].car, lots[i].name);
+    assert.ok(Number.isInteger(row[7]) && row[7] >= 0 && row[7] <= lots[i].motorcycle, lots[i].name);
+  });
+  assert.equal(rows[1][7], 0);
+  assert.equal(rows[2][6], 0);
+  assert.ok(rows.some(row => row[6] === 0) && rows.some(row => row[6] > 0));
   assert.ok(rows.every(row => Number.isFinite(row[0].getTime())));
 });

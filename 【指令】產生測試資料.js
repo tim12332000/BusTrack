@@ -6,7 +6,7 @@
 function runGenerateTestData() {
   const ui = SpreadsheetApp.getUi();
   const answer = ui.alert('新增測試資料？',
-    '會新增 14 筆人員進離場及 7 筆停車場剩餘車位測試資料。\n' +
+    '會新增 14 筆人員進離場，及「停車場現況」每個場地各 1 筆剩餘車位測試資料。\n' +
     '全部標記「測試資料」，保留現有回報；看板統計會包含這批資料。\n' +
     '資料直接寫入試算表，不會增加 Google 表單的原生回覆數。', ui.ButtonSet.YES_NO);
   if (answer !== ui.Button.YES) return;
@@ -16,14 +16,17 @@ function runGenerateTestData() {
     return;
   }
   let added = 0;
+  let parkingCount = 0;
   let failure = null;
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const lots = readParkingLots_(ss);
+    parkingCount = lots.length;
     const plan = prepareTestDataReset_(ss);
     const batches = plan.targets.map(target => {
       const source = findResponseSource(ss, target.kind);
       const headers = target.sheet.getRange(1, 1, 1, target.sheet.getLastColumn()).getValues()[0];
-      return { sheet: target.sheet, rows: buildTestDataRows_(target.kind, source.columns, headers, new Date()) };
+      return { sheet: target.sheet, rows: buildTestDataRows_(target.kind, source.columns, headers, new Date(), lots) };
     });
     // 由 Sheets 附加至尾端，避免過期列號覆蓋同時進來的新回報。
     batches.forEach(batch => batch.rows.forEach(row => { batch.sheet.appendRow(row); added++; }));
@@ -36,11 +39,21 @@ function runGenerateTestData() {
   if (failure) {
     ui.alert('新增未完成', '已新增 ' + added + ' 筆。\n' + failure, ui.ButtonSet.OK);
   } else {
-    ui.alert('新增完成', '已新增 14 筆人員及 7 筆停車場測試資料，看板會自動更新。', ui.ButtonSet.OK);
+    ui.alert('新增完成', '已新增 14 筆人員及 ' + parkingCount + ' 筆停車場測試資料，看板會自動更新。', ui.ButtonSet.OK);
   }
 }
 
-function buildTestDataRows_(kind, columns, headers, now) {
+// 場地名稱與容量直接讀「停車場現況」分頁：停車場網頁讀的就是這張表，名稱一定比對得上。
+function readParkingLots_(ss) {
+  const sheet = ss.getSheetByName('停車場現況');
+  if (!sheet || sheet.getLastRow() < 2) throw new Error('找不到「停車場現況」分頁，未新增資料。');
+  // B 欄場地名稱，E、F 欄汽車與機車容量（空白代表沒有該車種）。
+  return sheet.getRange(2, 2, sheet.getLastRow() - 1, 5).getValues()
+    .filter(row => String(row[0]).trim() !== '')
+    .map(row => ({ name: String(row[0]).trim(), car: Number(row[3]) || 0, motorcycle: Number(row[4]) || 0 }));
+}
+
+function buildTestDataRows_(kind, columns, headers, now, lots) {
   const positions = {};
   Object.keys(columns).forEach(key => {
     positions[key] = columns[key].split('').reduce((n, char) => n * 26 + char.charCodeAt(0) - 64, 0) - 1;
@@ -60,15 +73,13 @@ function buildTestDataRows_(kind, columns, headers, now) {
           { station, bus, direction: '離場', quantity: Math.floor(quantity * 0.6) }]);
       }, []);
   } else {
-    records = [
-      { area: '五都日出', car: 650, motorcycle: 80 },
-      { area: '新烏日', car: 140, motorcycle: 210 },
-      { area: '*嶺東科大', car: 35, motorcycle: 520 },
-      { area: '*台中科大', car: 0, motorcycle: 110 },
-      { area: '水湳轉運站', car: 380, motorcycle: 860 },
-      { area: '*經貿六', car: 310, motorcycle: 0 },
-      { area: '*經貿八', car: 290, motorcycle: 0 }
-    ];
+    // 剩餘比例輪流取不同值，讓充足、吃緊、告急、客滿都看得到；沒有該車種填 0。
+    const ratios = [0.65, 0.4, 0.2, 0.05, 0, 0.85, 0.5, 0.3];
+    records = lots.map((lot, i) => ({
+      area: lot.name,
+      car: Math.round(lot.car * ratios[i % ratios.length]),
+      motorcycle: Math.round(lot.motorcycle * ratios[(i + 3) % ratios.length])
+    }));
   }
   return records.map((record, index) => {
     const row = Array(headers.length).fill('');
