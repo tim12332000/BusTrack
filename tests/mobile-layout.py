@@ -37,6 +37,7 @@ with sync_playwright() as p:
         else:
             assert page.locator('#parkingGroups .lot-row[data-lot]').count() == 23
             assert page.locator('#parkingGroups .lot-group').count() == 3
+            assert page.locator('#parkingGroups .group-metric .capacity-bar').count() == 6
             # 停車場頁要一個畫面看完全部，不可垂直捲動。
             assert page.evaluate('document.scrollingElement.scrollHeight <= innerHeight + 1 && document.body.scrollHeight <= innerHeight + 1'), (width, height)
             assert page.locator('#parkTotalCars').inner_text() == '8,305'

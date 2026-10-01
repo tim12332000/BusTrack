@@ -994,7 +994,35 @@
     .overview-metric .metric-label { margin: 0; font-size: clamp(11px, 1.5svh, 15px); font-weight: 700; }
     .overview-metric .metric-value { font-size: clamp(16px, 3.4svh, 38px); line-height: 1.2; }
     .overview-metric .metric-capacity { margin: 0; font-size: clamp(10px, 1.5svh, 15px); white-space: nowrap; }
-    .overview-metric .progress-track { height: 6px; border-radius: 3px; }
+    /* 剩餘 / 總容量 進度條：有顏色＝空位（越長越空），灰色斜線＝未回報，空白＝已停滿 */
+    .capacity-bar {
+      display: flex;
+      height: clamp(6px, 1.1svh, 12px);
+      min-width: 30px;
+      background: rgba(255, 255, 255, 0.10);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .bar-fill { height: 100%; background: var(--text-muted); transition: width 0.4s ease; }
+    .bar-fill.green { background: #10B981; }
+    .bar-fill.yellow { background: #F59E0B; }
+    .bar-fill.red { background: #EF4444; }
+    .bar-unknown {
+      height: 100%;
+      background: repeating-linear-gradient(-45deg, rgba(148, 163, 184, 0.55) 0 3px, rgba(148, 163, 184, 0.2) 3px 6px);
+    }
+    .bar-legend {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.65em;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .bar-legend i { display: inline-block; width: 14px; height: 7px; border-radius: 2px; }
+    .bar-legend .legend-unknown { margin-left: 6px; }
+    .legend-free { background: #10B981; }
+    .legend-unknown { background: repeating-linear-gradient(-45deg, rgba(148, 163, 184, 0.75) 0 3px, rgba(148, 163, 184, 0.25) 3px 6px); }
     .overview-metric .progress-pct { font-size: clamp(10px, 1.4svh, 14px); font-weight: 700; color: #FFFFFF; white-space: nowrap; }
     .overview-metric .metric-value.pending, .group-metric b.pending {
       font-size: clamp(11px, 1.6svh, 18px);
@@ -1027,8 +1055,8 @@
     }
     .group-head {
       flex: none;
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
       align-items: center;
       gap: 2px 14px;
       padding: 4px 10px;
@@ -1041,19 +1069,20 @@
       font-weight: 900;
       white-space: nowrap;
       line-height: 1.15;
-      margin-right: auto;
     }
-    .group-metrics { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px 14px; }
+    .group-metrics { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px; min-width: 0; }
+    .group-name small.missing { color: #FBBF24; }
     .group-name small {
-      font-size: 0.55em;
+      display: block;
+      font-size: max(10px, 0.5em);
       font-weight: 600;
       color: var(--text-muted);
-      margin-left: 6px;
     }
     .group-metric {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       gap: 5px;
+      min-width: 0;
       white-space: nowrap;
       font-size: clamp(11px, 1.5svh, 16px);
       color: var(--text-muted);
@@ -1067,7 +1096,8 @@
     }
     .group-metric.cars b { color: #38BDF8; }
     .group-metric.motorcycles b { color: #F59E0B; }
-    .group-metric .status-pill { align-self: center; }
+    .group-metric .capacity-bar { flex: 1 1 30px; min-width: 18px; }
+    .group-pct { color: #FFFFFF; }
 
     /* 站內停車場表格 */
     .lot-table {
@@ -1080,7 +1110,7 @@
     }
     .lot-row {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 6.4em 6.4em;
+      grid-template-columns: minmax(0, 1fr) 7em 7em;
       align-items: center;
       gap: 8px;
       padding: 0 10px;
@@ -1098,7 +1128,21 @@
       padding-bottom: 2px;
     }
     .lot-name { font-weight: 700; white-space: nowrap; overflow: hidden; }
-    .lot-num { text-align: right; white-space: nowrap; overflow: hidden; }
+    .lot-num {
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      white-space: nowrap;
+      overflow: hidden;
+      padding: 0 4px;
+      border-radius: 2px;
+      background: linear-gradient(to right, var(--tint, transparent) var(--pct, 0%), #EEF2F6 var(--pct, 0%));
+    }
+    .lot-head .lot-num, .lot-num.unavailable { background: none; }
+    .lot-num.green { --tint: #BBF7D0; }
+    .lot-num.yellow { --tint: #FDE68A; }
+    .lot-num.red { --tint: #FECACA; }
     .lot-num b { font-weight: 800; font-family: 'Inter', sans-serif; }
     .lot-num small { font-size: 0.72em; color: #6B7280; margin-left: 2px; }
     .lot-num.unavailable { color: #9CA3AF; }
@@ -1107,22 +1151,22 @@
 
     /* 手機直向：三站由上往下排，依停車場數分配高度 */
     @media (orientation: portrait) and (max-width: 900px) {
-      #parkingGroups { display: flex; flex-direction: column; }
+      body, #parkingSection { gap: 4px; }
+      #parkingGroups { display: flex; flex-direction: column; gap: 4px; }
       .lot-stack { display: contents; }
       .parking-overview { grid-template-columns: minmax(0, 1fr); padding: 3px 8px; gap: 2px; }
       .overview-title { flex-direction: row; gap: 8px; align-items: baseline; }
       .overview-metric {
-        grid-template-columns: auto auto auto minmax(20px, 1fr) auto;
+        grid-template-columns: auto auto auto minmax(20px, 1fr) auto auto;
         gap: 6px;
         padding: 1px 6px;
       }
-      .overview-metric .progress-pct { display: none; }
       .overview-metric .metric-value { font-size: clamp(15px, 2.4svh, 24px); }
       .overview-metric .metric-label, .overview-metric .metric-capacity { font-size: 10px; }
       .overview-metric .status-pill { justify-self: end; }
       .group-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 8px; padding: 2px 8px; }
       .group-name { font-size: clamp(14px, 2.2svh, 20px); }
-      .group-metrics { flex-direction: column; align-items: flex-end; gap: 0; }
+      .bar-legend { margin-left: auto; }
       .group-metric { font-size: 10px; }
       .group-metric b { font-size: clamp(13px, 1.9svh, 18px); }
       .group-metric .status-pill { font-size: 9px; padding: 0 4px; }
@@ -1137,7 +1181,7 @@
       .overview-metric .metric-value { font-size: 16px; }
       .group-head { padding: 1px 8px; gap: 0 10px; border-top-width: 3px; }
       .group-name { font-size: 14px; }
-      .group-metrics { gap: 0 10px; }
+      .capacity-bar { height: 6px; }
       .group-metric { font-size: 10px; }
       .group-metric b { font-size: 14px; }
       .group-metric .status-pill { font-size: 9px; padding: 0 4px; }
@@ -1179,21 +1223,22 @@
       <div class="overview-title">
         <span>🅿️ 全區剩餘車位</span>
         <span id="parkingNote">23 處停車場 · 以各場最新回報為準</span>
+        <span class="bar-legend"><i class="legend-free"></i>空位 <i class="legend-unknown"></i>未回報</span>
       </div>
       <div class="overview-metric">
         <span class="metric-label">🚗 汽車</span>
-        <span class="metric-value blue" id="parkTotalCars">未完整回報</span>
+        <span class="metric-value blue" id="parkTotalCars">未回報</span>
         <span class="metric-capacity">/ <span class="cap-word">總容量 </span>8,305</span>
-        <div class="progress-track"><div class="progress-fill" id="parkingCarsBar"></div></div>
-        <span class="progress-pct" id="parkingCarsRateText">未完整回報</span>
+        <div class="capacity-bar" id="parkingCarsBar"></div>
+        <span class="progress-pct" id="parkingCarsRateText">—</span>
         <span class="status-pill" id="parkingCarsBadge">待回報</span>
       </div>
       <div class="overview-metric">
         <span class="metric-label">🛵 機車</span>
-        <span class="metric-value amber" id="parkTotalMotorcycles">未完整回報</span>
+        <span class="metric-value amber" id="parkTotalMotorcycles">未回報</span>
         <span class="metric-capacity">/ <span class="cap-word">總容量 </span>5,693</span>
-        <div class="progress-track"><div class="progress-fill amber" id="parkingMotoBar"></div></div>
-        <span class="progress-pct" id="parkingMotoRateText">未完整回報</span>
+        <div class="capacity-bar" id="parkingMotoBar"></div>
+        <span class="progress-pct" id="parkingMotoRateText">—</span>
         <span class="status-pill" id="parkingMotoBadge">待回報</span>
       </div>
       <span id="parkReported" hidden>0/23 處</span>
@@ -1265,12 +1310,20 @@
       const percent = (amount, capacity) => Math.min(100, Math.round(amount / capacity * 1000) / 10);
       const level = pct => pct <= 10 ? 'red' : pct <= 30 ? 'yellow' : 'green';
       const levelText = pct => pct === 0 ? '已客滿' : pct <= 10 ? '告急' : pct <= 30 ? '吃緊' : '充足';
-      // 一個站（或全區）某車種的剩餘總數：所有有容量的場都回報了才算完整。
+      // 一個站（或全區）某車種的剩餘總數：有回報的場直接加總，沒回報的場容量另外標成「未知」。
       const summarize = (lots, type) => {
-        const capacity = lots.reduce((sum, lot) => sum + lot[type], 0);
-        const isComplete = lots.every(lot => lot[type] === 0 || read(lot, type) !== null);
-        const amount = lots.reduce((sum, lot) => sum + (read(lot, type) || 0), 0);
-        return { capacity, isComplete, amount, pct: isComplete && capacity ? percent(amount, capacity) : null };
+        const counted = lots.filter(lot => lot[type] > 0);
+        const known = counted.filter(lot => read(lot, type) !== null);
+        const capacity = counted.reduce((sum, lot) => sum + lot[type], 0);
+        const knownCapacity = known.reduce((sum, lot) => sum + lot[type], 0);
+        const amount = known.reduce((sum, lot) => sum + read(lot, type), 0);
+        return {
+          capacity, amount, hasData: known.length > 0,
+          pct: capacity ? percent(amount, capacity) : 0,
+          unknownPct: capacity ? percent(capacity - knownCapacity, capacity) : 0,
+          // 狀態只看已回報的場，避免沒回報的場被當成客滿。
+          knownPct: knownCapacity ? percent(amount, knownCapacity) : null
+        };
       };
       const node = (tag, className, text) => {
         const element = document.createElement(tag);
@@ -1278,22 +1331,36 @@
         if (text !== undefined) element.textContent = text;
         return element;
       };
+      // 進度條三段：有顏色＝確定的空位、灰色斜線＝還沒回報的容量、空白＝已停滿。
+      const fillBar = (track, summary) => {
+        const fill = node('div', summary.knownPct === null ? 'bar-fill' : `bar-fill ${level(summary.knownPct)}`);
+        fill.style.width = summary.pct + '%';
+        const unknown = node('div', 'bar-unknown');
+        unknown.style.width = summary.unknownPct + '%';
+        track.replaceChildren(fill, unknown);
+      };
+      const remainText = summary => summary.hasData ? formatNumber(summary.amount) : '未回報';
+      const pctText = summary => summary.hasData ? `剩 ${Math.round(summary.pct)}%` : '—';
+      const setPill = (pill, summary) => {
+        pill.className = summary.knownPct === null ? 'status-pill' : `status-pill ${level(summary.knownPct)}`;
+        pill.textContent = summary.knownPct === null ? '待回報' : levelText(summary.knownPct);
+      };
+      const missingLots = lots => lots.filter(lot => ['cars', 'motorcycles'].some(type => lot[type] > 0 && read(lot, type) === null)).length;
 
       const updateSummary = (type, ids) => {
-        const { isComplete, amount, pct } = summarize(PARKING_LOTS, type);
-        const value = document.getElementById(ids.value), bar = document.getElementById(ids.bar), text = document.getElementById(ids.text), badge = document.getElementById(ids.badge);
-        value.textContent = isComplete ? formatNumber(amount) : '未完整回報';
-        value.classList.toggle('pending', !isComplete);
-        if (pct === null) { bar.style.width = '0%'; text.textContent = '—'; badge.className = 'status-pill'; badge.textContent = '待回報'; return; }
-        bar.style.width = pct + '%'; text.textContent = `剩餘 ${pct.toFixed(1)}%`;
-        badge.className = `status-pill ${level(pct)}`;
-        badge.textContent = levelText(pct);
+        const summary = summarize(PARKING_LOTS, type);
+        const value = document.getElementById(ids.value);
+        value.textContent = remainText(summary);
+        value.classList.toggle('pending', !summary.hasData);
+        fillBar(document.getElementById(ids.bar), summary);
+        document.getElementById(ids.text).textContent = pctText(summary);
+        setPill(document.getElementById(ids.badge), summary);
       };
       updateSummary('cars', { value: 'parkTotalCars', bar: 'parkingCarsBar', text: 'parkingCarsRateText', badge: 'parkingCarsBadge' });
       updateSummary('motorcycles', { value: 'parkTotalMotorcycles', bar: 'parkingMotoBar', text: 'parkingMotoRateText', badge: 'parkingMotoBadge' });
-      const reported = PARKING_LOTS.filter(lot => ['cars', 'motorcycles'].every(type => lot[type] === 0 || read(lot, type) !== null)).length;
-      document.getElementById('parkReported').textContent = `${reported}/23 處`;
-      document.getElementById('parkingNote').textContent = `23 處停車場 · 已完整回報 ${reported} 處`;
+      const missingTotal = missingLots(PARKING_LOTS);
+      document.getElementById('parkReported').textContent = `${PARKING_LOTS.length - missingTotal}/23 處`;
+      document.getElementById('parkingNote').textContent = missingTotal ? `23 處停車場 · ${missingTotal} 處未回報` : '23 處停車場 · 全部已回報';
 
       const groupColors = ['var(--mil-blue)', 'var(--mil-green)', 'var(--mil-amber)', 'var(--mil-purple)'];
       const groups = [...new Set(PARKING_LOTS.map(lot => lot.group))].map((group, index) => ({
@@ -1309,15 +1376,19 @@
 
         const head = node('div', 'group-head');
         const title = node('h2', 'group-name', group);
-        title.appendChild(node('small', '', `${lots.length} 處`));
+        const missing = missingLots(lots);
+        title.appendChild(node('small', missing ? 'missing' : '', missing ? `${lots.length} 處 · ${missing} 處未回報` : `${lots.length} 處`));
         const metrics = node('div', 'group-metrics');
         [['汽車', 'cars'], ['機車', 'motorcycles']].forEach(([label, type]) => {
-          const { capacity, isComplete, amount, pct } = summarize(lots, type);
+          const summary = summarize(lots, type);
           const metric = node('div', `group-metric ${type}`);
-          const cap = node('span', '', '/ ');
-          cap.append(node('span', 'cap-word', '總容量 '), formatNumber(capacity));
-          metric.append(node('span', '', label), node('b', isComplete ? '' : 'pending', isComplete ? formatNumber(amount) : '未完整回報'), cap);
-          metric.appendChild(node('span', pct === null ? 'status-pill' : `status-pill ${level(pct)}`, pct === null ? '待回報' : levelText(pct)));
+          const cap = node('span', 'group-cap', '/ ');
+          cap.append(node('span', 'cap-word', '總容量 '), formatNumber(summary.capacity));
+          const track = node('div', 'capacity-bar');
+          fillBar(track, summary);
+          const pill = node('span');
+          setPill(pill, summary);
+          metric.append(node('span', '', label), node('b', summary.hasData ? '' : 'pending', remainText(summary)), cap, track, node('span', 'group-pct', pctText(summary)), pill);
           metrics.appendChild(metric);
         });
         head.append(title, metrics);
@@ -1328,7 +1399,7 @@
         table.setAttribute('aria-label', `${group}各停車場剩餘車位`);
         const headRow = node('div', 'lot-row lot-head');
         headRow.setAttribute('role', 'row');
-        ['停車場', '汽車剩餘', '機車剩餘'].forEach((label, i) => {
+        ['停車場', '汽車 剩/總', '機車 剩/總'].forEach((label, i) => {
           const cell = node('span', i ? 'lot-num' : 'lot-name', label);
           cell.setAttribute('role', 'columnheader');
           headRow.appendChild(cell);
@@ -1344,6 +1415,8 @@
           ['cars', 'motorcycles'].forEach(type => {
             const capacity = lot[type], value = read(lot, type);
             const cell = node('span', capacity === 0 ? 'lot-num unavailable' : value === null ? 'lot-num' : `lot-num ${level(percent(value, capacity))}`);
+            // 數字後面墊一條淡色底條：越長越空。
+            if (capacity && value !== null) cell.style.setProperty('--pct', percent(value, capacity) + '%');
             cell.setAttribute('role', 'cell');
             cell.appendChild(node('b', '', capacity === 0 ? '—' : value === null ? '未回報' : formatNumber(value)));
             if (capacity) cell.appendChild(node('small', '', `/${formatNumber(capacity)}`));
