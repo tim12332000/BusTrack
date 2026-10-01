@@ -35,22 +35,25 @@ with sync_playwright() as p:
             assert page.locator('#bus5In').inner_text() == '1,500'
             assert page.locator('#walk3In').count() == 0
         else:
-            assert page.locator('.lot-row').count() == 23
-            assert page.locator('.area-total').all_inner_texts() == ['140','874','4,936','1,447','3,229','3,372']
+            assert page.locator('#parkingGroups .lot-row[data-lot]').count() == 23
+            assert page.locator('#parkingGroups .lot-group').count() == 3
+            # 停車場頁要一個畫面看完全部，不可垂直捲動。
+            assert page.evaluate('document.scrollingElement.scrollHeight <= innerHeight + 1 && document.body.scrollHeight <= innerHeight + 1'), (width, height)
+            assert page.locator('#parkTotalCars').inner_text() == '8,305'
+            assert page.locator('#parkTotalMotorcycles').inner_text() == '5,693'
         assert page.locator('#fabFlip').count() == 0
         assert page.locator('#fabRotate').count() == 0
         assert page.locator('#fabRefresh').inner_text() == '↻ 強制刷新'
-        if page.evaluate('document.scrollingElement.scrollHeight > innerHeight'):
-            last = page.locator('.station-card' if filename == 'index.html' else '.lot-row').last
-            last.scroll_into_view_if_needed()
-            assert last.evaluate('(e) => { const r = e.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }')
+        if filename == 'index.html' and page.evaluate('document.scrollingElement.scrollHeight > innerHeight'):
+            page.locator('.station-card').last.scroll_into_view_if_needed()
+            assert page.locator('.station-card').last.evaluate('(e) => { const r = e.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }')
             page.evaluate('window.scrollTo(0, 0)')
         page.screenshot(path=str(root/'.omx'/f'{filename}-fit-{width}x{height}.png'), full_page=True)
         result = page.evaluate('''() => {
-          const outside=[...document.querySelectorAll('.station-card, header, .floating-toolbar, .summary-banner')].map(e=>{
+          const outside=[...document.querySelectorAll('.station-card, .lot-group, header, .floating-toolbar, .summary-banner')].map(e=>{
             const r=e.getBoundingClientRect();return {name:e.className,x:r.x,y:r.y,right:r.right,bottom:r.bottom};
           }).filter(r=>r.x < -1 || r.y < -1 || r.right>innerWidth+1);
-          const clipped=[...document.querySelectorAll('.card-header,.card-col-label,.card-col-num,.metric-value,.metric-label,.card-status-text,h1,.progress-pct,.parking-capacity')]
+          const clipped=[...document.querySelectorAll('.card-header,.card-col-label,.card-col-num,.metric-value,.metric-label,.card-status-text,h1,.progress-pct,.parking-capacity,.lot-name,.lot-num,.group-name,.group-metric,.metric-capacity')]
             .filter(e=>e.clientWidth>0 && (e.scrollWidth>e.clientWidth+1 || e.scrollHeight>e.clientHeight+1))
             .map(e=>({text:e.textContent.trim(),width:e.clientWidth,scrollWidth:e.scrollWidth}));
           const cropped=[...document.querySelectorAll('.station-card .card-col-num,.station-card .parking-capacity,.station-card .card-status-text')].filter(e=>{
