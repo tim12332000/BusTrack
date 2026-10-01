@@ -93,3 +93,30 @@ function buildTestDataRows_(kind, columns, headers, now, lots) {
     return row;
   });
 }
+
+/**
+ * 在 Apps Script 編輯器直接執行用：上方選這個函式 → 按「執行」。
+ * 只新增停車場測試資料（每個場地 1 筆），不跳視窗；結果看下方「執行紀錄」。
+ */
+function addParkingTestDataFromEditor() {
+  const ss = SpreadsheetApp.openById('1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w');
+  const lots = readParkingLots_(ss);
+  // 寫進「停車場現況」公式正在讀的那張回應分頁，網頁才看得到。
+  const formula = ss.getSheetByName('停車場現況').getRange(2, 3).getFormula();
+  const match = formula.match(/'([^']+)'!/);
+  const sheet = match && ss.getSheetByName(match[1]);
+  if (!sheet) throw new Error('看不出「停車場現況」讀哪一張回應分頁，未新增資料。');
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const letter = pattern => {
+    const index = headers.findIndex(h => pattern.test(String(h).trim()));
+    if (index < 0) throw new Error('「' + match[1] + '」找不到欄位：' + pattern.source);
+    let result = '';
+    for (let n = index + 1; n > 0; n = Math.floor((n - 1) / 26)) result = String.fromCharCode(65 + (n - 1) % 26) + result;
+    return result;
+  };
+  const columns = { area: letter(/停車場區域/), car: letter(/剩餘汽車/), motorcycle: letter(/剩餘機車/) };
+  const rows = buildTestDataRows_('parking', columns, headers, new Date(), lots);
+  rows.forEach(row => sheet.appendRow(row));
+  SpreadsheetApp.flush();
+  Logger.log('已在「' + match[1] + '」新增 ' + rows.length + ' 筆停車場測試資料（備註：測試資料）。');
+}

@@ -183,3 +183,24 @@ test('parking test rows follow migrated headers and leave retired action/quantit
   assert.ok(rows.some(row => row[6] === 0) && rows.some(row => row[6] > 0));
   assert.ok(rows.every(row => Number.isFinite(row[0].getTime())));
 });
+
+test('editor-runnable parking generator writes to the sheet the status formulas read, without any dialog', () => {
+  const p = setup();
+  const lots = vm.runInContext('PARKING_LOTS', p.ctx);
+  const headers = ['時間戳記', '1. 停車場區域', '2. 目前剩餘汽車停車位', '3. 目前剩餘機車停車位', '4. 備註'];
+  const added = [], logs = [];
+  const responses = { getLastColumn: () => headers.length, getRange: () => ({ getValues: () => [headers] }), appendRow: row => added.push(row) };
+  const status = p.ss.getSheetByName('停車場現況');
+  status.getRange = (row, column, count, columns) => row === 2 && column === 3 && count === undefined
+    ? { getFormula: () => "=LET(latest,XLOOKUP(\"x\", 'Form Responses 2'!B2:B, 1))" }
+    : { getValues: () => lots.map(lot => [lot.name, '', '', lot.car || '', lot.motorcycle || '']) };
+  p.ctx.SpreadsheetApp.openById = id => (assert.equal(id, '1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w'),
+    { getSheetByName: name => name === '停車場現況' ? status : name === 'Form Responses 2' ? responses : null });
+  p.ctx.SpreadsheetApp.getUi = () => { throw new Error('Cannot call SpreadsheetApp.getUi() from this context.'); };
+  p.ctx.Logger.log = text => logs.push(text);
+  p.ctx.addParkingTestDataFromEditor();
+  assert.equal(added.length, 23);
+  assert.deepEqual(added.map(row => row[1]), Array.from(lots, lot => lot.name));
+  assert.ok(added.every(row => row[4] === '測試資料'));
+  assert.match(logs[0], /Form Responses 2.*23 筆/);
+});
