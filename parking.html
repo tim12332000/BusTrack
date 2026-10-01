@@ -1188,6 +1188,18 @@
       .cap-word { display: none; }
       .lot-row { padding: 0 8px; }
     }
+    /* 特別矮的橫向畫面（例如手機橫放又開著網址列，高度約 300px） */
+    @media (orientation: landscape) and (max-height: 340px) {
+      body { padding-top: max(2px, env(safe-area-inset-top)); padding-bottom: max(2px, env(safe-area-inset-bottom)); gap: 3px; }
+      #parkingSection, #parkingGroups, .lot-stack { gap: 3px; }
+      header { padding: 1px 6px; }
+      .header-badge { display: none; }
+      h1 { font-size: 11px; }
+      .overview-metric .metric-value { font-size: 14px; }
+      .group-name { font-size: 12px; }
+      .group-metric b { font-size: 12px; }
+      .lot-table { font-size: 9px; }
+    }
   </style>
 </head>
 <body class="theme-jr">
@@ -1306,7 +1318,11 @@
         return Number.isSafeInteger(number) && number >= 0 ? number : null;
       };
       const column = type => type === 'cars' ? 2 : 3;
-      const read = (lot, type) => lot[type] === 0 ? null : asCount(rowsByName.get(lot.name)?.[column(type)]?.v);
+      // 剩餘比容量還多代表填錯，當成沒回報，免得把滿場顯示成全空。
+      const read = (lot, type) => {
+        const value = lot[type] === 0 ? null : asCount(rowsByName.get(lot.name)?.[column(type)]?.v);
+        return value !== null && value <= lot[type] ? value : null;
+      };
       const percent = (amount, capacity) => Math.min(100, Math.round(amount / capacity * 1000) / 10);
       const level = pct => pct <= 10 ? 'red' : pct <= 30 ? 'yellow' : 'green';
       const levelText = pct => pct === 0 ? '已客滿' : pct <= 10 ? '告急' : pct <= 30 ? '吃緊' : '充足';
