@@ -257,3 +257,45 @@ test('both screen copies request dashboard by name and inline JavaScript parses'
     for (const [, script] of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)) new vm.Script(script);
   }
 });
+
+test('vehicle update preserves existing options and appends all requested numbers once', () => {
+  const { ctx, station } = peopleFormContext();
+  let values = ['🚶 步行通道', '1 號車', '130 號車', '復康巴士1'];
+  station.getTitle = () => '3. 車號';
+  station.getChoices = () => values.map(value => ({ getValue: () => value }));
+  let writes = 0;
+  station.setChoiceValues = next => { values = Array.from(next); writes++; };
+  const result = ctx.updatePeopleVehicleChoices();
+  assert.deepEqual(Array.from(result.before), ['🚶 步行通道', '1 號車', '130 號車', '復康巴士1']);
+  assert.equal(values.length, 25);
+  for (let i = 1; i <= 6; i++) assert.equal(values.filter(v => v === `復康巴士${i}`).length, 1);
+  for (let i = 1; i <= 16; i++) assert.equal(values.filter(v => v === `預備車號${i}`).length, 1);
+  ctx.updatePeopleVehicleChoices();
+  assert.equal(writes, 1);
+});
+
+test('vehicle update rejects the wrong form or vehicle question without writes', () => {
+  for (const overrides of [{ getPublishedUrl: () => 'wrong' }, { getDestinationId: () => 'wrong' }, { getItems: () => [] }]) {
+    const { ctx, updates } = peopleFormContext(overrides);
+    assert.throws(() => ctx.updatePeopleVehicleChoices(), /未修改/);
+    assert.deepEqual(updates, []);
+  }
+  const { ctx, station, updates } = peopleFormContext();
+  station.getTitle = () => '3. 車號';
+  station.getType = () => 'text';
+  assert.throws(() => ctx.updatePeopleVehicleChoices(), /型別不符/);
+  assert.deepEqual(updates, []);
+});
+
+test('vehicle update supports the existing dropdown question', () => {
+  const { ctx, station, updates } = peopleFormContext();
+  ctx.FormApp.ItemType.LIST = 'list';
+  station.getTitle = () => '3. 車號';
+  station.getType = () => 'list';
+  station.asListItem = () => station;
+  station.asMultipleChoiceItem = () => { throw new Error('wrong question type'); };
+  station.getChoices = () => [{ getValue: () => '1 號車' }];
+  ctx.updatePeopleVehicleChoices();
+  assert.equal(updates[0].length, 23);
+  assert.equal(updates[0][0], '1 號車');
+});

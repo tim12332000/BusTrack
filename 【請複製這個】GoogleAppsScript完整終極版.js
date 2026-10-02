@@ -54,6 +54,35 @@ function updatePeopleStationChoices() {
   Logger.log("已更新原人員表單的八個站點選項，其他題目及歷史回應保留。");
 }
 
+// Append vehicle choices to the original people form without rebuilding questions.
+function updatePeopleVehicleChoices() {
+  const files = DriveApp.getFilesByName('「國防知性之旅-成功嶺營區開放」人數回報');
+  const candidates = [];
+  while (files.hasNext()) {
+    const file = files.next();
+    if (!file || typeof file.getId !== 'function') continue;
+    const form = FormApp.openById(file.getId());
+    if (form.getPublishedUrl() === 'https://docs.google.com/forms/d/e/1FAIpQLSeCDaMu9LlQhgwJKdzr6uCw2VX44ni5eO1Dn6gRePX4ur3dKw/viewform' &&
+        form.getDestinationId() === TARGET_SPREADSHEET_ID) candidates.push(form);
+  }
+  if (candidates.length !== 1) throw new Error('找不到唯一原人員表單，未修改車號。');
+  const items = candidates[0].getItems().filter(item => /車號/.test(item.getTitle()));
+  if (items.length !== 1 || ![FormApp.ItemType.LIST, FormApp.ItemType.MULTIPLE_CHOICE].includes(items[0].getType())) {
+    throw new Error('車號題目缺少、重複或型別不符，未修改表單。');
+  }
+  const item = items[0].getType() === FormApp.ItemType.LIST ? items[0].asListItem() : items[0].asMultipleChoiceItem();
+  const before = item.getChoices().map(choice => choice.getValue());
+  const after = before.slice();
+  for (const [prefix, count] of [['復康巴士', 6], ['預備車號', 16]]) {
+    for (let i = 1; i <= count; i++) {
+      const value = prefix + i;
+      if (!after.includes(value)) after.push(value);
+    }
+  }
+  if (after.length !== before.length) item.setChoiceValues(after);
+  return { before, after };
+}
+
 // 沿用每車、每方向最後一列累計值；車號取自實際回報，不預設新站車輛數。
 function lingdongTotalFormula(sheetName, columns, direction) {
   const range = key => `'${sheetName}'!${columns[key]}2:${columns[key]}`;
@@ -306,6 +335,8 @@ function createMultiStationBusSystem(dashboardOnly) {
       for (let i = 1; i <= 50; i++) {
         busChoices.push(`${i} 號車`);
       }
+      for (let i = 1; i <= 6; i++) busChoices.push(`復康巴士${i}`);
+      for (let i = 1; i <= 16; i++) busChoices.push(`預備車號${i}`);
       form1.addListItem()
         .setTitle("3. 車號")
         .setChoiceValues(busChoices)
@@ -605,7 +636,9 @@ function inspectPeopleDashboardSetup() {
   while (files.hasNext()) {
     const form = FormApp.openById(files.next().getId());
     if (form.getDestinationId() !== TARGET_SPREADSHEET_ID) continue;
-    forms.push({ url: form.getPublishedUrl(), stations: form.getItems()
+    forms.push({ url: form.getPublishedUrl(), vehicles: form.getItems()
+      .filter(item => /車號/.test(item.getTitle()))
+      .map(item => (item.getType() === FormApp.ItemType.LIST ? item.asListItem() : item.asMultipleChoiceItem()).getChoices().map(choice => choice.getValue())), stations: form.getItems()
       .filter(item => /站點.*門號/.test(item.getTitle()))
       .map(item => item.asMultipleChoiceItem().getChoices().map(choice => choice.getValue())) });
   }
