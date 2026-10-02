@@ -980,10 +980,6 @@
       #gateSection .grid-2 { grid-template-columns: minmax(0, 1fr); }
     }
     #gateSection .grid-2 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    #gateSection .accessible-card { grid-template-columns: minmax(0, 1fr); }
-    #gateSection .accessible-card .card-header,
-    #gateSection .accessible-card .card-body,
-    #gateSection .accessible-card .card-footer { grid-column: 1; }
     @media (orientation: landscape) and (max-height: 579px) {
       #gateSection .card-col-num { font-size: clamp(17px, 5dvh, 23px); }
     }
@@ -1267,6 +1263,7 @@
       <!-- 復康巴士 -->
       <div class="station-card accessible-card">
         <div class="card-header bg-purple">♿ 復康巴士</div>
+        <img class="station-photo" src="assets/stations/accessible-bus.png?v=20261003" alt="復康巴士示意圖" width="1254" height="1254" decoding="async" style="object-position: center 60%;">
         <div class="card-body">
           <div class="card-col">
             <div class="card-col-label">進場</div>
