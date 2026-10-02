@@ -925,6 +925,24 @@
       #gateSection .card-col:first-child .card-col-num { color: #047857; }
       #gateSection .card-col:last-child .card-col-num { color: #075985; }
     }
+
+    /* Mobile landscape: distinguish counts and progress while keeping all seven stations visible. */
+    @media (orientation: landscape) and (max-height: 579px) {
+      .station-card .card-header { text-align: left; padding-inline: 5px; }
+      .station-card .card-body { gap: 0; min-height: 0; }
+      .station-card .card-col + .card-col { border-left: 1px solid #CBD5E1; }
+      .station-card .card-col:first-child .card-col-num { color: #047857; }
+      .station-card .card-col:last-child .card-col-num { color: #075985; }
+      .station-card .card-footer { display: flex; flex-direction: column; gap: 2px; }
+      .station-card .card-progress-track { order: -1; height: 4px; border-radius: 999px; }
+      .station-card .card-progress-fill { border-radius: inherit; }
+      .station-card .card-status-text { margin: 0; }
+      #gateSection .card-col-num { font-size: clamp(17px, 6dvh, 28px); }
+    }
+    @media (orientation: landscape) and (max-height: 340px) {
+      .station-photo { display: none; }
+      #gateSection .card-col-num { font-size: 17px; }
+    }
   </style>
 </head>
 <body class="theme-jr">
