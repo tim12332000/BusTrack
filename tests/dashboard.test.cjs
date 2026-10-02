@@ -166,6 +166,13 @@ test('final shuttle points preserve existing cell positions and create separate 
   assert.equal(formula(16, 9), '=E22+M22+U22');
   for (const [col, direction] of [[1, '進場'], [2, '離場']]) {
     const total = formula(40, col);
+    let parentheses = 0;
+    for (const char of total.replace(/"[^"]*"/g, '')) {
+      if (char === '(') parentheses++;
+      if (char === ')') parentheses--;
+      assert.ok(parentheses >= 0, 'formula must never close an unopened group');
+    }
+    assert.equal(parentheses, 0, 'formula groups must balance');
     assert.ok(total.includes('MAP(UNIQUE(buses),LAMBDA(vehicle,XLOOKUP(vehicle,buses,counts,0,0,-1)))'));
     assert.ok(total.includes(`SEARCH("${direction}",'people'!B2:B)`));
     assert.ok(total.includes('SEARCH("嶺東科大-寶文校區",\'people\'!C2:C)'));
@@ -173,7 +180,9 @@ test('final shuttle points preserve existing cell positions and create separate 
     assert.ok(total.includes("FILTER('people'!D2:D"));
     assert.ok(total.startsWith('=IF(COUNTIFS('));
     assert.ok(total.includes('=0,"未回報",LET('));
-    assert.ok(!total.includes('IFERROR'));
+    assert.ok(total.includes('valid,ARRAYFORMULA(IFERROR(ISNUMBER(rawCounts)*(rawCounts>=0)*(MOD(rawCounts,1)=0),FALSE))'));
+    assert.ok(total.includes('IF(SUM(valid)=0,"未回報"'));
+    assert.ok(total.includes('buses,FILTER(rawBuses,valid),counts,FILTER(rawCounts,valid)'));
     assert.ok(!total.includes('SUMIFS'));
   }
   assert.equal(people.writes.length, 0);

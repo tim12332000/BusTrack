@@ -88,7 +88,7 @@ function lingdongTotalFormula(sheetName, columns, direction) {
   const range = key => `'${sheetName}'!${columns[key]}2:${columns[key]}`;
   const conditions = `ISNUMBER(SEARCH("嶺東科大-寶文校區",${range("station")})),ISNUMBER(SEARCH("${direction}",${range("direction")})),${range("bus")}<>"",${range("bus")}<>"🚶 步行通道"`;
   const reports = `COUNTIFS(${range("station")},"*嶺東科大-寶文校區*",${range("direction")},"*${direction}*",${range("bus")},"<>",${range("bus")},"<>🚶 步行通道")`;
-  return `=IF(${reports}=0,"未回報",LET(buses,FILTER(${range("bus")},${conditions}),counts,FILTER(${range("quantity")},${conditions}),SUM(MAP(UNIQUE(buses),LAMBDA(vehicle,XLOOKUP(vehicle,buses,counts,0,0,-1))))))`;
+  return `=IF(${reports}=0,"未回報",LET(rawBuses,FILTER(${range("bus")},${conditions}),rawCounts,FILTER(${range("quantity")},${conditions}),valid,ARRAYFORMULA(IFERROR(ISNUMBER(rawCounts)*(rawCounts>=0)*(MOD(rawCounts,1)=0),FALSE)),IF(SUM(valid)=0,"未回報",LET(buses,FILTER(rawBuses,valid),counts,FILTER(rawCounts,valid),SUM(MAP(UNIQUE(buses),LAMBDA(vehicle,XLOOKUP(vehicle,buses,counts,0,0,-1))))))))`;
 }
 
 // 使用者提供的總容量；不代表目前剩餘車位。照片空白欄位代表未提供該車種。
