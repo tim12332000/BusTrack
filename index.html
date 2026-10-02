@@ -955,6 +955,30 @@
       .overall-summary .banner-header { font-size: 13px; line-height: 16px; }
       .overall-summary .metric-value { font-size: 20px; line-height: 23px; }
     }
+    /* Walking gates keep photos beside the counts instead of above them. */
+    #gateSection .station-card {
+      position: relative;
+      display: grid;
+      grid-template-columns: 28% minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr) auto;
+    }
+    #gateSection .station-photo {
+      display: block;
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 28%;
+      height: 100%;
+      border-bottom: 0;
+      border-right: 1px solid var(--card-border);
+      box-sizing: border-box;
+    }
+    #gateSection .card-header, #gateSection .card-body, #gateSection .card-footer { grid-column: 2; }
+    #gateSection .card-header { grid-row: 1; }
+    #gateSection .card-body { grid-row: 2; min-height: 0; }
+    #gateSection .card-footer { grid-row: 3; }
+    @media (max-width: 600px) and (orientation: portrait) {
+      #gateSection .grid-2 { grid-template-columns: minmax(0, 1fr); }
+    }
   </style>
 </head>
 <body class="theme-jr">
