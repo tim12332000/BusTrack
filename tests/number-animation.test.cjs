@@ -57,7 +57,9 @@ test('unknown states cancel animation and reduced motion applies targets immedia
   p.set('未回報'); p.tick(800);
   assert.equal(p.element.textContent, '未回報');
   assert.equal(p.frames.size, 0);
-  p.set('100'); assert.equal(p.element.textContent, '100');
+  p.set('100'); p.tick(1000);
+  assert.ok(Number(p.element.textContent) > 0 && Number(p.element.textContent) < 100);
+  p.tick(1600); assert.equal(p.element.textContent, '100');
   p.reduce(); p.set('200');
   assert.equal(p.element.textContent, '200');
   assert.equal(p.frames.size, 0);
@@ -68,4 +70,15 @@ test('percentage decimals animate and identical refreshes do not restart the cou
   p.set('55.5%'); p.tick(200); p.set('55.5%');
   assert.equal(p.frames.size, 1);
   p.tick(800); assert.equal(p.element.textContent, '55.5%');
+});
+
+test('Baowen initial unknown counts animate to the first reported integer', () => {
+  const p = animationPage(); p.element.textContent = '未回報';
+  p.set('777'); p.tick(200);
+  assert.ok(Number(p.element.textContent) > 0 && Number(p.element.textContent) < 777);
+  p.tick(800); assert.equal(p.element.textContent, '777');
+  p.element.textContent = '未完整回報';
+  p.set('55.5%'); p.tick(1000);
+  assert.match(p.element.textContent, /^\d+\.\d%$/);
+  p.tick(1600); assert.equal(p.element.textContent, '55.5%');
 });

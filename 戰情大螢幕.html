@@ -1353,9 +1353,9 @@
         return match ? { value: Number(match[1].replace(/,/g, '')), percent: Boolean(match[2]) } : null;
       };
       const target = parse(targetText);
-      const current = parse(element.textContent);
+      const current = parse(element.textContent) || { value: 0, percent: target?.percent };
       const reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (!target || !current || current.percent !== target.percent || current.value === target.value ||
+      if (!target || current.percent !== target.percent || current.value === target.value ||
           typeof requestAnimationFrame !== 'function' || reducedMotion || document.hidden) {
         element.textContent = targetText;
         element.classList.toggle('number-updating', false);
