@@ -31,7 +31,7 @@ with sync_playwright() as p:
         page.wait_for_timeout(550)
         assert page.locator('h1').inner_text() == '「國防知性之旅-成功嶺營區開放」' + title
         if filename == 'index.html':
-            assert page.locator('.station-card').count() == 7
+            assert page.locator('.station-card').count() == 8
             assert page.locator('#bus5In').inner_text() == '1,500'
             assert page.locator('#walk3In').count() == 0
         else:

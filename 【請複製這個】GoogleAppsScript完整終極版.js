@@ -30,7 +30,7 @@ const RESPONSE_SHEET_NAMES = { people: "", parking: "" };
 
 const PEOPLE_STATION_CHOICES = [
   "🚌 成功車站", "🚌 新烏日車站", "🚌 水湳轉運站", "🚌 經貿六停車場",
-  "🚌 嶺東科大-寶文校區", "🚶 1號門", "🚶 3號門"
+  "🚌 嶺東科大-寶文校區", "🚶 1號門", "🚶 3號門", "♿ 復康巴士"
 ];
 
 // 一次性更新：只改原人員表單的站點選項，不重建題目、不動歷史回應或停車表單。
@@ -51,7 +51,7 @@ function updatePeopleStationChoices() {
     throw new Error("站點題目缺少、重複或型別不符，未修改表單。");
   }
   items[0].asMultipleChoiceItem().setChoiceValues(PEOPLE_STATION_CHOICES);
-  Logger.log("已更新原人員表單的七個站點選項，其他題目及歷史回應保留。");
+  Logger.log("已更新原人員表單的八個站點選項，其他題目及歷史回應保留。");
 }
 
 // 沿用每車、每方向最後一列累計值；車號取自實際回報，不預設新站車輛數。
@@ -494,10 +494,10 @@ function createMultiStationBusSystem(dashboardOnly) {
   // -------------------------------------------------------------------------
   dashboardSheet.getRange(14, 1, 1, 24).merge().setValue("🚶 步行通道疏運概況").setBackground(THEME_HEADER_BG).setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(12).setHorizontalAlignment("center");
   dashboardSheet.getRange(15, 1, 1, 8).merge().setValue("👉 進場總人數").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange(16, 1, 1, 8).merge().setFormula("=A22+I22").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange(16, 1, 1, 8).merge().setFormula("=A22+I22+Q22").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
 
   dashboardSheet.getRange(15, 9, 1, 8).merge().setValue("👈 離場總人數").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
-  dashboardSheet.getRange(16, 9, 1, 8).merge().setFormula("=E22+M22").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
+  dashboardSheet.getRange(16, 9, 1, 8).merge().setFormula("=E22+M22+U22").setBackground("#1E293B").setFontColor("#FFFFFF").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
 
   dashboardSheet.getRange(15, 17, 1, 8).merge().setValue("📈 離場完成率").setBackground("#1E293B").setFontColor("#94A3B8").setFontSize(11).setHorizontalAlignment("center");
   dashboardSheet.getRange(16, 17, 1, 8).merge().setFormula(`=IF(A16>0, TEXT(I16/A16, "0.0%"), "0.0%")`).setBackground("#1E293B").setFontColor("#34D399").setFontSize(26).setFontWeight("bold").setHorizontalAlignment("center");
@@ -511,7 +511,8 @@ function createMultiStationBusSystem(dashboardOnly) {
 
   const walkGates = [
     { name: "🚶 1號門", keyword: "1號門", startCol: 1, tagColor: "#059669" },
-    { name: "🚶 3號門", keyword: "3號門", startCol: 9, tagColor: "#2563EB" }
+    { name: "🚶 3號門", keyword: "3號門", startCol: 9, tagColor: "#2563EB" },
+    { name: "♿ 復康巴士", keyword: "復康巴士", startCol: 17, tagColor: "#7C3AED" }
   ];
 
   walkGates.forEach(wg => {
@@ -591,4 +592,25 @@ function createMultiStationBusSystem(dashboardOnly) {
   Logger.log("🅿️【表單 2・六大停車場車位回報】: " + form2UrlFinal);
   Logger.log("📊【Google 試算表看板網址】: " + ss.getUrl());
   Logger.log("=======================================================\n");
+}
+
+// Read-only deployment verification; never returns individual response records.
+function inspectPeopleDashboardSetup() {
+  const ss = SpreadsheetApp.openById(TARGET_SPREADSHEET_ID);
+  const people = findResponseSource(ss, 'people');
+  const parking = findResponseSource(ss, 'parking');
+  const board = ss.getSheetByName('總即時戰情看板');
+  const files = DriveApp.getFilesByName('「國防知性之旅-成功嶺營區開放」人數回報');
+  const forms = [];
+  while (files.hasNext()) {
+    const form = FormApp.openById(files.next().getId());
+    if (form.getDestinationId() !== TARGET_SPREADSHEET_ID) continue;
+    forms.push({ url: form.getPublishedUrl(), stations: form.getItems()
+      .filter(item => /站點.*門號/.test(item.getTitle()))
+      .map(item => item.asMultipleChoiceItem().getChoices().map(choice => choice.getValue())) });
+  }
+  return { forms, responseRows: { people: people.sheet.getLastRow(), parking: parking.sheet.getLastRow() },
+    board: board.getRange(1, 1, 40, 24).getDisplayValues(),
+    walkingFormulas: [board.getRange(16, 1).getFormula(), board.getRange(16, 9).getFormula()],
+    accessibleFormulas: [board.getRange(22, 17).getFormula(), board.getRange(22, 21).getFormula()] };
 }

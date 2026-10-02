@@ -22,9 +22,9 @@ function fixture(inbound, outbound, offset = 0) {
   }
   return rows;
 }
-test('exact final seven names appear in the requested order', () => {
+test('exact final eight names appear in the requested order', () => {
   const names = [...html.matchAll(/class="card-header [^"]+">[^ ]+ ([^<]+)<\/div>/g)].map(m => m[1]);
-  assert.deepEqual(names, ['成功車站（綠線）', '新烏日車站（藍線）', '水湳轉運站（橘線）', '經貿六停車場（橘線）', '嶺東科大-寶文校區（粉線）', '1號門（紅線）', '3號門（紅線）']);
+  assert.deepEqual(names, ['成功車站（綠線）', '新烏日車站（藍線）', '水湳轉運站（橘線）', '經貿六停車場（橘線）', '嶺東科大-寶文校區（粉線）', '1號門（紅線）', '3號門（紅線）', '復康巴士']);
   assert.doesNotMatch(html, /id="walk3|130輛/);
 });
 test('new stop is located semantically, included once, and gate 4 excluded', () => {
@@ -52,4 +52,21 @@ test('absent or invalid new-stop data stays unknown; real zero counts', () => {
   assert.equal(p.text('busTotalIn'), '40');
   p.update(fixture(undefined));
   assert.equal(p.text('bus5In'), '未回報');
+});
+
+test('accessible buses count in walking and overall totals only with their own header', () => {
+  const p = page(); const rows = fixture(123, 23);
+  rows[12].c[16] = { v: '♿ 復康巴士' };
+  rows[14].c[16] = { v: 45 }; rows[14].c[20] = { v: 15 };
+  p.update(rows);
+  assert.equal(p.text('accessibleIn'), '45');
+  assert.equal(p.text('accessibleOut'), '15');
+  assert.equal(p.text('walkTotalIn'), '345');
+  assert.equal(p.text('walkTotalOut'), '85');
+  assert.equal(p.text('overallTotalIn'), '508');
+  assert.equal(p.text('overallTotalOut'), '128');
+  rows[12].c[16] = { v: '🚶 4號門' };
+  p.update(rows);
+  assert.equal(p.text('walkTotalIn'), '300');
+  assert.equal(p.text('accessibleIn'), '待啟用');
 });

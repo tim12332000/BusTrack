@@ -22,6 +22,7 @@ with sync_playwright() as p:
                   const put=(r,c,v)=>rows[r].c[c]={v};
                   for(let i=0;i<4;i++){put(5,i*6,12345);put(5,i*6+3,6789);}
                   put(14,0,450);put(14,4,280);put(14,8,620);put(14,12,390);
+                  put(12,16,'♿ 復康巴士');put(14,16,45);put(14,20,15);
                   if(!pending){put(38,0,'嶺東科大-寶文校區接駁統計');put(39,0,12345);put(39,1,6789);}
                   window.onGvizData({table:{rows}});
                   window.scrollTo(0,0);
@@ -41,6 +42,9 @@ with sync_playwright() as p:
                 }''')
                 result.update(engine=engine.name,pending=pending)
                 results.append(result)
+                assert page.locator('.station-card').count() == 8
+                assert page.locator('#accessibleIn').inner_text() == '45'
+                assert page.locator('#walkTotalIn').inner_text() == '1,115'
                 assert result['bottom'] <= result['visibleBottom']-4, result
                 assert not result['hidden'] and not result['overflow'] and not result['clipped'], result
                 assert not errors, errors
@@ -48,4 +52,4 @@ with sync_playwright() as p:
                     page.screenshot(path=str(root/'.omx'/f'landscape-fit-{engine.name}.png'))
         browser.close()
 (root/'.omx/landscape-fit.json').write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding='utf-8')
-print(f'PASS: {len(results)} Chromium/WebKit cases; all seven cards fit without scrolling after rotation')
+print(f'PASS: {len(results)} Chromium/WebKit cases; all eight cards fit without scrolling after rotation')

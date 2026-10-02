@@ -153,14 +153,17 @@ test('final shuttle points preserve existing cell positions and create separate 
   assert.equal(value(8, 7), '🚌 新烏日車站');
   assert.equal(value(20, 1), '🚶 1號門');
   assert.equal(value(20, 9), '🚶 3號門');
+  assert.equal(value(20, 17), '♿ 復康巴士');
+  assert.ok(formula(22, 17).includes('*復康巴士*'));
+  assert.ok(formula(22, 21).includes('*復康巴士*'));
   assert.ok(!JSON.stringify(writes).includes('4號門'));
   assert.equal(value(39, 1), '嶺東科大-寶文校區接駁統計');
   assert.equal(formula(4, 1), '=IF(ISNUMBER(A40),A10+G10+M10+S10+A40,"未完整回報")');
   assert.equal(formula(4, 9), '=IF(ISNUMBER(B40),D10+J10+P10+V10+B40,"未完整回報")');
   assert.ok(formula(4, 17).startsWith('=IF(AND(ISNUMBER(A4),ISNUMBER(I4)),IF('));
   assert.ok(formula(5, 7).startsWith('=IF(AND(ISNUMBER(A4),ISNUMBER(I4)),IF('));
-  assert.equal(formula(16, 1), '=A22+I22');
-  assert.equal(formula(16, 9), '=E22+M22');
+  assert.equal(formula(16, 1), '=A22+I22+Q22');
+  assert.equal(formula(16, 9), '=E22+M22+U22');
   for (const [col, direction] of [[1, '進場'], [2, '離場']]) {
     const total = formula(40, col);
     assert.ok(total.includes('MAP(UNIQUE(buses),LAMBDA(vehicle,XLOOKUP(vehicle,buses,counts,0,0,-1)))'));
@@ -222,7 +225,7 @@ test('station update changes only original people form choices and is safe to re
   ctx.updatePeopleStationChoices();
   assert.deepEqual(updates, Array(2).fill([
     '🚌 成功車站', '🚌 新烏日車站', '🚌 水湳轉運站', '🚌 經貿六停車場',
-    '🚌 嶺東科大-寶文校區', '🚶 1號門', '🚶 3號門'
+    '🚌 嶺東科大-寶文校區', '🚶 1號門', '🚶 3號門', '♿ 復康巴士'
   ]));
 });
 
