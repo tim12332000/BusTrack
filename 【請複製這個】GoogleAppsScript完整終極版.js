@@ -406,18 +406,24 @@ function createMultiStationBusSystem(dashboardOnly) {
   let detailSheet = ss.getSheetByName("各車即時明細");
   if (!detailSheet) detailSheet = ss.insertSheet("各車即時明細");
   if (dashboardSheet.getMaxRows() < 50) dashboardSheet.insertRowsAfter(dashboardSheet.getMaxRows(), 50 - dashboardSheet.getMaxRows());
-  if (dashboardSheet.getMaxColumns() < 28) dashboardSheet.insertColumnsAfter(dashboardSheet.getMaxColumns(), 28 - dashboardSheet.getMaxColumns());
-  if (detailSheet.getMaxRows() < 52) detailSheet.insertRowsAfter(detailSheet.getMaxRows(), 52 - detailSheet.getMaxRows());
-  if (detailSheet.getMaxColumns() < 20) detailSheet.insertColumnsAfter(detailSheet.getMaxColumns(), 20 - detailSheet.getMaxColumns());
+  if (dashboardSheet.getMaxColumns() < 30) dashboardSheet.insertColumnsAfter(dashboardSheet.getMaxColumns(), 30 - dashboardSheet.getMaxColumns());
+  if (detailSheet.getMaxRows() < 75) detailSheet.insertRowsAfter(detailSheet.getMaxRows(), 75 - detailSheet.getMaxRows());
+  if (detailSheet.getMaxColumns() < 40) detailSheet.insertColumnsAfter(detailSheet.getMaxColumns(), 40 - detailSheet.getMaxColumns());
 
   // =========================================================================
   // 【A. 第二頁：各車即時明細 (4 大車站車輛明細)】
   // =========================================================================
+  const additionalVehicles = [...Array.from({ length: 6 }, (_, i) => `復康巴士${i + 1}`),
+    ...Array.from({ length: 16 }, (_, i) => `預備車號${i + 1}`)];
   const stations = [
-    { name: "🚌 成功車站", formKeyword: "成功車站", startCol: 1, busCount: 20 },
+    { name: "🚌 成功車站", formKeyword: "成功車站", startCol: 1, busCount: 50 },
     { name: "🚌 新烏日車站", formKeyword: "新烏日", startCol: 6, busCount: 50 },
-    { name: "🚌 經貿六停車場", formKeyword: "經貿六", startCol: 11, busCount: 40 },
-    { name: "🚌 水湳轉運站", formKeyword: "水湳", startCol: 16, busCount: 20 }
+    { name: "🚌 經貿六停車場", formKeyword: "經貿六", startCol: 11, busCount: 50 },
+    { name: "🚌 水湳轉運站", formKeyword: "水湳", startCol: 16, busCount: 50 },
+    { name: "🚌 嶺東科大-寶文校區", formKeyword: "嶺東科大-寶文校區", startCol: 21, busCount: 50 },
+    { name: "♿ 復康巴士", formKeyword: "復康巴士", startCol: 26, busCount: 50, additive: true },
+    { name: "🚶 1號門", formKeyword: "1號門", startCol: 31, busCount: 0, additive: true },
+    { name: "🚶 3號門", formKeyword: "3號門", startCol: 36, busCount: 0, additive: true }
   ];
 
   stations.forEach(st => {
@@ -431,16 +437,27 @@ function createMultiStationBusSystem(dashboardOnly) {
       .setBackground("#334155").setFontColor("#F8FAFC").setFontWeight("bold").setHorizontalAlignment("center");
 
     const busRows = [];
-    for (let b = 1; b <= st.busCount; b++) {
-      const busName = `${b} 號車`;
+    const vehicleNames = st.busCount === 0 ? ["全部回報"] : [
+      ...(st.additive ? ["🚶 步行通道"] : []),
+      ...Array.from({ length: st.busCount }, (_, i) => `${i + 1} 號車`), ...additionalVehicles];
+    for (const busName of vehicleNames) {
       const fInActual = `=IFERROR(INDEX('${formSheetName}'!${personCols.quantity}:${personCols.quantity}, MAX(FILTER(ROW('${formSheetName}'!${personCols.quantity}:${personCols.quantity}), ISNUMBER(SEARCH("進場", '${formSheetName}'!${personCols.direction}:${personCols.direction})), ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!${personCols.station}:${personCols.station})), '${formSheetName}'!${personCols.bus}:${personCols.bus}="${busName}"))), 0)`;
       const fInTime = `=IFERROR(TEXT(INDEX('${formSheetName}'!${personCols.time}:${personCols.time}, MAX(FILTER(ROW('${formSheetName}'!${personCols.time}:${personCols.time}), ISNUMBER(SEARCH("進場", '${formSheetName}'!${personCols.direction}:${personCols.direction})), ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!${personCols.station}:${personCols.station})), '${formSheetName}'!${personCols.bus}:${personCols.bus}="${busName}"))), "hh:mm:ss"), "-")`;
       const fOutActual = `=IFERROR(INDEX('${formSheetName}'!${personCols.quantity}:${personCols.quantity}, MAX(FILTER(ROW('${formSheetName}'!${personCols.quantity}:${personCols.quantity}), ISNUMBER(SEARCH("離場", '${formSheetName}'!${personCols.direction}:${personCols.direction})), ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!${personCols.station}:${personCols.station})), '${formSheetName}'!${personCols.bus}:${personCols.bus}="${busName}"))), 0)`;
       const fOutTime = `=IFERROR(TEXT(INDEX('${formSheetName}'!${personCols.time}:${personCols.time}, MAX(FILTER(ROW('${formSheetName}'!${personCols.time}:${personCols.time}), ISNUMBER(SEARCH("離場", '${formSheetName}'!${personCols.direction}:${personCols.direction})), ISNUMBER(SEARCH("${st.formKeyword}", '${formSheetName}'!${personCols.station}:${personCols.station})), '${formSheetName}'!${personCols.bus}:${personCols.bus}="${busName}"))), "hh:mm:ss"), "-")`;
-      busRows.push([busName, fInActual, fInTime, fOutActual, fOutTime]);
+      const quantityRange = `'${formSheetName}'!${personCols.quantity}:${personCols.quantity}`;
+      const valid = `,IFERROR(ISNUMBER(${quantityRange})*(${quantityRange}>=0)*(MOD(${quantityRange},1)=0),FALSE)`;
+      const latestValid = formula => formula.replace(`, '${formSheetName}'!${personCols.bus}:${personCols.bus}="${busName}"`,
+        `, '${formSheetName}'!${personCols.bus}:${personCols.bus}="${busName}"${valid}`);
+      const additive = direction => `=SUMIFS(${quantityRange},'${formSheetName}'!${personCols.direction}:${personCols.direction},"*${direction}*",'${formSheetName}'!${personCols.station}:${personCols.station},"*${st.formKeyword}*"${st.busCount ? `,'${formSheetName}'!${personCols.bus}:${personCols.bus},"${busName}"` : ''})`;
+      const gateTime = direction => `=IFERROR(TEXT(MAX(FILTER('${formSheetName}'!${personCols.time}:${personCols.time},ISNUMBER(SEARCH("${direction}",'${formSheetName}'!${personCols.direction}:${personCols.direction})),ISNUMBER(SEARCH("${st.formKeyword}",'${formSheetName}'!${personCols.station}:${personCols.station})))),"hh:mm:ss"),"-")`;
+      busRows.push([busName, st.additive ? additive("進場") : latestValid(fInActual),
+        st.busCount === 0 ? gateTime("進場") : st.additive ? fInTime : latestValid(fInTime),
+        st.additive ? additive("離場") : latestValid(fOutActual),
+        st.busCount === 0 ? gateTime("離場") : st.additive ? fOutTime : latestValid(fOutTime)]);
     }
-    detailSheet.getRange(3, col, st.busCount, 5).setValues(busRows);
-    detailSheet.getRange(2, col, st.busCount + 1, 5).setHorizontalAlignment("center").setBorder(true, true, true, true, true, true, "#E2E8F0", SpreadsheetApp.BorderStyle.SOLID);
+    detailSheet.getRange(3, col, vehicleNames.length, 5).setValues(busRows);
+    detailSheet.getRange(2, col, vehicleNames.length + 1, 5).setHorizontalAlignment("center").setBorder(true, true, true, true, true, true, "#E2E8F0", SpreadsheetApp.BorderStyle.SOLID);
   });
 
   // =========================================================================
@@ -498,10 +515,10 @@ function createMultiStationBusSystem(dashboardOnly) {
     .setBackground("#334155").setFontColor("#F8FAFC").setFontWeight("bold").setFontSize(11).setHorizontalAlignment("left");
 
   const busStations = [
-    { name: "🚌 成功車站", startCol: 1, detailInCol: "B", detailOutCol: "D", detailEndRow: 22, tagColor: "#059669" },
-    { name: "🚌 新烏日車站", startCol: 7, detailInCol: "G", detailOutCol: "I", detailEndRow: 52, tagColor: "#2563EB" },
-    { name: "🚌 經貿六停車場", startCol: 13, detailInCol: "L", detailOutCol: "N", detailEndRow: 42, tagColor: "#D97706" },
-    { name: "🚌 水湳轉運站", startCol: 19, detailInCol: "Q", detailOutCol: "S", detailEndRow: 22, tagColor: "#D97706" }
+    { name: "🚌 成功車站", startCol: 1, detailInCol: "B", detailOutCol: "D", detailEndRow: 74, tagColor: "#059669" },
+    { name: "🚌 新烏日車站", startCol: 7, detailInCol: "G", detailOutCol: "I", detailEndRow: 74, tagColor: "#2563EB" },
+    { name: "🚌 經貿六停車場", startCol: 13, detailInCol: "L", detailOutCol: "N", detailEndRow: 74, tagColor: "#D97706" },
+    { name: "🚌 水湳轉運站", startCol: 19, detailInCol: "Q", detailOutCol: "S", detailEndRow: 74, tagColor: "#D97706" }
   ];
 
   busStations.forEach(cs => {
@@ -570,6 +587,15 @@ function createMultiStationBusSystem(dashboardOnly) {
   dashboardSheet.getRange(39, 1).setValue("嶺東科大-寶文校區接駁統計");
   dashboardSheet.getRange(40, 1).setFormula(lingdongTotalFormula(formSheetName, personCols, "進場"));
   dashboardSheet.getRange(40, 2).setFormula(lingdongTotalFormula(formSheetName, personCols, "離場"));
+
+  dashboardSheet.getRange(8, 25, 1, 6).merge().setValue("🚌 嶺東科大-寶文校區").setBackground("#DB2777").setFontColor("#FFFFFF").setFontWeight("bold");
+  dashboardSheet.getRange(9, 25, 1, 3).merge().setValue("進場");
+  dashboardSheet.getRange(9, 28, 1, 3).merge().setValue("離場");
+  dashboardSheet.getRange(10, 25, 1, 3).merge().setFormula("=A40").setFontSize(24).setFontWeight("bold");
+  dashboardSheet.getRange(10, 28, 1, 3).merge().setFormula("=B40").setFontSize(24).setFontWeight("bold");
+  dashboardSheet.getRange(11, 25, 1, 6).merge().setFormula('=IF(AND(ISNUMBER(A40),ISNUMBER(B40)),IF(A40>0,TEXT(B40/A40,"0.0%"),"0.0%"),"未完整回報")');
+  dashboardSheet.getRange(12, 25, 1, 6).merge().setFormula(`=IF(AND(ISNUMBER(A40),ISNUMBER(B40)),IF(A40>0,SPARKLINE(B40,{"charttype","bar";"max",A40;"color1","#DB2777"}),""),"未完整回報")`);
+  dashboardSheet.getRange(8, 25, 5, 6).setHorizontalAlignment("center").setBorder(true,true,true,true,true,true,"#CBD5E1",SpreadsheetApp.BorderStyle.SOLID);
 
   SpreadsheetApp.flush();
   const valA = dashboardSheet.getRange("A34").getValue();
@@ -643,7 +669,11 @@ function inspectPeopleDashboardSetup() {
       .map(item => item.asMultipleChoiceItem().getChoices().map(choice => choice.getValue())) });
   }
   return { forms, responseRows: { people: people.sheet.getLastRow(), parking: parking.sheet.getLastRow() },
-    board: board.getRange(1, 1, 40, 24).getDisplayValues(),
+    board: board.getRange(1, 1, 40, 30).getDisplayValues(),
+    detailGid: ss.getSheetByName("各車即時明細").getSheetId(),
+    boardGid: board.getSheetId(),
+    detailHeaders: ss.getSheetByName("各車即時明細").getRange(1, 1, 1, 40).getDisplayValues()[0],
+    detailValues: ss.getSheetByName("各車即時明細").getRange(3, 1, 73, 40).getDisplayValues(),
     walkingFormulas: [board.getRange(16, 1).getFormula(), board.getRange(16, 9).getFormula()],
     accessibleFormulas: [board.getRange(22, 17).getFormula(), board.getRange(22, 21).getFormula()] };
 }

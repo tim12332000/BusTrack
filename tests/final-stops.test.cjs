@@ -70,3 +70,12 @@ test('accessible buses count in walking and overall totals only with their own h
   assert.equal(p.text('walkTotalIn'), '300');
   assert.equal(p.text('accessibleIn'), '待啟用');
 });
+
+test('Shuinan and Jingmao map to their own sheet columns', () => {
+ const p = page(); const rows = fixture(0, 0);
+ rows[5].c[12] = { v: 123 }; rows[5].c[15] = { v: 45 };
+ rows[5].c[18] = { v: 678 }; rows[5].c[21] = { v: 90 };
+ p.update(rows);
+ assert.equal(p.text('bus3In'), '678'); assert.equal(p.text('bus3Out'), '90');
+ assert.equal(p.text('bus4In'), '123'); assert.equal(p.text('bus4Out'), '45');
+});

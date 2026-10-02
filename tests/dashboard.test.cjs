@@ -308,3 +308,29 @@ test('vehicle update supports the existing dropdown question', () => {
   assert.equal(updates[0].length, 23);
   assert.equal(updates[0][0], '1 號車');
 });
+
+test('backend detail covers all eight categories and reserve vehicles with matching totals', () => {
+ const people = sheet('people', peopleHeaders); const parking = sheet('parking', parkingHeaders);
+ const {ctx, ss} = context([people, parking]); ctx.repairDashboard();
+ const writes=ss.getSheetByName('各車即時明細').writes;
+ const headers=writes.filter(w=>w.method==='setValue'&&w.args[0]===1).map(w=>w.values[0]);
+ assert.equal(headers.length,8);
+ assert.ok(headers.includes('🚌 嶺東科大-寶文校區'));
+ assert.ok(headers.includes('♿ 復康巴士'));
+ const blocks=writes.filter(w=>w.method==='setValues'&&w.args[0]===3);
+ for(const block of blocks.slice(0,6)) {
+  const names=Array.from(block.values[0],r=>r[0]);
+  assert.ok(names.includes('復康巴士6'));
+  assert.ok(names.includes('預備車號16'));
+  assert.ok(names.includes('50 號車'));
+ }
+ assert.ok(blocks[4].values[0][0][1].includes('MOD('));
+ assert.ok(blocks[5].values[0][0][1].startsWith('=SUMIFS('));
+ const board=ss.getSheetByName('總即時戰情看板').writes;
+ assert.ok(board.some(w=>w.method==='setValue'&&w.args[0]===8&&w.args[1]===25));
+ for(const col of [1,7,13,19]) {
+  const formula=board.find(w=>w.method==='setFormula'&&w.args[0]===10&&w.args[1]===col).values[0];
+  assert.match(formula,/74\)/);
+ }
+ assert.equal(people.writes.length,0); assert.equal(parking.writes.length,0);
+});
