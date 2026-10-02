@@ -986,6 +986,11 @@
     @media (max-width: 600px) and (orientation: portrait) {
       #gateSection .grid-2 { grid-template-columns: minmax(0, 1fr); }
     }
+    .card-col-num, .metric-value { font-variant-numeric: tabular-nums; }
+    .number-updating { text-shadow: 0 0 12px rgba(56, 189, 248, .28); }
+    @media (prefers-reduced-motion: reduce) {
+      .number-updating { text-shadow: none; }
+    }
   </style>
 </head>
 <body class="theme-jr">
@@ -1334,6 +1339,47 @@
       return Number(num || 0).toLocaleString('en-US');
     }
 
+    const numberAnimations = new Map();
+    function setNumberText(element, text) {
+      const targetText = String(text);
+      const running = numberAnimations.get(element);
+      if (running?.targetText === targetText) return;
+      if (running) {
+        cancelAnimationFrame(running.frame);
+        numberAnimations.delete(element);
+      }
+      const parse = value => {
+        const match = String(value).trim().match(/^([\d,]+(?:\.\d+)?)(%)?$/);
+        return match ? { value: Number(match[1].replace(/,/g, '')), percent: Boolean(match[2]) } : null;
+      };
+      const target = parse(targetText);
+      const current = parse(element.textContent);
+      const reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!target || !current || current.percent !== target.percent || current.value === target.value ||
+          typeof requestAnimationFrame !== 'function' || reducedMotion || document.hidden) {
+        element.textContent = targetText;
+        element.classList.toggle('number-updating', false);
+        return;
+      }
+      const started = performance.now();
+      const state = { targetText, frame: null };
+      numberAnimations.set(element, state);
+      element.classList.toggle('number-updating', true);
+      const tick = now => {
+        const progress = Math.min(1, Math.max(0, (now - started) / 800));
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const value = current.value + (target.value - current.value) * eased;
+        element.textContent = target.percent ? value.toFixed(1) + '%' : formatNumber(Math.round(value));
+        if (progress < 1) state.frame = requestAnimationFrame(tick);
+        else {
+          element.textContent = targetText;
+          element.classList.toggle('number-updating', false);
+          numberAnimations.delete(element);
+        }
+      };
+      state.frame = requestAnimationFrame(tick);
+    }
+
     function calcRate(totalCap, currentUsed) {
       if (!totalCap || totalCap <= 0) return { pctText: "0.0%", pctNum: 0, remain: 0 };
       const pct = Math.min(100, Math.round((currentUsed / totalCap) * 1000) / 10);
@@ -1427,14 +1473,14 @@
         const busTotalOut = b1Out + b2Out + b3Out + b4Out + (b5Out ?? 0);
         const busRate = calcRate(busTotalIn, busTotalOut);
 
-        document.getElementById('busTotalIn').textContent = b5In === null ? '未完整回報' : formatNumber(busTotalIn);
-        document.getElementById('busTotalOut').textContent = b5Out === null ? '未完整回報' : formatNumber(busTotalOut);
-        document.getElementById('busTotalRate').textContent = busComplete ? busRate.pctText : '未完整回報';
+        setNumberText(document.getElementById('busTotalIn'), b5In === null ? '未完整回報' : formatNumber(busTotalIn));
+        setNumberText(document.getElementById('busTotalOut'), b5Out === null ? '未完整回報' : formatNumber(busTotalOut));
+        setNumberText(document.getElementById('busTotalRate'), busComplete ? busRate.pctText : '未完整回報');
         document.getElementById('busMainBar').style.width = (busComplete ? busRate.pctNum : 0) + "%";
 
         const updateStationCard = (prefix, inVal, outVal) => {
-          document.getElementById(`${prefix}In`).textContent = formatNumber(inVal);
-          document.getElementById(`${prefix}Out`).textContent = formatNumber(outVal);
+          setNumberText(document.getElementById(`${prefix}In`), formatNumber(inVal));
+          setNumberText(document.getElementById(`${prefix}Out`), formatNumber(outVal));
           const r = calcRate(inVal, outVal);
           document.getElementById(`${prefix}Status`).textContent = `${r.pctText} · 餘${formatNumber(r.remain)}人`;
           document.getElementById(`${prefix}Bar`).style.width = r.pctNum + "%";
@@ -1447,8 +1493,8 @@
         if (busComplete) {
           updateStationCard('bus5', b5In, b5Out);
         } else {
-          document.getElementById('bus5In').textContent = b5In === null ? '未回報' : formatNumber(b5In);
-          document.getElementById('bus5Out').textContent = b5Out === null ? '未回報' : formatNumber(b5Out);
+          setNumberText(document.getElementById('bus5In'), b5In === null ? '未回報' : formatNumber(b5In));
+          setNumberText(document.getElementById('bus5Out'), b5Out === null ? '未回報' : formatNumber(b5Out));
           document.getElementById('bus5Status').textContent = '等待完整回報';
           document.getElementById('bus5Bar').style.width = '0%';
         }
@@ -1470,17 +1516,17 @@
         const walkTotalOut = w1Out + w2Out + accessibleOut;
         const walkRate = calcRate(walkTotalIn, walkTotalOut);
 
-        document.getElementById('walkTotalIn').textContent = formatNumber(walkTotalIn);
-        document.getElementById('walkTotalOut').textContent = formatNumber(walkTotalOut);
-        document.getElementById('walkTotalRate').textContent = walkRate.pctText;
+        setNumberText(document.getElementById('walkTotalIn'), formatNumber(walkTotalIn));
+        setNumberText(document.getElementById('walkTotalOut'), formatNumber(walkTotalOut));
+        setNumberText(document.getElementById('walkTotalRate'), walkRate.pctText);
         document.getElementById('walkMainBar').style.width = walkRate.pctNum + "%";
 
         updateStationCard('walk1', w1In, w1Out);
         updateStationCard('walk2', w2In, w2Out);
         updateStationCard('accessible', accessibleIn, accessibleOut);
         if (!accessibleReady) {
-          document.getElementById('accessibleIn').textContent = '待啟用';
-          document.getElementById('accessibleOut').textContent = '待啟用';
+          setNumberText(document.getElementById('accessibleIn'), '待啟用');
+          setNumberText(document.getElementById('accessibleOut'), '待啟用');
           document.getElementById('accessibleStatus').textContent = '等待表單與統計更新';
         }
 
@@ -1488,9 +1534,9 @@
         const overallIn = busTotalIn + walkTotalIn;
         const overallOut = busTotalOut + walkTotalOut;
         const overallRate = calcRate(overallIn, overallOut);
-        document.getElementById('overallTotalIn').textContent = formatNumber(overallIn);
-        document.getElementById('overallTotalOut').textContent = formatNumber(overallOut);
-        document.getElementById('overallTotalRate').textContent = overallRate.pctText;
+        setNumberText(document.getElementById('overallTotalIn'), formatNumber(overallIn));
+        setNumberText(document.getElementById('overallTotalOut'), formatNumber(overallOut));
+        setNumberText(document.getElementById('overallTotalRate'), overallRate.pctText);
         const overallNote = document.getElementById('overallNote');
         overallNote.textContent = busComplete ? '步行＋接駁車' : '步行＋接駁車 · 嶺東待回報，已加總其餘回報';
         overallNote.classList.toggle('overall-pending', !busComplete);
@@ -1510,7 +1556,7 @@
           return Number.isSafeInteger(value) && value >= 0 ? value : null;
         };
         const showRemaining = (id, value, missing) => {
-          document.getElementById(id).textContent = value === null ? missing : formatNumber(value);
+          setNumberText(document.getElementById(id), value === null ? missing : formatNumber(value));
         };
         let reported = 0;
         let carsComplete = parkingReady;

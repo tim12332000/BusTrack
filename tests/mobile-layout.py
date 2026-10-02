@@ -10,7 +10,7 @@ with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=os.environ.get('CHROME_PATH', r'C:\Program Files\Google\Chrome\Application\chrome.exe'), headless=True)
     for filename, title in [('index.html', '進（離）場人數統計'), ('parking.html', '停車場現況')]:
       for width, height in [(956,440), (874,402), (844,390), (667,375), (844,320), (915,412), (390,844), (375,667), (1920,1080)]:
-        page = browser.new_page(viewport={'width':width,'height':height}, device_scale_factor=1)
+        page = browser.new_page(viewport={'width':width,'height':height}, device_scale_factor=1, reduced_motion='reduce')
         page.route('https://**', lambda route: route.abort())
         page.goto((root/filename).as_uri(), wait_until='load')
         page.evaluate('''() => {

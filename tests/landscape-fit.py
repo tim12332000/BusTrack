@@ -9,7 +9,7 @@ with sync_playwright() as p:
     for engine in [p.chromium, p.webkit]:
         browser = engine.launch()
         page = browser.new_page(viewport={'width': 402, 'height': 874}, device_scale_factor=3,
-                                is_mobile=True, has_touch=True)
+                                is_mobile=True, has_touch=True, reduced_motion='reduce')
         page.route('https://**', lambda route: route.abort())
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
