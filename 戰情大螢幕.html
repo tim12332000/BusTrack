@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>「國防知性之旅-成功嶺營區開放」接駁車統計</title>
+  <title>「國防知性之旅-成功嶺營區開放」進（離）場人數統計</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -943,6 +943,18 @@
       .station-photo { display: none; }
       #gateSection .card-col-num { font-size: 17px; }
     }
+    /* The overall total leads the shuttle and walking summaries. */
+    .overall-summary { border: 2px solid #FBBF24; box-shadow: 0 0 0 1px rgba(251, 191, 36, .15); }
+    .overall-summary .banner-header { background: #17324D; color: #FDE68A; font-size: clamp(18px, 1.6vw, 28px); font-weight: 800; }
+    .overall-summary .banner-header > span:first-child { font-size: inherit; }
+    .overall-summary .metric-box { border-color: #64748B; background: #17324D; }
+    .overall-summary .metric-label { color: #FDE68A; }
+    .overall-summary .metric-value { font-size: clamp(28px, 2.4vw, 44px); }
+    @media (orientation: landscape) and (max-height: 579px) {
+      .overall-summary { grid-template-columns: 155px minmax(0, 1fr); }
+      .overall-summary .banner-header { font-size: 13px; line-height: 16px; }
+      .overall-summary .metric-value { font-size: 20px; line-height: 23px; }
+    }
   </style>
 </head>
 <body class="theme-jr">
@@ -950,7 +962,7 @@
   <header>
     <div class="header-title">
       <span class="header-badge">運管中心</span>
-      <h1>「國防知性之旅-成功嶺營區開放」接駁車統計</h1>
+      <h1>「國防知性之旅-成功嶺營區開放」進（離）場人數統計</h1>
     </div>
     <div class="header-status">
       <div class="live-indicator" id="liveBadge">
