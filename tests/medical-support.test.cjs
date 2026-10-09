@@ -65,3 +65,23 @@ test('medical formulas select the latest complete valid pair and escape sheet na
   assert.doesNotMatch(formula, /SUM|總即時戰情看板|Form Responses 1/);
   assert.equal(fs.readFileSync('index.html', 'utf8'), fs.readFileSync('戰情大螢幕.html', 'utf8'));
 });
+
+test('numbered medical totals are independent by category and use latest values for numbers 1–15', () => {
+  const context = {};
+  vm.runInNewContext(fs.readFileSync('apps-script/medical-support.js', 'utf8'), context);
+  const formula = context.medicalNumberedTotalFormula("Medical's responses", { category: 'D', number: 'E', quantity: 'F' }, '醫療協處');
+  assert.match(formula, /'Medical''s responses'!D:D="醫療協處"/);
+  assert.match(formula, /SEQUENCE\(15\)/);
+  assert.match(formula, /XLOOKUP\(n&"號",ids,counts,0,0,-1\)/);
+  assert.match(formula, /SUM\(MAP/);
+  assert.doesNotMatch(formula, /![A-F]2:/);
+  assert.doesNotMatch(formula, /總即時戰情看板|Form Responses 1/);
+  const seeded = context.medicalNumberedTotalFormula('responses', { category: 'D', number: 'E', quantity: 'F' }, '醫療後送', 1, 11);
+  assert.match(seeded, /XLOOKUP\(n&"號",ids,counts,IF\(n=1,11,0\),0,-1\)/);
+});
+
+test('invalid legacy assignments stop before any external modifications', () => {
+  const context = {};
+  vm.runInNewContext(fs.readFileSync('apps-script/medical-support.js', 'utf8'), context);
+  for (const number of [-1, 16, 1.5, '1', null]) assert.throws(() => context.upgradeMedicalNumbered(number), /1–15/);
+});
