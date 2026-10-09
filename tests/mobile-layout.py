@@ -27,11 +27,12 @@ with sync_playwright() as p:
             for(let i=0;i<7;i++){put(33,i*4,i===3?'不提供':200);put(33,i*4+2,i>=5?'不提供':100);}
           }
           window.onGvizData({table:{rows}});
+          if (window.onMedicalData) window.onMedicalData({table:{rows:[{c:[{v:123},{v:12},null,{v:'https://docs.google.com/forms/d/e/medical-test/viewform'}]}]}});
         }''')
         page.wait_for_timeout(550)
         assert page.locator('h1').inner_text() == '「國防知性之旅-成功嶺營區開放」' + title
         if filename == 'index.html':
-            assert page.locator('.station-card').count() == 8
+            assert page.locator('.station-card').count() == 9
             assert page.locator('#bus5In').inner_text() == '1,500'
             assert page.locator('#walk3In').count() == 0
         else:

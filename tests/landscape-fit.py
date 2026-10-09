@@ -25,6 +25,7 @@ with sync_playwright() as p:
                   put(12,16,'♿ 復康巴士');put(14,16,45);put(14,20,15);
                   if(!pending){put(38,0,'嶺東科大-寶文校區接駁統計');put(39,0,12345);put(39,1,6789);}
                   window.onGvizData({table:{rows}});
+                  window.onMedicalData({table:{rows:[{c:[{v:pending?'未回報':123},{v:pending?'未回報':12},null,{v:'https://docs.google.com/forms/d/e/medical-test/viewform'}]}]}});
                   window.scrollTo(0,0);
                 }''', pending)
                 page.wait_for_timeout(100)
@@ -42,7 +43,7 @@ with sync_playwright() as p:
                 }''')
                 result.update(engine=engine.name,pending=pending)
                 results.append(result)
-                assert page.locator('.station-card').count() == 8
+                assert page.locator('.station-card').count() == 9
                 assert page.locator('#accessibleIn').inner_text() == '45'
                 assert page.locator('#walkTotalIn').inner_text() == '1,115'
                 assert result['bottom'] <= result['visibleBottom']-4, result
@@ -52,4 +53,4 @@ with sync_playwright() as p:
                     page.screenshot(path=str(root/'.omx'/f'landscape-fit-{engine.name}.png'))
         browser.close()
 (root/'.omx/landscape-fit.json').write_text(json.dumps(results,ensure_ascii=False,indent=2),encoding='utf-8')
-print(f'PASS: {len(results)} Chromium/WebKit cases; all eight cards fit without scrolling after rotation')
+print(f'PASS: {len(results)} Chromium/WebKit cases; all nine cards fit without scrolling after rotation')

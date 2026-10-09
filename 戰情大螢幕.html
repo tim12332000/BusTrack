@@ -979,7 +979,12 @@
     @media (max-width: 600px) and (orientation: portrait) {
       #gateSection .grid-2 { grid-template-columns: minmax(0, 1fr); }
     }
-    #gateSection .grid-2 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    #gateSection .grid-2 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    #gateSection .medical-card .station-photo { object-fit: contain; background: #fff; }
+    .medical-card .card-header { background: #20245b; color: #ffe06a; }
+    .medical-card .card-footer { display: flex; justify-content: center; flex-wrap: wrap; gap: 2px 8px; }
+    .medical-card .card-status-text { font-size: 10px; }
+    .medical-form-link { font-size: 11px; color: #075985; font-weight: 700; white-space: nowrap; }
     @media (orientation: landscape) and (max-height: 579px) {
       #gateSection .card-col-num { font-size: clamp(17px, 5dvh, 23px); }
     }
@@ -1287,6 +1292,25 @@
         </div>
       </div>
 
+      <!-- 衛勤支援：獨立回報，不計入進離場總數 -->
+      <div class="station-card medical-card">
+        <div class="card-header">✚ 衛勤支援</div>
+        <img class="station-photo" src="assets/stations/medical.jpg?v=20261009" alt="衛勤支援徽章" width="1024" height="1024" decoding="async">
+        <div class="card-body">
+          <div class="card-col">
+            <div class="card-col-label">醫療協處</div>
+            <div class="card-col-num" id="medicalAssistance">未回報</div>
+          </div>
+          <div class="card-col">
+            <div class="card-col-label">後送</div>
+            <div class="card-col-num" id="medicalEvacuation">未回報</div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="card-status-text" id="medicalStatus">獨立統計 · 人</div>
+          <a class="medical-form-link" id="medicalFormLink" target="_blank" rel="noopener noreferrer" hidden>衛勤填報 ↗</a>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1689,6 +1713,44 @@
       };
       document.head.appendChild(script);
     }
+
+    // 衛勤資料使用自己的分頁和回呼，完全不參與 onGvizData 的人員總計。
+    window.onMedicalData = function(data) {
+      if (!data || data.status === 'error' || !data.table || !data.table.rows) {
+        document.getElementById('medicalStatus').textContent = '衛勤資料讀取失敗 · 重試中';
+        return;
+      }
+      const cells = data.table.rows[0]?.c || [];
+      const count = column => {
+        const raw = cells[column]?.v;
+        if (raw === null || raw === undefined || String(raw).trim() === '') return null;
+        const value = Number(raw);
+        return Number.isSafeInteger(value) && value >= 0 ? value : null;
+      };
+      const assistance = count(0), evacuation = count(1);
+      setNumberText(document.getElementById('medicalAssistance'), assistance === null ? '未回報' : formatNumber(assistance));
+      setNumberText(document.getElementById('medicalEvacuation'), evacuation === null ? '未回報' : formatNumber(evacuation));
+      document.getElementById('medicalStatus').textContent = assistance === null || evacuation === null ? '獨立統計 · 待回報' : '獨立統計 · 人';
+      const url = String(cells[3]?.v || '');
+      if (/^https:\/\/docs\.google\.com\/forms\/d\/e\/[A-Za-z0-9_-]+\/viewform$/.test(url)) {
+        const link = document.getElementById('medicalFormLink');
+        link.href = url;
+        link.hidden = false;
+      }
+    };
+
+    function requestMedicalData() {
+      if (document.hidden) return;
+      const old = document.getElementById('medicalScript');
+      if (old) old.remove();
+      const script = document.createElement('script');
+      script.id = 'medicalScript';
+      script.src = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=responseHandler:onMedicalData&sheet=${encodeURIComponent('衛勤支援統計')}&range=A1:D2&headers=1&_t=${Date.now()}`;
+      script.onerror = () => { document.getElementById('medicalStatus').textContent = '衛勤連線重試中'; };
+      document.head.appendChild(script);
+    }
+    requestMedicalData();
+    setInterval(requestMedicalData, 3000);
 
     // 立即載入並每 3 秒自動請求
     requestGvizData();
