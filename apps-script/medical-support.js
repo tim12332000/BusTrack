@@ -4,7 +4,8 @@ const MEDICAL_STATS_SHEET = '衛勤支援統計';
 
 function medicalLatestFormula(sheetName, column) {
   const source = "'" + sheetName.replace(/'/g, "''") + "'!";
-  return '=IFERROR(LET(data,FILTER(' + source + 'A2:C,' + source + 'B2:B<>"",' + source + 'C2:C<>""),valid,FILTER(data,ISNUMBER(INDEX(data,,2)),ISNUMBER(INDEX(data,,3)),INDEX(data,,2)>=0,INDEX(data,,3)>=0,MOD(INDEX(data,,2),1)=0,MOD(INDEX(data,,3),1)=0),INDEX(valid,ROWS(valid),' + column + ')),"未回報")';
+  // Google Forms inserts rows and shifts A2 references; whole columns stay anchored.
+  return '=IFERROR(LET(data,FILTER(' + source + 'A:C,ROW(' + source + 'A:A)>1,' + source + 'B:B<>"",' + source + 'C:C<>""),valid,FILTER(data,ISNUMBER(INDEX(data,,2)),ISNUMBER(INDEX(data,,3)),INDEX(data,,2)>=0,INDEX(data,,3)>=0,MOD(INDEX(data,,2),1)=0,MOD(INDEX(data,,3),1)=0),INDEX(valid,ROWS(valid),' + column + ')),"未回報")';
 }
 
 function setupMedicalSupport() {

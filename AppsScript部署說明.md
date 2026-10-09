@@ -1,5 +1,7 @@
 # 衛勤支援（2026-10-09 已上線）
 
+2026-10-09 首筆正式回應修正：Google Forms 插入回應列時，把 `A2:C` 等公式範圍推至 `A3:C`，導致首筆 11／11 漏算。公式改用整欄範圍，再以 `ROW(A:A)>1` 排除標題，避免新增列改變起點。原表單、回應與人員總計保留，私有 API 更新至版本 8。已讀回公開資料為 11／11。
+
 新增獨立「衛勤支援回報」表單，必填醫療協處、後送目前累計人數（0 或正整數）。兩項數字以最新一次完整有效回報為準，不把累計回報逐筆相加。程式在 `apps-script/medical-support.js`，與主程式一起部署；執行 `setupMedicalSupport` 可重試，不重建既有衛勤表單或清空回應。
 
 表單：https://docs.google.com/forms/d/e/1FAIpQLSeGaBnfrG3r7vROvnN4_IELZXlgM4ZYnybaWz7ya9qB5hqHbg/viewform

@@ -56,7 +56,9 @@ test('medical formulas select the latest complete valid pair and escape sheet na
   const context = {};
   vm.runInNewContext(fs.readFileSync('apps-script/medical-support.js', 'utf8'), context);
   const formula = context.medicalLatestFormula("Medical's responses", 2);
-  assert.match(formula, /'Medical''s responses'!A2:C/);
+  assert.match(formula, /'Medical''s responses'!A:C/);
+  assert.match(formula, /ROW\('Medical''s responses'!A:A\)>1/);
+  assert.doesNotMatch(formula, /![A-C]2:/);
   assert.match(formula, /ISNUMBER\(INDEX\(data,,2\)\)/);
   assert.match(formula, /MOD\(INDEX\(data,,3\),1\)=0/);
   assert.match(formula, /INDEX\(valid,ROWS\(valid\),2\)/);
