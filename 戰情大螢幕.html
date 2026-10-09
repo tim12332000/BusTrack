@@ -985,6 +985,8 @@
     .medical-card .card-footer { display: flex; justify-content: center; flex-wrap: wrap; gap: 2px 8px; }
     .medical-card .card-status-text { font-size: 10px; }
     .medical-form-link { font-size: 11px; color: #075985; font-weight: 700; white-space: nowrap; }
+    #gateSection .medical-card .card-col-num.medical-pending { font-size: clamp(14px, 2.4vh, 26px); }
+    #gateSection .medical-card .card-footer { flex-direction: column; align-items: center; }
     @media (orientation: landscape) and (max-height: 579px) {
       #gateSection .card-col-num { font-size: clamp(17px, 5dvh, 23px); }
     }
@@ -1299,11 +1301,11 @@
         <div class="card-body">
           <div class="card-col">
             <div class="card-col-label">醫療協處</div>
-            <div class="card-col-num" id="medicalAssistance">未回報</div>
+            <div class="card-col-num medical-pending" id="medicalAssistance">未回報</div>
           </div>
           <div class="card-col">
             <div class="card-col-label">後送</div>
-            <div class="card-col-num" id="medicalEvacuation">未回報</div>
+            <div class="card-col-num medical-pending" id="medicalEvacuation">未回報</div>
           </div>
         </div>
         <div class="card-footer">
@@ -1728,6 +1730,8 @@
         return Number.isSafeInteger(value) && value >= 0 ? value : null;
       };
       const assistance = count(0), evacuation = count(1);
+      document.getElementById('medicalAssistance').classList.toggle('medical-pending', assistance === null);
+      document.getElementById('medicalEvacuation').classList.toggle('medical-pending', evacuation === null);
       setNumberText(document.getElementById('medicalAssistance'), assistance === null ? '未回報' : formatNumber(assistance));
       setNumberText(document.getElementById('medicalEvacuation'), evacuation === null ? '未回報' : formatNumber(evacuation));
       document.getElementById('medicalStatus').textContent = assistance === null || evacuation === null ? '獨立統計 · 待回報' : '獨立統計 · 人';
