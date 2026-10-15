@@ -29,6 +29,15 @@ function parkingPage() {
     warnings, nodes,
     update: rows => context.window.onGvizData({ table: { rows } }),
     total: type => nodes.get(type === 'cars' ? 'parkTotalCars' : 'parkTotalMotorcycles').textContent,
+    summaryState() {
+      const tree = descendants(nodes.get('parkingGroups'));
+      return {
+        amounts: tree.filter(node => /^group-metric /.test(node.className)).map(node => node.children[1].textContent),
+        captions: tree.filter(node => node.className === 'group-name').map(node => node.children[0].textContent),
+        badges: tree.filter(node => /^status-pill/.test(node.className)).map(node => node.textContent),
+        note: nodes.get('parkingNote').textContent,
+      };
+    },
     count(name, type) {
       const row = descendants(nodes.get('parkingGroups')).find(node => node.dataset.lot === name);
       assert.ok(row, `lot still rendered: ${name}`);
@@ -125,5 +134,41 @@ test('parking missing cells and corrupt rows preserve valid numeric reports', ()
   assert.equal(p.count(target, 'motorcycles'), '未回報');
   assert.equal(p.total('cars'), '8');
   assert.equal(p.total('motorcycles'), '5');
+  p.assertHealthy();
+});
+
+for (const [label, value] of [['missing', null], ['invalid', 'abc'], ['real zero', 0]]) {
+  test(`parking summaries show zero without missing-report prompts when all reports are ${label}`, () => {
+    const p = parkingPage();
+    p.update([row(target, value, value)]);
+    assert.equal(p.total('cars'), '0');
+    assert.equal(p.total('motorcycles'), '0');
+    const state = p.summaryState();
+    assert.deepEqual(state.amounts, ['0', '0', '0', '0', '0', '0']);
+    assert.doesNotMatch([state.note, ...state.captions, ...state.badges].join(' '), /未回報|待回報|未完整回報/);
+    assert.equal(p.count(target, 'cars'), value === 0 ? '0' : '未回報');
+    assert.equal(p.count(target, 'motorcycles'), value === 0 ? '0' : '未回報');
+    assert.equal(p.nodes.get('parkingCarsRateText').textContent, '剩 0%');
+    assert.equal(p.nodes.get('parkingMotoRateText').textContent, '剩 0%');
+    // Unknown availability must not be described as a confirmed full car park.
+    if (value !== 0) assert.doesNotMatch(p.nodes.get('parkingCarsBadge').textContent, /已客滿/);
+    p.assertHealthy();
+  });
+}
+
+test('parking summaries keep partial sums without missing-report prompts and update when valid reports return', () => {
+  const p = parkingPage();
+  p.update([row(anchor, 8, 5), row(target, 'abc', null)]);
+  assert.equal(p.total('cars'), '8');
+  assert.equal(p.total('motorcycles'), '5');
+  let state = p.summaryState();
+  assert.doesNotMatch([state.note, ...state.captions, ...state.badges].join(' '), /未回報|待回報|未完整回報/);
+  assert.equal(p.count(target, 'cars'), '未回報');
+  p.update([row(anchor, 8, 5), row(target, 12, 20)]);
+  assert.equal(p.total('cars'), '20');
+  assert.equal(p.total('motorcycles'), '25');
+  assert.equal(p.count(target, 'cars'), '12');
+  state = p.summaryState();
+  assert.doesNotMatch([state.note, ...state.captions].join(' '), /未回報|待回報/);
   p.assertHealthy();
 });

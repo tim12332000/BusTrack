@@ -44,11 +44,11 @@ with sync_playwright() as p:
                 if mode == 'zero':
                     assert state['remaining'] == ['0'] * 6 and state['pills'] == ['已客滿'] * 6, state
                 if mode in ['missing', 'invalid']:
-                    assert state['remaining'] == ['未回報'] * 6 and state['pills'] == ['待回報'] * 6, state
+                    assert state['remaining'] == ['0'] * 6 and state['pills'] == ['—'] * 6, state
                 if mode == 'partial':
-                    # 新烏日的「嘟嘟房高鐵臺中站」沒回報：該站仍顯示其餘場的加總，並標出 1 處未回報。
+                    # 缺報只留在個別列；新烏日統計仍顯示其餘場加總。
                     assert state['remaining'][0:2] == ['3,399', '711'], state
-                    assert state['missing'][0] == '14 處 · 1 處未回報', state
+                    assert state['missing'][0] == '14 處', state
                     assert state['total'] == '6,768', state
                 result = page.evaluate('''() => ({
                   height: innerHeight,

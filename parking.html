@@ -1254,19 +1254,19 @@
       </div>
       <div class="overview-metric">
         <span class="metric-label">🚗 汽車</span>
-        <span class="metric-value blue" id="parkTotalCars">未回報</span>
+        <span class="metric-value blue" id="parkTotalCars">0</span>
         <span class="metric-capacity">/ <span class="cap-word">總容量 </span>8,305</span>
         <div class="capacity-bar" id="parkingCarsBar"></div>
-        <span class="progress-pct" id="parkingCarsRateText">—</span>
-        <span class="status-pill" id="parkingCarsBadge">待回報</span>
+        <span class="progress-pct" id="parkingCarsRateText">剩 0%</span>
+        <span class="status-pill" id="parkingCarsBadge">—</span>
       </div>
       <div class="overview-metric">
         <span class="metric-label">🛵 機車</span>
-        <span class="metric-value amber" id="parkTotalMotorcycles">未回報</span>
+        <span class="metric-value amber" id="parkTotalMotorcycles">0</span>
         <span class="metric-capacity">/ <span class="cap-word">總容量 </span>5,693</span>
         <div class="capacity-bar" id="parkingMotoBar"></div>
-        <span class="progress-pct" id="parkingMotoRateText">—</span>
-        <span class="status-pill" id="parkingMotoBadge">待回報</span>
+        <span class="progress-pct" id="parkingMotoRateText">剩 0%</span>
+        <span class="status-pill" id="parkingMotoBadge">—</span>
       </div>
       <span id="parkReported" hidden>0/23 處</span>
     </div>
@@ -1354,7 +1354,7 @@
         const knownCapacity = known.reduce((sum, lot) => sum + lot[type], 0);
         const amount = known.reduce((sum, lot) => sum + read(lot, type), 0);
         return {
-          capacity, amount, hasData: known.length > 0,
+          capacity, amount,
           pct: capacity ? percent(amount, capacity) : 0,
           unknownPct: capacity ? percent(capacity - knownCapacity, capacity) : 0,
           // 狀態只看已回報的場，避免沒回報的場被當成客滿。
@@ -1375,11 +1375,11 @@
         unknown.style.width = summary.unknownPct + '%';
         track.replaceChildren(fill, unknown);
       };
-      const remainText = summary => summary.hasData ? formatNumber(summary.amount) : '未回報';
-      const pctText = summary => summary.hasData ? `剩 ${Math.round(summary.pct)}%` : '—';
+      const remainText = summary => formatNumber(summary.amount);
+      const pctText = summary => `剩 ${Math.round(summary.pct)}%`;
       const setPill = (pill, summary) => {
         pill.className = summary.knownPct === null ? 'status-pill' : `status-pill ${level(summary.knownPct)}`;
-        pill.textContent = summary.knownPct === null ? '待回報' : levelText(summary.knownPct);
+        pill.textContent = summary.knownPct === null ? '—' : levelText(summary.knownPct);
       };
       const missingLots = lots => lots.filter(lot => ['cars', 'motorcycles'].some(type => lot[type] > 0 && read(lot, type) === null)).length;
 
@@ -1387,7 +1387,6 @@
         const summary = summarize(PARKING_LOTS, type);
         const value = document.getElementById(ids.value);
         value.textContent = remainText(summary);
-        value.classList.toggle('pending', !summary.hasData);
         fillBar(document.getElementById(ids.bar), summary);
         document.getElementById(ids.text).textContent = pctText(summary);
         setPill(document.getElementById(ids.badge), summary);
@@ -1396,7 +1395,7 @@
       updateSummary('motorcycles', { value: 'parkTotalMotorcycles', bar: 'parkingMotoBar', text: 'parkingMotoRateText', badge: 'parkingMotoBadge' });
       const missingTotal = missingLots(PARKING_LOTS);
       document.getElementById('parkReported').textContent = `${PARKING_LOTS.length - missingTotal}/23 處`;
-      document.getElementById('parkingNote').textContent = missingTotal ? `23 處停車場 · ${missingTotal} 處未回報` : '23 處停車場 · 全部已回報';
+      document.getElementById('parkingNote').textContent = '23 處停車場 · 以各場最新回報為準';
 
       const groupColors = ['var(--mil-blue)', 'var(--mil-green)', 'var(--mil-amber)', 'var(--mil-purple)'];
       const groups = [...new Set(PARKING_LOTS.map(lot => lot.group))].map((group, index) => ({
@@ -1412,8 +1411,7 @@
 
         const head = node('div', 'group-head');
         const title = node('h2', 'group-name', group);
-        const missing = missingLots(lots);
-        title.appendChild(node('small', missing ? 'missing' : '', missing ? `${lots.length} 處 · ${missing} 處未回報` : `${lots.length} 處`));
+        title.appendChild(node('small', '', `${lots.length} 處`));
         const metrics = node('div', 'group-metrics');
         [['汽車', 'cars'], ['機車', 'motorcycles']].forEach(([label, type]) => {
           const summary = summarize(lots, type);
@@ -1424,7 +1422,7 @@
           fillBar(track, summary);
           const pill = node('span');
           setPill(pill, summary);
-          metric.append(node('span', '', label), node('b', summary.hasData ? '' : 'pending', remainText(summary)), cap, track, node('span', 'group-pct', pctText(summary)), pill);
+          metric.append(node('span', '', label), node('b', '', remainText(summary)), cap, track, node('span', 'group-pct', pctText(summary)), pill);
           metrics.appendChild(metric);
         });
         head.append(title, metrics);

@@ -102,7 +102,7 @@ test('parking: corrupt rows and bad counts do not suppress valid lots or prevent
   for (const value of ['abc', '.', '1.5', '#REF!', Infinity, NaN, {}, true, [12]]) {
     p.update([null, {}, { c: 'bad' }, row('CITYPARKING春安站', value), row('協弘停車場', 12)]);
     assert.equal(p.text('parkTotalCars'), '12');
-    assert.match(p.text('parkingNote'), /未回報/);
+    assert.doesNotMatch(p.text('parkingNote'), /未回報/);
     assert.doesNotMatch(p.text('liveText'), /更新失敗/);
     assert.equal(p.warnings.length, 0);
   }
