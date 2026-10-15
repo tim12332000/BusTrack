@@ -11,7 +11,7 @@ results = []
 with sync_playwright() as p:
     for engine in [p.chromium, p.webkit]:
         browser = engine.launch()
-        page = browser.new_page(viewport={'width': 874, 'height': 402}, device_scale_factor=1)
+        page = browser.new_page(viewport={'width': 874, 'height': 402}, device_scale_factor=1, reduced_motion='reduce')
         page.route('https://**', lambda route: route.abort())
         errors = []
         page.on('pageerror', lambda error: errors.append(str(error)))
