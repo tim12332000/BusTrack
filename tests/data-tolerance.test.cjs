@@ -32,6 +32,20 @@ function peopleRows(value) {
 }
 
 for (const file of ['index.html', '戰情大螢幕.html']) {
+  test(`${file}: totals remain numeric even when no station has a usable count`, () => {
+    const p = page(file), rows = peopleRows('abc');
+    for (const column of [0, 3, 6, 9, 12, 15, 18, 21]) rows[5].c[column] = { v: 'abc' };
+    for (const column of [0, 4, 8, 12]) rows[14].c[column] = { v: 'abc' };
+    rows[39].c = [{ v: '未回報' }, { v: '未回報' }];
+    p.update(rows);
+    for (const id of ['busTotalIn', 'busTotalOut', 'walkTotalIn', 'walkTotalOut', 'overallTotalIn', 'overallTotalOut']) {
+      assert.equal(p.text(id), '0', id);
+    }
+    for (const id of ['busTotalRate', 'walkTotalRate', 'overallTotalRate']) assert.equal(p.text(id), '0.0%', id);
+    assert.equal(p.text('bus1In'), '未回報');
+    assert.equal(p.text('bus5In'), '未回報');
+    assert.equal(p.text('overallNote'), '步行＋接駁車');
+  });
   test(`${file}: invalid count is isolated, other totals survive, next report recovers`, () => {
     const p = page(file);
     for (const value of ['abc', '.', '12abc', '#REF!', Infinity, NaN, 1e308, {}, true]) {
@@ -39,7 +53,10 @@ for (const file of ['index.html', '戰情大螢幕.html']) {
       assert.equal(p.text('bus1In'), '未回報', String(value));
       assert.equal(p.text('bus2In'), '20');
       assert.equal(p.text('overallTotalIn'), '60');
-      assert.match(p.text('overallNote'), /異常/);
+      assert.equal(p.text('busTotalIn'), '30');
+      assert.equal(p.text('busTotalRate'), '0.0%');
+      assert.equal(p.text('overallTotalRate'), '0.0%');
+      assert.equal(p.text('overallNote'), '步行＋接駁車');
       assert.doesNotMatch(p.text('liveText'), /更新失敗/);
       assert.equal(p.warnings.length, 0);
     }
@@ -58,9 +75,11 @@ for (const file of ['index.html', '戰情大螢幕.html']) {
     assert.equal(p.text('walk1In'), '未回報');
     assert.equal(p.text('walk2In'), '40');
     assert.equal(p.text('accessibleIn'), '未回報');
-    assert.equal(p.text('walkTotalIn'), '未完整回報');
+    assert.equal(p.text('walkTotalIn'), '40');
+    assert.equal(p.text('walkTotalRate'), '0.0%');
     assert.equal(p.text('overallTotalIn'), '75');
-    assert.equal(p.text('overallTotalRate'), '未完整回報');
+    assert.equal(p.text('overallTotalRate'), '0.0%');
+    assert.equal(p.text('overallNote'), '步行＋接駁車');
     assert.equal(p.warnings.length, 0);
     rows[5] = null;
     assert.doesNotThrow(() => p.update(rows));

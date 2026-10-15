@@ -43,7 +43,10 @@ test('absent or invalid new-stop data stays unknown; real zero counts', () => {
   for (const value of [undefined, '', null, -1, '未回報', '#ERROR!', 1.5]) {
     p.update(fixture(value, value));
     assert.equal(p.text('bus5In'), '未回報');
-    assert.equal(p.text('busTotalIn'), '未完整回報');
+    assert.equal(p.text('busTotalIn'), '40');
+    assert.equal(p.text('busTotalOut'), '20');
+    assert.equal(p.text('busTotalRate'), '50.0%');
+    assert.equal(p.text('overallNote'), '步行＋接駁車');
     assert.equal(p.text('overallTotalIn'), '340');
     assert.equal(p.text('overallTotalOut'), '90');
   }
