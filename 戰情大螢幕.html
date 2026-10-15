@@ -1432,20 +1432,24 @@
     // 🏆 JSONP 回呼函式：100% 繞過任何瀏覽器 CORS / file 協議限制！
     window.onGvizData = function(data) {
       try {
-        if (!data || data.status === 'error' || !data.table || !data.table.rows) {
+        if (!data || data.status === 'error' || !Array.isArray(data.table?.rows) || data.table.rows.length === 0) {
           document.getElementById('liveText').textContent = '讀取失敗，請確認看板分頁與共用權限';
           return;
         }
-        const rows = data.table.rows;
+        const rows = data.table.rows.map(row => row && Array.isArray(row.c) ? row : { c: [], damaged: true });
+        let invalidCounts = 0;
 
         const getVal = (r, c) => {
           try {
+            if (rows[r]?.damaged) throw new Error('Damaged data row');
             if (!rows[r] || !rows[r].c || !rows[r].c[c]) return 0;
             const cell = rows[r].c[c];
-            if (typeof cell.v === 'number') return cell.v;
-            const parsed = parseFloat(cell.v || cell.f || 0);
-            return isNaN(parsed) ? 0 : parsed;
-          } catch(e) { return 0; }
+            const raw = cell.v ?? cell.f;
+            const parsed = typeof raw === 'number' ? raw : typeof raw === 'string' && raw.trim() !== '' ? Number(raw.replace(/,/g, '')) : NaN;
+            if (Number.isFinite(parsed) && Math.abs(parsed) <= Number.MAX_SAFE_INTEGER) return parsed;
+          } catch(e) { /* Isolate a damaged cell from the remaining report. */ }
+          invalidCounts++;
+          return null;
         };
 
         // 🔍 動態語意定位：動態尋找各區塊數據所在列，100% 防止 Google Sheets 空行過濾造成的列號位移！
@@ -1494,21 +1498,28 @@
         };
         const b5In = getLingdong(0);
         const b5Out = getLingdong(1);
-        const busComplete = b5In !== null && b5Out !== null;
+        const busInComplete = [b1In, b2In, b3In, b4In, b5In].every(value => value !== null);
+        const busOutComplete = [b1Out, b2Out, b3Out, b4Out, b5Out].every(value => value !== null);
+        const busComplete = busInComplete && busOutComplete;
 
         // 僅加總本頁定案站點；舊版大盤不含新增站點。
-        const busTotalIn = b1In + b2In + b3In + b4In + (b5In ?? 0);
-        const busTotalOut = b1Out + b2Out + b3Out + b4Out + (b5Out ?? 0);
+        const busTotalIn = (b1In ?? 0) + (b2In ?? 0) + (b3In ?? 0) + (b4In ?? 0) + (b5In ?? 0);
+        const busTotalOut = (b1Out ?? 0) + (b2Out ?? 0) + (b3Out ?? 0) + (b4Out ?? 0) + (b5Out ?? 0);
         const busRate = calcRate(busTotalIn, busTotalOut);
 
-        setNumberText(document.getElementById('busTotalIn'), b5In === null ? '未完整回報' : formatNumber(busTotalIn));
-        setNumberText(document.getElementById('busTotalOut'), b5Out === null ? '未完整回報' : formatNumber(busTotalOut));
+        setNumberText(document.getElementById('busTotalIn'), busInComplete ? formatNumber(busTotalIn) : '未完整回報');
+        setNumberText(document.getElementById('busTotalOut'), busOutComplete ? formatNumber(busTotalOut) : '未完整回報');
         setNumberText(document.getElementById('busTotalRate'), busComplete ? busRate.pctText : '未完整回報');
         document.getElementById('busMainBar').style.width = (busComplete ? busRate.pctNum : 0) + "%";
 
         const updateStationCard = (prefix, inVal, outVal) => {
-          setNumberText(document.getElementById(`${prefix}In`), formatNumber(inVal));
-          setNumberText(document.getElementById(`${prefix}Out`), formatNumber(outVal));
+          setNumberText(document.getElementById(`${prefix}In`), inVal === null ? '未回報' : formatNumber(inVal));
+          setNumberText(document.getElementById(`${prefix}Out`), outVal === null ? '未回報' : formatNumber(outVal));
+          if (inVal === null || outVal === null) {
+            document.getElementById(`${prefix}Status`).textContent = '資料異常，等待有效回報';
+            document.getElementById(`${prefix}Bar`).style.width = '0%';
+            return;
+          }
           const r = calcRate(inVal, outVal);
           document.getElementById(`${prefix}Status`).textContent = `${r.pctText} · 餘${formatNumber(r.remain)}人`;
           document.getElementById(`${prefix}Bar`).style.width = r.pctNum + "%";
@@ -1540,14 +1551,17 @@
         const accessibleOut = accessibleReady ? getVal(walkStationsRow, 20) : 0;
 
         // 步行大盤
-        const walkTotalIn = w1In + w2In + accessibleIn;
-        const walkTotalOut = w1Out + w2Out + accessibleOut;
+        const walkInComplete = [w1In, w2In, accessibleIn].every(value => value !== null);
+        const walkOutComplete = [w1Out, w2Out, accessibleOut].every(value => value !== null);
+        const walkComplete = walkInComplete && walkOutComplete;
+        const walkTotalIn = (w1In ?? 0) + (w2In ?? 0) + (accessibleIn ?? 0);
+        const walkTotalOut = (w1Out ?? 0) + (w2Out ?? 0) + (accessibleOut ?? 0);
         const walkRate = calcRate(walkTotalIn, walkTotalOut);
 
-        setNumberText(document.getElementById('walkTotalIn'), formatNumber(walkTotalIn));
-        setNumberText(document.getElementById('walkTotalOut'), formatNumber(walkTotalOut));
-        setNumberText(document.getElementById('walkTotalRate'), walkRate.pctText);
-        document.getElementById('walkMainBar').style.width = walkRate.pctNum + "%";
+        setNumberText(document.getElementById('walkTotalIn'), walkInComplete ? formatNumber(walkTotalIn) : '未完整回報');
+        setNumberText(document.getElementById('walkTotalOut'), walkOutComplete ? formatNumber(walkTotalOut) : '未完整回報');
+        setNumberText(document.getElementById('walkTotalRate'), walkComplete ? walkRate.pctText : '未完整回報');
+        document.getElementById('walkMainBar').style.width = (walkComplete ? walkRate.pctNum : 0) + "%";
 
         updateStationCard('walk1', w1In, w1Out);
         updateStationCard('walk2', w2In, w2Out);
@@ -1564,10 +1578,11 @@
         const overallRate = calcRate(overallIn, overallOut);
         setNumberText(document.getElementById('overallTotalIn'), formatNumber(overallIn));
         setNumberText(document.getElementById('overallTotalOut'), formatNumber(overallOut));
-        setNumberText(document.getElementById('overallTotalRate'), overallRate.pctText);
+        setNumberText(document.getElementById('overallTotalRate'), invalidCounts ? '未完整回報' : overallRate.pctText);
         const overallNote = document.getElementById('overallNote');
         overallNote.textContent = busComplete ? '步行＋接駁車' : '步行＋接駁車 · 嶺東待回報，已加總其餘回報';
-        overallNote.classList.toggle('overall-pending', !busComplete);
+        if (invalidCounts) overallNote.textContent = '步行＋接駁車 · 部分資料異常，僅加總有效回報';
+        overallNote.classList.toggle('overall-pending', !busComplete || !walkComplete);
         }
 
         // ==========================================
@@ -1720,13 +1735,14 @@
 
     // 衛勤資料使用自己的分頁和回呼，完全不參與 onGvizData 的人員總計。
     window.onMedicalData = function(data) {
-      if (!data || data.status === 'error' || !data.table || !data.table.rows) {
+      if (!data || data.status === 'error' || !Array.isArray(data.table?.rows) || !Array.isArray(data.table.rows[0]?.c)) {
         document.getElementById('medicalStatus').textContent = '衛勤資料讀取失敗 · 重試中';
         return;
       }
       const cells = data.table.rows[0]?.c || [];
       const count = column => {
         const raw = cells[column]?.v;
+        if (typeof raw !== 'number' && typeof raw !== 'string') return null;
         if (raw === null || raw === undefined || String(raw).trim() === '') return null;
         const value = Number(raw);
         return Number.isSafeInteger(value) && value >= 0 ? value : null;

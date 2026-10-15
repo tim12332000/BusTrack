@@ -1323,11 +1323,13 @@
     function updateParkingStatusPage(data) {
       const rowsByName = new Map();
       (data.table.rows || []).forEach(row => {
-        const cells = row.c || [];
+        if (!row || !Array.isArray(row.c)) return;
+        const cells = row.c;
         const name = cells[1] && cells[1].v;
         if (typeof name === 'string') rowsByName.set(name, cells);
       });
       const asCount = value => {
+        if (typeof value !== 'number' && typeof value !== 'string') return null;
         if (value === null || value === undefined || String(value).trim() === '') return null;
         const number = Number(String(value).replace(/,/g, ''));
         return Number.isSafeInteger(number) && number >= 0 ? number : null;
@@ -1479,7 +1481,7 @@
     // 🏆 JSONP 回呼函式：100% 繞過任何瀏覽器 CORS / file 協議限制！
     window.onGvizData = function(data) {
       try {
-        if (!data || data.status === 'error' || !data.table || !data.table.rows) {
+        if (!data || data.status === 'error' || !Array.isArray(data.table?.rows) || data.table.rows.length === 0) {
           document.getElementById('liveText').textContent = '讀取失敗，請確認看板分頁與共用權限';
           return;
         }
