@@ -3,7 +3,8 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const html = fs.readFileSync('index.html', 'utf8');
-function page() {
+function page(htmlSource = html) {
+  const html = htmlSource;
   const nodes = new Map([...html.matchAll(/id="([^"]+)"[^>]*>([^<]*)/g)].map(m => [m[1], { textContent: m[2], style: {}, classList: { toggle() {} }, remove() {} }]));
   const ctx = { window: {}, document: { getElementById: id => nodes.get(id), createElement: () => ({}), head: { appendChild() {} }, addEventListener() {} }, setInterval() {}, console };
   vm.runInNewContext(html.match(/<script>([\s\S]*?)<\/script>/)[1], ctx);
@@ -74,11 +75,19 @@ test('accessible buses count in walking and overall totals only with their own h
   assert.equal(p.text('accessibleIn'), '待啟用');
 });
 
-test('Shuinan and Jingmao map to their own sheet columns', () => {
- const p = page(); const rows = fixture(0, 0);
+for (const file of ['index.html', '戰情大螢幕.html']) {
+test(`${file}: Shuinan and Jingmao map to their own visible station cards`, () => {
+ const html = fs.readFileSync(file, 'utf8');
+ const p = page(html); const rows = fixture(0, 0);
  rows[5].c[12] = { v: 123 }; rows[5].c[15] = { v: 45 };
  rows[5].c[18] = { v: 678 }; rows[5].c[21] = { v: 90 };
  p.update(rows);
- assert.equal(p.text('bus3In'), '678'); assert.equal(p.text('bus3Out'), '90');
- assert.equal(p.text('bus4In'), '123'); assert.equal(p.text('bus4Out'), '45');
+ const cardIds = station => {
+   const card = html.split('<div class="station-card">').find(part => part.includes(`alt="${station}（橘線）"`));
+   assert.ok(card, station);
+   return [...card.matchAll(/id="(bus[34](?:In|Out))"/g)].map(match => match[1]);
+ };
+ assert.deepEqual(cardIds('水湳轉運站').map(id => p.text(id)), ['678', '90']);
+ assert.deepEqual(cardIds('經貿六停車場').map(id => p.text(id)), ['123', '45']);
 });
+}
