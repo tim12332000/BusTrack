@@ -1714,7 +1714,7 @@
       }
       const script = document.createElement('script');
       script.id = 'gvizScript';
-      script.src = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=responseHandler:onGvizData&sheet=${encodeURIComponent("總即時戰情看板")}&_t=${Date.now()}`;
+      script.src = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=responseHandler:onGvizData&headers=0&sheet=${encodeURIComponent("總即時戰情看板")}&_t=${Date.now()}`;
       script.onerror = function() {
         document.getElementById('liveText').textContent = '連線重試中...';
       };
