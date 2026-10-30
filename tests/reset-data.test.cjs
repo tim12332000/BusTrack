@@ -85,6 +85,68 @@ function setup(options = {}) {
   return { ctx, ss, forms, sheets, calls, alerts };
 }
 
+function setupSplit(options = {}) {
+  const p = setup();
+  const titles = ['其他停車場一次回報', '嶺東科大車位回報', '經貿6停車場車位回報', '經貿8停車場車位回報'];
+  const dedicated = options.twoEntries ? ['嶺東科大'] : ['嶺東科大', '經貿6停車場', '經貿8停車場'];
+  const lots = Array.from(p.ctx.readParkingLots_(p.ss));
+  const registryRows = titles.map((title, index) => [title, 'https://docs.google.com/forms/d/e/split-' + index + '/viewform', index + 100]);
+  if (options.twoEntries) {
+    registryRows[2][1] = 'https://docs.google.com/forms/d/e/1FAIpQLSdjSlwTCnBK6UI9vWCMA2F_boLWDv4JFJTXorpjVaEY_xswWw/viewform';
+    registryRows[3][1] = 'https://docs.google.com/forms/d/e/1FAIpQLSchHlnE9hOUnYu8b3CUQbDKU1EO80hdOIRT3jkH-8D8iFCBgQ/viewform';
+  }
+  const batchHeaders = titles.map((title, index) => ['Timestamp', ...lots.filter(lot => index === 0 ? !dedicated.includes(lot.name) : lot.name + '車位回報' === title)
+    .flatMap(lot => ['car', 'motorcycle'].filter(field => lot[field] > 0)
+      .map(field => lot.name + '｜目前剩餘' + (field === 'car' ? '汽車' : '機車') + '位'))]);
+  if (options.badHeader) batchHeaders[3][1] = 'unexpected';
+  if (options.duplicateHeader) batchHeaders[0][2] = batchHeaders[0][1];
+  if (options.badRegistry) registryRows[3][0] = 'unknown';
+  if (options.duplicateSource) registryRows[3][2] = registryRows[0][2];
+  const batchForms = titles.map((title, index) => ({
+    ids: ['native-split-' + index], accepting: index !== 1,
+    getId: () => 'split-form-' + index,
+    getTitle: () => options.wrongTitle && index === 3 ? 'unrelated' : '「成功嶺營區開放」' + title,
+    getPublishedUrl: () => registryRows[index][1],
+    getDestinationId: () => options.wrongDestination && index === 3 ? 'other-spreadsheet' : targetId,
+    getResponses() { return this.ids.map(id => ({ getId: () => id })); },
+    isAcceptingResponses() { return this.accepting; },
+    setAcceptingResponses(value) { p.calls.push('split-accept-' + index + '-' + value); this.accepting = value; },
+    deleteAllResponses() { p.calls.push('split-delete-' + index); this.ids = []; }
+  }));
+  const batchSheets = batchHeaders.map((headers, index) => ({
+    rows: 3, added: [], getSheetId: () => index + 100, getName: () => 'split-response-' + index,
+    getFormUrl: () => 'split-edit-' + index, getLastColumn: () => headers.length,
+    getLastRow() { return this.rows; },
+    appendRow(row) { this.added.push(row); this.rows++; p.calls.push('split-append-' + index); },
+    getRange(row, column, count, width) { return {
+      getValues: () => [headers], canEdit: () => !(options.protectedSplit && index === 3),
+      getFormulas: () => [[options.formulaSplit && index === 3 ? '=1' : '']],
+      clearContent: () => { assert.deepEqual([row, column, count, width], [2, 1, 2, headers.length]); this.rows = 1; p.calls.push('split-clear-' + index); }
+    }; }
+  }));
+  const registry = { getLastRow: () => options.twoEntries ? 3 : 5, getRange: () => ({ getValues: () => [['回報入口', '回報網址', '回應分頁ID'], ...registryRows.slice(0, options.twoEntries ? 2 : 4)] }) };
+  const getSheetByName = p.ss.getSheetByName;
+  const getSheets = p.ss.getSheets;
+  const openByUrl = p.ctx.FormApp.openByUrl;
+  p.ss.getSheetByName = name => name === '停車場回報入口' ? registry : getSheetByName(name);
+  p.ss.getSheets = () => [...getSheets(), ...batchSheets];
+  p.ctx.FormApp.openByUrl = url => {
+    const index = registryRows.findIndex((row, index) => row[1] === url || url === 'split-edit-' + index);
+    return index < 0 ? openByUrl(url) : batchForms[index];
+  };
+  if (options.wrongIdentity) {
+    const open = p.ctx.FormApp.openByUrl;
+    p.ctx.FormApp.openByUrl = url => url === registryRows[3][1] ? { getId: () => 'unrelated-form' } : open(url);
+  }
+  if (options.newSplitResponse) {
+    const ui = p.ctx.SpreadsheetApp.getUi();
+    const alert = ui.alert;
+    ui.alert = (title, text, buttons) => { const result = alert(title, text, buttons); if (buttons === 'yes-no') batchForms[3].ids.push('new-arrival'); return result; };
+    p.ctx.SpreadsheetApp.getUi = () => ui;
+  }
+  return Object.assign(p, { batchForms, batchSheets, batchHeaders, registryRows });
+}
+
 test('opening creates only the menu; cancelling performs no writes', () => {
   const p = setup({ cancel: true });
   p.ctx.onOpen();
@@ -203,4 +265,94 @@ test('editor-runnable parking generator writes to the sheet the status formulas 
   assert.deepEqual(added.map(row => row[1]), Array.from(lots, lot => lot.name));
   assert.ok(added.every(row => row[4] === '測試資料'));
   assert.match(logs[0], /Form Responses 2.*23 筆/);
+});
+
+test('split reset clears all six sources only after backup and restores each collection state', () => {
+  const p = setupSplit();
+  p.ctx.runClearAllData();
+  assert.equal(p.alerts.at(-1).title, '清除完成');
+  assert.match(p.alerts.at(-1).text, /6 份表單/);
+  assert.equal(p.calls.filter(call => /^(delete-|split-delete-)/.test(call)).length, 6);
+  assert.ok(p.calls.indexOf('backup') < p.calls.indexOf('delete-0'));
+  assert.ok(p.calls.indexOf('backup') < p.calls.indexOf('split-delete-0'));
+  assert.ok([...p.sheets, ...p.batchSheets].every(sheet => sheet.rows === 1));
+  assert.ok([...p.forms, ...p.batchForms].every(form => form.ids.length === 0));
+  assert.deepEqual(p.batchForms.map(form => form.accepting), [true, false, true, true]);
+  assert.deepEqual(p.forms.map(form => form.accepting), [true, false]);
+});
+
+test('split registry identity, destination, uniqueness and race failures prevent all deletion', () => {
+  for (const option of ['badRegistry', 'duplicateSource', 'wrongTitle', 'wrongDestination', 'wrongIdentity', 'newSplitResponse', 'protectedSplit', 'formulaSplit']) {
+    const p = setupSplit({ [option]: true });
+    p.ctx.runClearAllData();
+    assert.equal(p.alerts.at(-1).title, '清除未完成', option);
+    assert.ok(!p.calls.some(call => /^(delete-|clear-|split-delete-|split-clear-)/.test(call)), option);
+    assert.deepEqual(p.batchForms.map(form => form.accepting), [true, false, true, true], option);
+  }
+});
+
+test('split generation appends 14 people and one row per new form, leaving legacy and native responses intact', () => {
+  const p = setupSplit();
+  p.ctx.runGenerateTestData();
+  assert.equal(p.alerts.at(-1).title, '新增完成');
+  assert.match(p.alerts.at(-1).text, /14 筆人員及 4 筆停車場/);
+  assert.deepEqual(p.sheets.map(sheet => sheet.added.length), [14, 0]);
+  assert.deepEqual(p.batchSheets.map(sheet => sheet.added.length), [1, 1, 1, 1]);
+  assert.ok([...p.forms, ...p.batchForms].every(form => form.ids.length === 1));
+  assert.ok(!p.calls.some(call => /delete|clear|accept/.test(call)));
+  const lots = Array.from(p.ctx.readParkingLots_(p.ss));
+  p.batchSheets.forEach((sheet, index) => {
+    const row = sheet.added[0];
+    assert.ok(Number.isFinite(row[0].getTime()));
+    row.slice(1).forEach((value, fieldIndex) => {
+      const title = p.batchHeaders[index][fieldIndex + 1];
+      const lot = lots.find(lot => title.startsWith(lot.name + '｜'));
+      const capacity = title.endsWith('汽車位') ? lot.car : lot.motorcycle;
+      assert.equal(value, Math.floor(capacity * 0.4));
+    });
+  });
+});
+
+test('invalid last batch schema or registry prevents every test data append', () => {
+  for (const option of ['badHeader', 'duplicateHeader', 'badRegistry', 'wrongIdentity', 'wrongTitle']) {
+    const p = setupSplit({ [option]: true });
+    p.ctx.runGenerateTestData();
+    assert.equal(p.alerts.at(-1).title, '新增未完成', option);
+    assert.ok([...p.sheets, ...p.batchSheets].every(sheet => sheet.added.length === 0), option);
+  }
+});
+
+test('editor generator rejects split mode before changing any rows', () => {
+  const p = setupSplit();
+  p.ctx.SpreadsheetApp.openById = () => p.ss;
+  assert.throws(() => p.ctx.addParkingTestDataFromEditor(), /四入口模式請使用/);
+  assert.ok([...p.sheets, ...p.batchSheets].every(sheet => sheet.added.length === 0));
+});
+
+test('two-entry reset also clears archived Jingmao fallback data', () => {
+  const p = setupSplit({ twoEntries: true });
+  p.ctx.runClearAllData();
+  assert.equal(p.alerts.at(-1).title, '清除完成');
+  assert.ok([...p.sheets, ...p.batchSheets].every(sheet => sheet.rows === 1));
+  assert.ok(p.batchForms.every(form => form.ids.length === 0));
+});
+
+test('two-entry generation writes only active forms, including merged Jingmao fields', () => {
+  const p = setupSplit({ twoEntries: true });
+  p.ctx.runGenerateTestData();
+  assert.equal(p.alerts.at(-1).title, '新增完成');
+  assert.deepEqual(p.batchSheets.map(sheet => sheet.added.length), [1, 1, 0, 0]);
+  for (const name of ['經貿6停車場', '經貿8停車場']) {
+    const index = p.batchHeaders[0].indexOf(name + '｜目前剩餘汽車位');
+    assert.ok(index > 0);
+    assert.ok(p.batchSheets[0].added[0][index] >= 0);
+  }
+});
+
+test('two-entry reset refuses to leave an unidentified archive behind', () => {
+  const p = setupSplit({ twoEntries: true });
+  p.batchForms[2].getPublishedUrl = () => 'https://docs.google.com/forms/d/e/unrelated/viewform';
+  p.ctx.runClearAllData();
+  assert.equal(p.alerts.at(-1).title, '清除未完成');
+  assert.ok(!p.calls.some(call => /^(delete-|clear-|split-delete-|split-clear-)/.test(call)));
 });

@@ -121,6 +121,7 @@ const PARKING_FORM_TITLE = "「國防知性之旅-成功嶺營區開放」停車
 
 // 一次性更新：只改既有停車場表單的場地選項，不建立表單、不刪除歷史回應。
 function updateParkingLotChoices() {
+  if (typeof parkingSplitActive_ === 'function' && parkingSplitActive_()) throw new Error('已使用兩個回報入口，請執行 setupParkingReports。');
   const id = PropertiesService.getScriptProperties().getProperty("PARKING_FORM_ID");
   if (!id) throw new Error("找不到既有停車場表單 ID，未修改表單。");
   const form = FormApp.openById(id);
@@ -148,6 +149,7 @@ function findParkingFormFile() {
 
 // 一次性升級入口：沿用原表單與網址，舊回應欄位保留於試算表。
 function upgradeParkingRemaining() {
+  if (typeof parkingSplitActive_ === 'function' && parkingSplitActive_()) throw new Error('已使用兩個回報入口，請執行 setupParkingReports。');
   const props = PropertiesService.getScriptProperties();
   const id = props.getProperty("PARKING_FORM_ID");
   let form = id ? FormApp.openById(id) : null;
@@ -218,7 +220,8 @@ function parkingRemainingFormula(sheetName, columns, field, name, capacity) {
   const value = `'${sheetName}'!${columns[field]}2:${columns[field]}`;
   // 精確比對以保留名稱中的 *；不可當成萬用字元，也不可把舊 A～F 對應至新場地。
   const latest = `XLOOKUP("${name}", ${area}, ARRAYFORMULA(IF(${value}="", "未回報", IFERROR(VALUE(${value}), "回報異常"))), "未回報", 0, -1)`;
-  return `=LET(latest,${latest},IF(ISNUMBER(latest),IF(AND(latest>=0,latest<=${capacity},latest=INT(latest)),latest,"回報異常"),latest))`;
+  const legacy = `=LET(latest,${latest},IF(ISNUMBER(latest),IF(AND(latest>=0,latest<=${capacity},latest=INT(latest)),latest,"回報異常"),latest))`;
+  return typeof parkingSplitFormula_ === 'function' ? parkingSplitFormula_(name, field, capacity, legacy) : legacy;
 }
 
 function parkingTotalFormula(field) {
@@ -293,6 +296,7 @@ function findResponseSource(ss, kind) {
 }
 
 function createMultiStationBusSystem(dashboardOnly) {
+  if (typeof parkingSplitActive_ === 'function' && parkingSplitActive_()) dashboardOnly = true;
   Logger.log("🎨 開始對指定試算表 [" + TARGET_SPREADSHEET_ID + "] 進行雙表單建置與看板重繪...");
 
   const ss = SpreadsheetApp.openById(TARGET_SPREADSHEET_ID);

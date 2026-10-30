@@ -1,13 +1,13 @@
 /**
- * 運管中心 → 新增測試資料。附加至目前兩張回應分頁，不覆蓋現有資料。
+ * 運管中心 → 新增測試資料。附加至目前回應分頁，不覆蓋現有資料。
  * 資料供看板展示，不建立 Google Forms 原生回覆。
  * 需與主程式來源辨識函式及「一鍵清空資料」一起安裝。
  */
 function runGenerateTestData() {
   const ui = SpreadsheetApp.getUi();
   const answer = ui.alert('新增測試資料？',
-    '會新增 14 筆人員進離場，及「停車場現況」每個場地各 1 筆剩餘車位測試資料。\n' +
-    '全部標記「測試資料」，保留現有回報；看板統計會包含這批資料。\n' +
+    '會新增 14 筆人員進離場，並按目前回報入口新增停車場剩餘車位測試資料。\n' +
+    '每個現用入口各寫入 1 筆，舊模式每場 1 筆。保留現有回報；看板統計會包含這批資料。\n' +
     '資料直接寫入試算表，不會增加 Google 表單的原生回覆數。', ui.ButtonSet.YES_NO);
   if (answer !== ui.Button.YES) return;
   const lock = LockService.getScriptLock();
@@ -21,12 +21,17 @@ function runGenerateTestData() {
   try {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const lots = readParkingLots_(ss);
-    parkingCount = lots.length;
     const plan = prepareTestDataReset_(ss);
-    const batches = plan.targets.map(target => {
-      const source = findResponseSource(ss, target.kind);
+    const split = plan.targets.some(target => target.kind === 'parkingBatch');
+    const dedicated = plan.targets.filter(target => target.kind === 'parkingBatch' && target.title !== '其他停車場一次回報')
+      .map(target => target.title.replace(/車位回報$/, ''));
+    const batches = plan.targets.filter(target => target.kind !== 'parkingArchive' && (!split || target.kind !== 'parking')).map(target => {
       const headers = target.sheet.getRange(1, 1, 1, target.sheet.getLastColumn()).getValues()[0];
-      return { sheet: target.sheet, rows: buildTestDataRows_(target.kind, source.columns, headers, new Date(), lots) };
+      const rows = target.kind === 'parkingBatch'
+        ? [buildParkingBatchTestRow_(target.title, headers, new Date(), lots, dedicated)]
+        : buildTestDataRows_(target.kind, findResponseSource(ss, target.kind).columns, headers, new Date(), lots);
+      if (target.kind !== 'people') parkingCount += rows.length;
+      return { sheet: target.sheet, rows };
     });
     // 由 Sheets 附加至尾端，避免過期列號覆蓋同時進來的新回報。
     batches.forEach(batch => batch.rows.forEach(row => { batch.sheet.appendRow(row); added++; }));
@@ -41,6 +46,20 @@ function runGenerateTestData() {
   } else {
     ui.alert('新增完成', '已新增 14 筆人員及 ' + parkingCount + ' 筆停車場測試資料，看板會自動更新。', ui.ButtonSet.OK);
   }
+}
+
+function buildParkingBatchTestRow_(title, headers, now, lots, dedicated = ['嶺東科大', '經貿6停車場', '經貿8停車場']) {
+  const selected = title === '其他停車場一次回報' ? lots.filter(lot => !dedicated.includes(lot.name))
+    : lots.filter(lot => lot.name + '車位回報' === title);
+  if (selected.length !== (title === '其他停車場一次回報' ? lots.length - dedicated.length : 1)) throw new Error('停車場場地清單不符：' + title);
+  const fields = selected.flatMap(lot => ['car', 'motorcycle'].filter(field => lot[field] > 0).map(field => ({
+    title: lot.name + '｜目前剩餘' + (field === 'car' ? '汽車' : '機車') + '位', value: Math.floor(lot[field] * 0.4)
+  })));
+  if (!/^(時間戳記|時間標記|Timestamp)$/i.test(String(headers[0]).trim()) || headers.length !== fields.length + 1 ||
+      fields.some(field => headers.filter(header => header === field.title).length !== 1)) {
+    throw new Error('停車場批次回報欄位不符，未新增資料：' + title);
+  }
+  return headers.map((header, index) => index === 0 ? now : fields.find(field => field.title === header).value);
 }
 
 // 場地名稱與容量直接讀「停車場現況」分頁：停車場網頁讀的就是這張表，名稱一定比對得上。
@@ -100,6 +119,7 @@ function buildTestDataRows_(kind, columns, headers, now, lots) {
  */
 function addParkingTestDataFromEditor() {
   const ss = SpreadsheetApp.openById('1SOb3pPSJoxGorKtGzcQuYh3FgNAN3UGD68TE5qR679w');
+  if (ss.getSheetByName('停車場回報入口')) throw new Error('四入口模式請使用「運管中心 → 新增測試資料」，未新增資料。');
   const lots = readParkingLots_(ss);
   // 寫進「停車場現況」公式正在讀的那張回應分頁，網頁才看得到。
   const formula = ss.getSheetByName('停車場現況').getRange(2, 3).getFormula();
